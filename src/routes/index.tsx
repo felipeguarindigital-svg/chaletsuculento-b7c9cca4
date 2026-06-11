@@ -4,6 +4,7 @@ import { EmotionalSplit } from "@/components/landing/EmotionalSplit";
 import { SensoryBlocks } from "@/components/landing/SensoryBlocks";
 import { MasonryGallery } from "@/components/landing/MasonryGallery";
 import { Transformation } from "@/components/landing/Transformation";
+import { ReservasSuculento } from "@/components/landing/ReservasSuculento";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { LocationMap } from "@/components/landing/LocationMap";
 import { Faq } from "@/components/landing/Faq";

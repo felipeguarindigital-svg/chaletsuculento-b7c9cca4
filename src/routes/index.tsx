@@ -76,6 +76,7 @@ function Index() {
       <EmotionalSplit />
       <SensoryBlocks />
       <MasonryGallery />
+      <ReservasSuculento />
       <Transformation />
       <Testimonials />
       <LocationMap />

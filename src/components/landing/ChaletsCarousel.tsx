@@ -132,6 +132,23 @@ export function ChaletsCarousel() {
             opts={{ align: "start", loop: true }}
             className="relative"
           >
+            <div className="mb-8 flex items-center justify-center gap-4">
+              <CarouselPrevious className="relative left-0 top-0 h-10 w-10 translate-y-0 border-gold/40 bg-background text-foreground hover:bg-gold hover:text-foreground" />
+              <div className="flex items-center gap-2">
+                {Array.from({ length: count }).map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => api?.scrollTo(i)}
+                    aria-label={`Ir al chalet ${i + 1}`}
+                    className={`h-2 rounded-full transition-all ${
+                      i === selected ? "w-8 bg-gold" : "w-2 bg-foreground/20"
+                    }`}
+                  />
+                ))}
+              </div>
+              <CarouselNext className="relative right-0 top-0 h-10 w-10 translate-y-0 border-gold/40 bg-background text-foreground hover:bg-gold hover:text-foreground" />
+            </div>
+
             <CarouselContent className="-ml-4">
               {chalets.map((c) => (
                 <CarouselItem
@@ -182,23 +199,6 @@ export function ChaletsCarousel() {
                 </CarouselItem>
               ))}
             </CarouselContent>
-
-            <div className="mt-8 flex items-center justify-center gap-4">
-              <CarouselPrevious className="relative left-0 top-0 h-10 w-10 translate-y-0 border-gold/40 bg-background text-foreground hover:bg-gold hover:text-foreground" />
-              <div className="flex items-center gap-2">
-                {Array.from({ length: count }).map((_, i) => (
-                  <button
-                    key={i}
-                    onClick={() => api?.scrollTo(i)}
-                    aria-label={`Ir al chalet ${i + 1}`}
-                    className={`h-2 rounded-full transition-all ${
-                      i === selected ? "w-8 bg-gold" : "w-2 bg-foreground/20"
-                    }`}
-                  />
-                ))}
-              </div>
-              <CarouselNext className="relative right-0 top-0 h-10 w-10 translate-y-0 border-gold/40 bg-background text-foreground hover:bg-gold hover:text-foreground" />
-            </div>
           </Carousel>
         </div>
       </div>

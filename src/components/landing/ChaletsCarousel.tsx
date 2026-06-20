@@ -59,8 +59,8 @@ const chalets: Chalet[] = [
     ],
   },
   {
-    id: "Huguillo",
-    name: "Huguillo",
+    id: "Ukiyo",
+    name: "Ukiyo",
     description:
       "Una terraza suspendida sobre la montaña. Velas, viento tibio y cielo abierto.",
     image:

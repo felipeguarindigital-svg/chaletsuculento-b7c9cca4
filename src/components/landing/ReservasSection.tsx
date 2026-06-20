@@ -3,7 +3,7 @@ import { ChevronDown, Check } from "lucide-react";
 import ReservasSuculento from "./ReservasSuculento";
 import { Reveal } from "./Reveal";
 
-const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Huguillo", "Satori"];
+const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"];
 
 export function ReservasSection() {
   const [chalet, setChalet] = useState<string>("Suculento");

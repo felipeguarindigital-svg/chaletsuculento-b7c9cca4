@@ -1,5 +1,6 @@
 import { Bath, Trees, Lock, Car, MapPin, Heart, Star, ChevronDown } from "lucide-react";
-import heroImg from "@/assets/hero-jacuzzi-sunset.jpg";
+import heroImg from "@/assets/hero-couple-night.png.asset.json";
+
 
 const amenities = [
   { icon: Bath, label: "Jacuzzi privado" },
@@ -16,8 +17,8 @@ export function Hero() {
       {/* Background */}
       <div className="absolute inset-0">
         <img
-          src={heroImg}
-          alt="Pareja abrazada en jacuzzi privado al atardecer rodeada por el bosque de Santa Elena"
+          src={heroImg.url}
+          alt="Pareja brindando con copas de vino frente a un chalet iluminado por luces cálidas en Santa Elena"
           width={1920}
           height={1280}
           className="h-full w-full object-cover animate-ken-burns"

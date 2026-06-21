@@ -16,7 +16,7 @@ const blocks = [
   },
   {
     img: bed,
-    alt: "Cama acogedora en cabaña de madera",
+    alt: "Interior acogedor de chalet con cama, madera natural y decoración artesanal",
     eyebrow: "02 · Descanso",
     title: "Dormir profundamente rodeado de tranquilidad.",
   },

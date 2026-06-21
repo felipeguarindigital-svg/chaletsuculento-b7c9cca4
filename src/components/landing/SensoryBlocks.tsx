@@ -9,7 +9,7 @@ const jacuzzi = jacuzziAsset.url;
 const blocks = [
   {
     img: jacuzzi,
-    alt: "Jacuzzi con vapor y luces cálidas",
+    alt: "Terraza privada con jacuzzi iluminada por luces cálidas de noche",
     eyebrow: "01 · Calor",
     title: "Agua caliente mientras afuera se siente el frío de la montaña.",
   },

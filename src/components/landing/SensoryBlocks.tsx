@@ -1,8 +1,10 @@
 import { Reveal } from "./Reveal";
-import jacuzzi from "@/assets/sensory-jacuzzi.jpg";
+import jacuzziAsset from "@/assets/sensory-jacuzzi-terrace.jpg.asset.json";
 import bed from "@/assets/sensory-bed.jpg";
 import forest from "@/assets/sensory-forest.jpg";
 import privateImg from "@/assets/sensory-private.jpg";
+
+const jacuzzi = jacuzziAsset.url;
 
 const blocks = [
   {

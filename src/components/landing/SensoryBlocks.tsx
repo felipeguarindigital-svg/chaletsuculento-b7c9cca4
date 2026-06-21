@@ -1,10 +1,11 @@
 import { Reveal } from "./Reveal";
 import jacuzziAsset from "@/assets/sensory-jacuzzi-terrace.jpg.asset.json";
-import bed from "@/assets/sensory-bed.jpg";
+import bedAsset from "@/assets/sensory-satori-interior.jpg.asset.json";
 import forest from "@/assets/sensory-forest.jpg";
 import privateImg from "@/assets/sensory-private.jpg";
 
 const jacuzzi = jacuzziAsset.url;
+const bed = bedAsset.url;
 
 const blocks = [
   {
@@ -15,7 +16,7 @@ const blocks = [
   },
   {
     img: bed,
-    alt: "Cama acogedora en cabaña de madera",
+    alt: "Interior acogedor de chalet con cama, madera natural y decoración artesanal",
     eyebrow: "02 · Descanso",
     title: "Dormir profundamente rodeado de tranquilidad.",
   },

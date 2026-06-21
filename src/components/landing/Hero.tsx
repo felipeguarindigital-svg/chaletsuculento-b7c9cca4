@@ -32,9 +32,7 @@ export function Hero() {
           Suculento <span className="text-gold">·</span> Santa Elena
         </div>
         <a
-          href="https://wa.me/573013060013"
-          target="_blank"
-          rel="noopener"
+          href="#reservas"
           className="hidden md:inline-flex items-center rounded-full border border-cream/40 px-5 py-2 text-sm tracking-wide text-cream backdrop-blur-sm transition hover:bg-cream hover:text-forest-deep"
         >
           Reservar
@@ -60,9 +58,7 @@ export function Hero() {
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
           <a
-            href="https://wa.me/573013060013?text=Hola%2C%20quiero%20reservar%20en%20Chalet%20Suculento"
-            target="_blank"
-            rel="noopener"
+            href="#reservas"
             className="group inline-flex items-center justify-center rounded-full bg-forest-deep px-9 py-4 text-sm font-medium tracking-widest text-cream uppercase shadow-warm transition hover:scale-[1.03] hover:bg-forest-pine"
           >
             Reservar ahora

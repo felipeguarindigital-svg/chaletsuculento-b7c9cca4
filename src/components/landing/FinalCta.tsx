@@ -34,9 +34,7 @@ export function FinalCta() {
 
         <Reveal delay={150} className="mt-12">
           <a
-            href="https://wa.me/573013060013?text=Hola%2C%20quiero%20reservar%20mi%20experiencia%20en%20Chalet%20Suculento"
-            target="_blank"
-            rel="noopener"
+            href="#reservas"
             className="inline-flex items-center justify-center rounded-full bg-gold px-12 py-5 text-sm font-semibold tracking-[0.2em] uppercase text-forest-deep shadow-warm transition hover:scale-[1.04] hover:bg-cream"
           >
             Reservar mi experiencia

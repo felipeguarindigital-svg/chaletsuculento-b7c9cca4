@@ -1,13 +1,15 @@
 import { Reveal } from "./Reveal";
-import jacuzzi from "@/assets/sensory-jacuzzi.jpg";
+import jacuzziAsset from "@/assets/sensory-jacuzzi-terrace.jpg.asset.json";
 import bed from "@/assets/sensory-bed.jpg";
 import forest from "@/assets/sensory-forest.jpg";
 import privateImg from "@/assets/sensory-private.jpg";
 
+const jacuzzi = jacuzziAsset.url;
+
 const blocks = [
   {
     img: jacuzzi,
-    alt: "Jacuzzi con vapor y luces cálidas",
+    alt: "Terraza privada con jacuzzi iluminada por luces cálidas de noche",
     eyebrow: "01 · Calor",
     title: "Agua caliente mientras afuera se siente el frío de la montaña.",
   },

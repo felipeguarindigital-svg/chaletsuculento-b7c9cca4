@@ -1,5 +1,6 @@
 import { Bath, Trees, Lock, Car, MapPin, Heart, Star, ChevronDown } from "lucide-react";
-import heroImg from "@/assets/hero-jacuzzi-sunset.jpg";
+import heroImg from "@/assets/hero-couple-night.png.asset.json";
+
 
 const amenities = [
   { icon: Bath, label: "Jacuzzi privado" },

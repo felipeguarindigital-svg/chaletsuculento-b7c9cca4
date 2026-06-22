@@ -1,11 +1,12 @@
 import { Reveal } from "./Reveal";
 import jacuzziAsset from "@/assets/sensory-jacuzzi-terrace.jpg.asset.json";
 import bedAsset from "@/assets/sensory-satori-interior.jpg.asset.json";
-import forest from "@/assets/sensory-forest.jpg";
+import forestAsset from "@/assets/sensory-chalet-bosque.jpg.asset.json";
 import privateImg from "@/assets/sensory-private.jpg";
 
 const jacuzzi = jacuzziAsset.url;
 const bed = bedAsset.url;
+const forest = forestAsset.url;
 
 const blocks = [
   {

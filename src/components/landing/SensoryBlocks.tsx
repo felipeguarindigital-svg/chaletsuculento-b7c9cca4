@@ -29,7 +29,7 @@ const blocks = [
   },
   {
     img: privateAsset.url,
-    alt: "Terraza privada del chalet",
+    alt: "Pareja en jacuzzi privado del chalet rodeado de bosque en la noche",
     eyebrow: "04 · Intimidad",
     title: "Sin ruido. Sin multitudes. Solo ustedes.",
   },

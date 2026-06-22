@@ -23,7 +23,7 @@ const blocks = [
   },
   {
     img: forest,
-    alt: "Bosque de Santa Elena con neblina",
+    alt: "Chalet con techo verde rodeado de árboles en Santa Elena",
     eyebrow: "03 · Naturaleza",
     title: "Despertar entre árboles y aire puro.",
   },

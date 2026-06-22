@@ -2,7 +2,7 @@ import { Reveal } from "./Reveal";
 import jacuzziAsset from "@/assets/sensory-jacuzzi-terrace.jpg.asset.json";
 import bedAsset from "@/assets/sensory-satori-interior.jpg.asset.json";
 import forestAsset from "@/assets/sensory-chalet-bosque.jpg.asset.json";
-import privateImg from "@/assets/sensory-private.jpg";
+import privateAsset from "@/assets/sensory-jacuzzi-nocturno.jpg.asset.json";
 
 const jacuzzi = jacuzziAsset.url;
 const bed = bedAsset.url;

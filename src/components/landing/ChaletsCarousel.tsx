@@ -10,6 +10,7 @@ import {
 import { Reveal } from "./Reveal";
 import { useEffect, useState } from "react";
 import chaletSuculentoAsset from "@/assets/chalet-suculento.jpg.asset.json";
+import chaletDelBosqueAsset from "@/assets/chalet-del-bosque.jpg.asset.json";
 
 type Chalet = {
   id: string;
@@ -37,8 +38,7 @@ const chalets: Chalet[] = [
     name: "Del Bosque",
     description:
       "Entre helechos y niebla, un escondite donde el tiempo se vuelve lento.",
-    image:
-      "https://images.unsplash.com/photo-1518780664697-55e3ad937233?w=1400&q=80&auto=format&fit=crop",
+    image: chaletDelBosqueAsset.url,
     features: [
       { icon: Flame, label: "Chimenea" },
       { icon: Trees, label: "Inmerso en naturaleza" },

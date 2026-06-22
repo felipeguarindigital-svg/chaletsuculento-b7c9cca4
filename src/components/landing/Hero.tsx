@@ -1,5 +1,5 @@
 import { Bath, Trees, Lock, Car, MapPin, Heart, Star, ChevronDown } from "lucide-react";
-import heroImg from "@/assets/hero-couple-night.png.asset.json";
+import heroImg from "@/assets/hero-portada.jpg.asset.json";
 
 
 const amenities = [

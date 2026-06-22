@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { Reveal } from "./Reveal";
 import { useEffect, useState } from "react";
+import chaletSuculentoAsset from "@/assets/chalet-suculento.jpg.asset.json";
 
 type Chalet = {
   id: string;
@@ -24,8 +25,7 @@ const chalets: Chalet[] = [
     name: "Suculento",
     description:
       "El primer refugio. Madera, vapor y silencio: el lugar donde todo comenzó.",
-    image:
-      "https://images.unsplash.com/photo-1587061949409-02df41d5e562?w=1400&q=80&auto=format&fit=crop",
+    image: chaletSuculentoAsset.url,
     features: [
       { icon: Bath, label: "Jacuzzi privado" },
       { icon: Trees, label: "Vista al bosque" },

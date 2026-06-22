@@ -28,7 +28,7 @@ const blocks = [
     title: "Despertar entre árboles y aire puro.",
   },
   {
-    img: privateImg,
+    img: privateAsset.url,
     alt: "Terraza privada del chalet",
     eyebrow: "04 · Intimidad",
     title: "Sin ruido. Sin multitudes. Solo ustedes.",

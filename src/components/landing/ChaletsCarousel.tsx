@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/carousel";
 import { Reveal } from "./Reveal";
 import { useEffect, useState } from "react";
+import chaletSuculentoAsset from "@/assets/chalet-suculento.jpg.asset.json";
 
 type Chalet = {
   id: string;

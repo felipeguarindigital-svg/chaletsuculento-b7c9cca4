@@ -64,8 +64,7 @@ const chalets: Chalet[] = [
     name: "Ukiyo",
     description:
       "Una terraza suspendida sobre la montaña. Velas, viento tibio y cielo abierto.",
-    image:
-      "https://images.unsplash.com/photo-1455587734955-081b22074882?w=1400&q=80&auto=format&fit=crop",
+    image: chaletUkiyoAsset.url,
     features: [
       { icon: Sun, label: "Terraza privada" },
       { icon: Mountain, label: "Vista panorámica" },

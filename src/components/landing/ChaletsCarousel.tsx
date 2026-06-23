@@ -11,6 +11,7 @@ import { Reveal } from "./Reveal";
 import { useEffect, useState } from "react";
 import chaletSuculentoAsset from "@/assets/chalet-suculento.jpg.asset.json";
 import chaletDelBosqueAsset from "@/assets/chalet-del-bosque.jpg.asset.json";
+import chaletCattleyaAsset from "@/assets/chalet-cattleya.jpg.asset.json";
 
 type Chalet = {
   id: string;

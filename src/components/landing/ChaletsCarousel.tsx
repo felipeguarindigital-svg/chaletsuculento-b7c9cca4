@@ -77,8 +77,7 @@ const chalets: Chalet[] = [
     name: "Satori",
     description:
       "Despertar. Así se llama lo que ocurre dentro: madera cálida, luz dorada, calma total.",
-    image:
-      "https://images.unsplash.com/photo-1505693416388-ac5ce068fe85?w=1400&q=80&auto=format&fit=crop",
+    image: chaletSatoriAsset.url,
     features: [
       { icon: Moon, label: "Ambiente nocturno" },
       { icon: Bath, label: "Jacuzzi privado" },

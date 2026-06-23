@@ -1,4 +1,4 @@
-import finalImg from "@/assets/final-night.jpg";
+import finalImgAsset from "@/assets/final-cta-hammock.jpg.asset.json";
 import { Reveal } from "./Reveal";
 
 export function FinalCta() {

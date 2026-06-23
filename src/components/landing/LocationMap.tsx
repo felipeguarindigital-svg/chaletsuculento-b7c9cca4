@@ -9,7 +9,7 @@ const features = [
 
 export function LocationMap() {
   return (
-    <section className="bg-background py-24 md:py-32">
+    <section id="ubicacion" className="bg-background py-24 md:py-32">
       <div className="mx-auto grid max-w-7xl gap-12 px-6 md:grid-cols-2 md:gap-16">
         <Reveal>
           <p className="font-serif-soft text-sm tracking-[0.3em] text-gold uppercase">

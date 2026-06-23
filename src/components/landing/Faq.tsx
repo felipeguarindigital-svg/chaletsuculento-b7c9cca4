@@ -35,7 +35,7 @@ const faqs = [
 
 export function Faq() {
   return (
-    <section className="bg-cream py-24 md:py-32">
+    <section id="preguntas" className="bg-cream py-24 md:py-32">
       <div className="mx-auto max-w-3xl px-6">
         <div className="text-center">
           <Reveal>

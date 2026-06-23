@@ -6,7 +6,7 @@ export function FinalCta() {
     <section className="relative isolate overflow-hidden text-cream">
       <div className="absolute inset-0 -z-10">
         <img
-          src={finalImg}
+          src={finalImgAsset.url}
           alt="Pareja observando luces cálidas y bosque de noche"
           loading="lazy"
           width={1920}

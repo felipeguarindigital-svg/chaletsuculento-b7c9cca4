@@ -13,7 +13,7 @@ const amenities = [
 
 export function Hero() {
   return (
-    <section className="relative min-h-screen w-full overflow-hidden text-cream">
+    <section id="inicio" className="relative min-h-screen w-full overflow-hidden text-cream">
       {/* Background */}
       <div className="absolute inset-0">
         <img

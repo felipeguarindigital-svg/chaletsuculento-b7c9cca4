@@ -1,4 +1,4 @@
-import finalImg from "@/assets/final-night.jpg";
+import finalImgAsset from "@/assets/final-cta-hammock.jpg.asset.json";
 import { Reveal } from "./Reveal";
 
 export function FinalCta() {
@@ -6,7 +6,7 @@ export function FinalCta() {
     <section className="relative isolate overflow-hidden text-cream">
       <div className="absolute inset-0 -z-10">
         <img
-          src={finalImg}
+          src={finalImgAsset.url}
           alt="Pareja observando luces cálidas y bosque de noche"
           loading="lazy"
           width={1920}

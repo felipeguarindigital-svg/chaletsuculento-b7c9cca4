@@ -11,6 +11,7 @@ import { Reveal } from "./Reveal";
 import { useEffect, useState } from "react";
 import chaletSuculentoAsset from "@/assets/chalet-suculento.jpg.asset.json";
 import chaletDelBosqueAsset from "@/assets/chalet-del-bosque.jpg.asset.json";
+import chaletCattleyaAsset from "@/assets/chalet-cattleya.jpg.asset.json";
 
 type Chalet = {
   id: string;
@@ -50,8 +51,7 @@ const chalets: Chalet[] = [
     name: "Cattleya",
     description:
       "Inspirado en la orquídea de Colombia: íntimo, florido, perfecto para celebrar el amor.",
-    image:
-      "https://images.unsplash.com/photo-1610375461246-83df859d849d?w=1400&q=80&auto=format&fit=crop",
+    image: chaletCattleyaAsset.url,
     features: [
       { icon: Bath, label: "Jacuzzi exterior" },
       { icon: Sparkles, label: "Decoración romántica" },

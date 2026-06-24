@@ -1,49 +1,30 @@
-import { useEffect, useState } from "react";
 import { MessageCircle } from "lucide-react";
-import { cn } from "@/lib/utils";
+
+const WHATSAPP_URL =
+  "https://wa.me/573013060013?text=Hola%2C%20quiero%20reservar%20en%20Chalet%20Suculento";
 
 export function FloatingActions() {
-  const [showLabel, setShowLabel] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => setShowLabel(false), 5000);
-    const onScroll = () => {
-      if (window.scrollY > 80) setShowLabel(false);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      clearTimeout(timer);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, []);
-
   return (
     <>
-      {/* WhatsApp floating bubble */}
-      <div className="fixed bottom-24 right-5 z-50 flex items-center gap-2 md:bottom-6">
+      {/* WhatsApp floating bubble + icon */}
+      <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2 md:bottom-6 md:right-6">
         <a
-          href="https://wa.me/573013060013?text=Hola%2C%20quiero%20reservar%20en%20Chalet%20Suculento"
+          href={WHATSAPP_URL}
           target="_blank"
           rel="noopener"
-          aria-label="¿Tienes dudas? Escríbenos por WhatsApp"
-          onMouseEnter={() => setShowLabel(true)}
-          className={cn(
-            "hidden sm:inline-flex items-center rounded-full bg-white/95 px-4 py-2 text-xs font-medium text-forest-deep shadow-lg border border-gold/30 backdrop-blur transition-all duration-500",
-            showLabel
-              ? "opacity-100 translate-x-0"
-              : "opacity-0 translate-x-3 pointer-events-none",
-          )}
+          aria-label="¿Dudas? Escríbenos por WhatsApp"
+          className="inline-flex items-center rounded-full border border-foreground/10 bg-cream/95 px-3 py-1.5 text-xs font-medium text-forest-deep shadow-sm backdrop-blur"
         >
-          ¿Tienes dudas? Escríbenos
+          ¿Dudas?
         </a>
         <a
-          href="https://wa.me/573013060013?text=Hola%2C%20quiero%20reservar%20en%20Chalet%20Suculento"
+          href={WHATSAPP_URL}
           target="_blank"
           rel="noopener"
           aria-label="Chatear por WhatsApp"
-          className="flex h-14 w-14 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 md:h-16 md:w-16"
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white shadow-lg transition hover:scale-110 md:h-14 md:w-14"
         >
-          <MessageCircle className="h-7 w-7" strokeWidth={1.6} />
+          <MessageCircle className="h-6 w-6 md:h-7 md:w-7" strokeWidth={1.6} />
         </a>
       </div>
 

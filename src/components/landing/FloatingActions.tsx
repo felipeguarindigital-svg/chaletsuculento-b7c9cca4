@@ -7,7 +7,7 @@ export function FloatingActions() {
   return (
     <>
       {/* WhatsApp floating bubble + icon */}
-      <div className="fixed bottom-20 right-4 z-50 flex items-center gap-2 md:bottom-6 md:right-6">
+      <div className="fixed bottom-20 right-4 z-50 flex flex-col items-center gap-2 md:bottom-6 md:right-6">
         <a
           href={WHATSAPP_URL}
           target="_blank"

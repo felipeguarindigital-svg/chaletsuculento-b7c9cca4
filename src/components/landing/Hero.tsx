@@ -23,25 +23,28 @@ export function Hero() {
           height={1280}
           className="h-full w-full object-cover animate-ken-burns"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/35 to-black/80" />
+        <div className="absolute inset-0 bg-black/45" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/85" />
       </div>
 
+
       {/* Content */}
-      <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 pb-24 pt-32 md:pt-40 text-center">
-        <p className="mb-6 font-serif-soft text-base italic tracking-widest text-gold">
+      <div className="relative z-10 mx-auto flex min-h-screen max-w-5xl flex-col items-center justify-center px-6 pb-24 pt-32 md:pt-40 text-center [text-shadow:0_2px_12px_rgb(0_0_0_/_0.55)]">
+        <p className="mb-6 font-serif-soft text-base italic tracking-widest text-gold drop-shadow-md">
           Chalet Suculento · Santa Elena, Medellín
         </p>
 
-        <h1 className="font-display text-balance text-5xl font-medium leading-[1.05] md:text-7xl lg:text-[5.5rem]">
+        <h1 className="font-display text-balance text-5xl font-medium leading-[1.05] md:text-7xl lg:text-[5.5rem] drop-shadow-lg">
           Escápense del ruido.
           <br />
           <span className="italic text-gold">Reconéctense</span> entre el bosque.
         </h1>
 
-        <p className="mt-8 max-w-2xl font-serif-soft text-xl leading-relaxed text-cream/90 md:text-2xl">
+        <p className="mt-8 max-w-2xl font-serif-soft text-xl leading-relaxed text-cream md:text-2xl drop-shadow-md">
           Una experiencia privada en Santa Elena diseñada para descansar,
           celebrar y crear recuerdos inolvidables.
         </p>
+
 
         <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row">
           <a

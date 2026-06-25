@@ -57,7 +57,7 @@ export function SensoryBlocks() {
               i % 2 === 1 ? "md:[&>figure]:order-2" : ""
             }`}
           >
-            <figure className="md:col-span-7 relative overflow-hidden rounded-3xl shadow-warm">
+            <figure className="order-2 md:order-none md:col-span-7 relative overflow-hidden rounded-3xl shadow-warm">
               <img
                 src={b.img}
                 alt={b.alt}
@@ -67,7 +67,7 @@ export function SensoryBlocks() {
                 className="aspect-[4/3] w-full object-cover transition-transform duration-[2400ms] hover:scale-[1.04]"
               />
             </figure>
-            <div className="md:col-span-5">
+            <div className="order-1 md:order-none md:col-span-5">
               <p className="font-sans text-xs tracking-[0.3em] text-gold uppercase">
                 {b.eyebrow}
               </p>

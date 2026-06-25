@@ -119,6 +119,7 @@ export function ChaletsCarousel() {
   const [api, setApi] = useState<CarouselApi | null>(null);
   const [selected, setSelected] = useState(0);
   const [count, setCount] = useState(0);
+  const [galleryOpen, setGalleryOpen] = useState<string | null>(null);
 
   useEffect(() => {
     if (!api) return;
@@ -211,12 +212,23 @@ export function ChaletsCarousel() {
                         ))}
                       </ul>
 
-                      <button
-                        onClick={() => selectChalet(c.id)}
-                        className="mt-7 inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
-                      >
-                        Ver disponibilidad
-                      </button>
+                      <div className="mt-7 flex flex-wrap gap-3">
+                        <button
+                          onClick={() => selectChalet(c.id)}
+                          className="inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
+                        >
+                          Ver disponibilidad
+                        </button>
+                        {chaletGalleries[c.id] && (
+                          <button
+                            onClick={() => setGalleryOpen(c.id)}
+                            className="inline-flex items-center justify-center gap-2 rounded-full border border-gold/50 bg-transparent px-6 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-gold/10"
+                          >
+                            <Images className="h-4 w-4 text-gold" strokeWidth={1.6} />
+                            Ver más fotos
+                          </button>
+                        )}
+                      </div>
                     </div>
                   </article>
                 </CarouselItem>
@@ -225,6 +237,12 @@ export function ChaletsCarousel() {
           </Carousel>
         </div>
       </div>
+      <ChaletLightbox
+        open={galleryOpen !== null}
+        onClose={() => setGalleryOpen(null)}
+        images={galleryOpen ? chaletGalleries[galleryOpen] ?? [] : []}
+        chaletName={galleryOpen ?? ""}
+      />
     </section>
   );
 }

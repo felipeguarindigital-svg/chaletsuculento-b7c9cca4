@@ -188,6 +188,16 @@ export function ChaletsCarousel() {
                         className="h-full w-full object-cover transition duration-[1500ms] group-hover:scale-105"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent" />
+                      {chaletGalleries[c.id] && (
+                        <button
+                          onClick={() => setGalleryOpen(c.id)}
+                          aria-label={`Ver más fotos de ${c.name}`}
+                          className="absolute bottom-3 right-3 inline-flex items-center gap-1.5 rounded-full bg-black/55 px-3 py-1.5 text-[11px] font-medium tracking-[0.15em] uppercase text-cream backdrop-blur-sm transition hover:bg-black/75"
+                        >
+                          <Images className="h-3.5 w-3.5" strokeWidth={1.8} />
+                          Más fotos
+                        </button>
+                      )}
                     </div>
                     <div className="p-7 md:p-9">
                       <p className="font-sans text-[11px] tracking-[0.25em] text-gold uppercase">
@@ -212,23 +222,12 @@ export function ChaletsCarousel() {
                         ))}
                       </ul>
 
-                      <div className="mt-7 flex flex-wrap gap-3">
-                        <button
-                          onClick={() => selectChalet(c.id)}
-                          className="inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
-                        >
-                          Ver disponibilidad
-                        </button>
-                        {chaletGalleries[c.id] && (
-                          <button
-                            onClick={() => setGalleryOpen(c.id)}
-                            className="inline-flex items-center justify-center gap-2 rounded-full border border-gold/50 bg-transparent px-6 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-gold/10"
-                          >
-                            <Images className="h-4 w-4 text-gold" strokeWidth={1.6} />
-                            Ver más fotos
-                          </button>
-                        )}
-                      </div>
+                      <button
+                        onClick={() => selectChalet(c.id)}
+                        className="mt-7 inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
+                      >
+                        Ver disponibilidad
+                      </button>
                     </div>
                   </article>
                 </CarouselItem>

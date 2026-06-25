@@ -22,6 +22,13 @@ import suculento23 from "@/assets/suculento-Foto-23.jpg.asset.json";
 import suculento26 from "@/assets/suculento-Foto-26.jpg.asset.json";
 import suculento29 from "@/assets/suculento-Foto-29.jpg.asset.json";
 import suculento32 from "@/assets/suculento-Foto-32.jpg.asset.json";
+import satori2 from "@/assets/satori-Foto-2.jpg.asset.json";
+import satori6 from "@/assets/satori-Foto-6.jpg.asset.json";
+import satori8 from "@/assets/satori-Foto-8.jpg.asset.json";
+import satori9 from "@/assets/satori-Foto-9.jpg.asset.json";
+import satori16 from "@/assets/satori-Foto-16.jpg.asset.json";
+import satori24 from "@/assets/satori-Foto-24.jpg.asset.json";
+import satori33 from "@/assets/satori-Foto-33.jpg.asset.json";
 import { ChaletLightbox, type LightboxImage } from "./ChaletLightbox";
 
 const chaletGalleries: Record<string, LightboxImage[]> = {
@@ -35,6 +42,16 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: suculento26.url, alt: "Suculento — baño con lavamanos en piedra natural" },
     { src: suculento29.url, alt: "Suculento — habitación cálida con vista al bosque" },
     { src: suculento32.url, alt: "Suculento — sala interior con chimenea y altillo" },
+  ],
+  Satori: [
+    { src: chaletSatoriAsset.url, alt: "Chalet Satori — fachada iluminada de noche" },
+    { src: satori2.url, alt: "Satori — exterior A-frame con luces cálidas y fogata" },
+    { src: satori6.url, alt: "Satori — sala interior con chimenea y sofá" },
+    { src: satori8.url, alt: "Satori — terraza con asador y vista al bosque" },
+    { src: satori9.url, alt: "Satori — habitación con macramé y cama acogedora" },
+    { src: satori16.url, alt: "Satori — baño con ventana al bosque" },
+    { src: satori24.url, alt: "Satori — jacuzzi privado en terraza con vista" },
+    { src: satori33.url, alt: "Satori — cocina equipada en madera" },
   ],
 };
 

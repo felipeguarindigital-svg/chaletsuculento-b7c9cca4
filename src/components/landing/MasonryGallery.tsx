@@ -1,30 +1,24 @@
 import { Reveal } from "./Reveal";
-import g1 from "@/assets/gallery-01.jpg";
-import g2 from "@/assets/gallery-02.jpg";
-import g3 from "@/assets/gallery-03.jpg";
-import g4 from "@/assets/gallery-04.jpg";
-import g5 from "@/assets/gallery-05.jpg";
-import g6 from "@/assets/gallery-06.jpg";
-import g7 from "@/assets/gallery-07.jpg";
-import g8 from "@/assets/gallery-08.jpg";
-import g9 from "@/assets/gallery-09.jpg";
-import heroImg from "@/assets/hero-jacuzzi-sunset.jpg";
-import finalImg from "@/assets/final-night.jpg";
-import sensoryForest from "@/assets/sensory-forest.jpg";
+import g18 from "@/assets/gallery-Foto-18.jpg.asset.json";
+import g31 from "@/assets/gallery-Foto-31.jpg.asset.json";
+import g39 from "@/assets/gallery-Foto-39.jpg.asset.json";
+import g47 from "@/assets/gallery-Foto-47.jpg.asset.json";
+import g50 from "@/assets/gallery-Foto-50.jpg.asset.json";
+import g56 from "@/assets/gallery-Foto-56.jpg.asset.json";
+import g60 from "@/assets/gallery-Foto-60.jpg.asset.json";
+import g66 from "@/assets/gallery-Foto-66.jpg.asset.json";
+import g72 from "@/assets/gallery-Foto-72.jpg.asset.json";
 
 const images = [
-  { src: g1, alt: "Jacuzzi encendido de noche" },
-  { src: g5, alt: "Desayuno en la cama" },
-  { src: g3, alt: "Vista aérea del chalet entre el bosque" },
-  { src: g2, alt: "Habitación con luces cálidas" },
-  { src: g6, alt: "Copas de vino al atardecer" },
-  { src: g9, alt: "Pareja caminando entre la niebla" },
-  { src: g4, alt: "Fogata en la noche" },
-  { src: heroImg, alt: "Atardecer en el jacuzzi" },
-  { src: g8, alt: "Detalles románticos con velas" },
-  { src: g7, alt: "Bosque con neblina típica de Santa Elena" },
-  { src: sensoryForest, alt: "Sol entre los pinos al amanecer" },
-  { src: finalImg, alt: "Cabaña con luces cálidas en la noche" },
+  { src: g18.url, alt: "Pareja abrazada en la terraza rodeada de bosque" },
+  { src: g31.url, alt: "Pareja en columpio de madera con luces cálidas en la noche" },
+  { src: g39.url, alt: "Pareja junto al jardín zen con Buda y velas" },
+  { src: g47.url, alt: "Pareja descansando en la cama del chalet" },
+  { src: g50.url, alt: "Vista frontal del chalet entre la vegetación" },
+  { src: g56.url, alt: "Pareja jugando dominó frente a la chimenea" },
+  { src: g60.url, alt: "Pareja en el sofá disfrutando de la chimenea y TV" },
+  { src: g66.url, alt: "Pareja jugando cartas en el jardín con Buda" },
+  { src: g72.url, alt: "Pareja en el jacuzzi nocturno con la habitación iluminada" },
 ];
 
 export function MasonryGallery() {

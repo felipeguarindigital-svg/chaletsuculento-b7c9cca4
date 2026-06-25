@@ -1,4 +1,4 @@
-import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain } from "lucide-react";
+import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain, Images } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -14,6 +14,29 @@ import chaletDelBosqueAsset from "@/assets/chalet-del-bosque.jpg.asset.json";
 import chaletCattleyaAsset from "@/assets/chalet-cattleya.jpg.asset.json";
 import chaletUkiyoAsset from "@/assets/chalet-ukiyo.jpg.asset.json";
 import chaletSatoriAsset from "@/assets/chalet-satori.jpg.asset.json";
+import suculento6 from "@/assets/suculento-Foto-6.jpg.asset.json";
+import suculento9 from "@/assets/suculento-Foto-9-2.jpg.asset.json";
+import suculento10 from "@/assets/suculento-Foto-10.jpg.asset.json";
+import suculento15 from "@/assets/suculento-Foto-15-2.jpg.asset.json";
+import suculento23 from "@/assets/suculento-Foto-23.jpg.asset.json";
+import suculento26 from "@/assets/suculento-Foto-26.jpg.asset.json";
+import suculento29 from "@/assets/suculento-Foto-29.jpg.asset.json";
+import suculento32 from "@/assets/suculento-Foto-32.jpg.asset.json";
+import { ChaletLightbox, type LightboxImage } from "./ChaletLightbox";
+
+const chaletGalleries: Record<string, LightboxImage[]> = {
+  Suculento: [
+    { src: chaletSuculentoAsset.url, alt: "Chalet Suculento — vista exterior nocturna" },
+    { src: suculento6.url, alt: "Suculento — terraza con asador y luces cálidas" },
+    { src: suculento9.url, alt: "Suculento — fachada A-frame iluminada entre el bosque" },
+    { src: suculento10.url, alt: "Suculento — zona de fogata con hamaca y columpio" },
+    { src: suculento15.url, alt: "Suculento — terraza privada con jacuzzi" },
+    { src: suculento23.url, alt: "Suculento — cocina equipada en madera" },
+    { src: suculento26.url, alt: "Suculento — baño con lavamanos en piedra natural" },
+    { src: suculento29.url, alt: "Suculento — habitación cálida con vista al bosque" },
+    { src: suculento32.url, alt: "Suculento — sala interior con chimenea y altillo" },
+  ],
+};
 
 type Chalet = {
   id: string;

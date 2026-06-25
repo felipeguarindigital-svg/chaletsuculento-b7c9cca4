@@ -22,6 +22,13 @@ import suculento23 from "@/assets/suculento-Foto-23.jpg.asset.json";
 import suculento26 from "@/assets/suculento-Foto-26.jpg.asset.json";
 import suculento29 from "@/assets/suculento-Foto-29.jpg.asset.json";
 import suculento32 from "@/assets/suculento-Foto-32.jpg.asset.json";
+import ukiyo2a from "@/assets/ukiyo-Foto-2-1.jpg.asset.json";
+import ukiyo2b from "@/assets/ukiyo-Foto-2-3.jpg.asset.json";
+import ukiyo3 from "@/assets/ukiyo-Foto-3-1.jpg.asset.json";
+import ukiyo4 from "@/assets/ukiyo-Foto-4.jpg.asset.json";
+import ukiyo5a from "@/assets/ukiyo-Foto-5-1.jpg.asset.json";
+import ukiyo5b from "@/assets/ukiyo-Foto-5-2.jpg.asset.json";
+import ukiyo6 from "@/assets/ukiyo-Foto-6-1.jpg.asset.json";
 import satori2 from "@/assets/satori-Foto-2.jpg.asset.json";
 import satori6 from "@/assets/satori-Foto-6.jpg.asset.json";
 import satori8 from "@/assets/satori-Foto-8.jpg.asset.json";
@@ -42,6 +49,16 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: suculento26.url, alt: "Suculento — baño con lavamanos en piedra natural" },
     { src: suculento29.url, alt: "Suculento — habitación cálida con vista al bosque" },
     { src: suculento32.url, alt: "Suculento — sala interior con chimenea y altillo" },
+  ],
+  Ukiyo: [
+    { src: chaletUkiyoAsset.url, alt: "Chalet Ukiyo — fachada iluminada con jacuzzi exterior" },
+    { src: ukiyo2a.url, alt: "Ukiyo — interior cálido con cama, chimenea y sala" },
+    { src: ukiyo2b.url, alt: "Ukiyo — vista exterior nocturna entre el bosque" },
+    { src: ukiyo3.url, alt: "Ukiyo — cocina integrada con vista al bosque" },
+    { src: ukiyo4.url, alt: "Ukiyo — jacuzzi privado en terraza iluminada" },
+    { src: ukiyo5a.url, alt: "Ukiyo — interior panorámico de la cabaña" },
+    { src: ukiyo5b.url, alt: "Ukiyo — detalle de terraza con jacuzzi y asador" },
+    { src: ukiyo6.url, alt: "Ukiyo — exterior completo con terraza y jardín" },
   ],
   Satori: [
     { src: chaletSatoriAsset.url, alt: "Chalet Satori — fachada iluminada de noche" },

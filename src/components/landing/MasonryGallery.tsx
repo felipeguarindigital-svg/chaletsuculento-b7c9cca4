@@ -23,7 +23,7 @@ const images = [
 
 export function MasonryGallery() {
   return (
-    <section id="galeria" className="bg-background pt-8 pb-16 md:py-32">
+    <section id="galeria" className="bg-background pt-2 pb-16 md:py-32">
       <div className="mx-auto max-w-6xl px-6 text-center">
         <Reveal>
           <p className="font-serif-soft text-sm tracking-[0.3em] text-gold uppercase">

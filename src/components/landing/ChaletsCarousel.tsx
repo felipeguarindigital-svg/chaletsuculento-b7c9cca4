@@ -1,4 +1,4 @@
-import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain, Images } from "lucide-react";
+import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain, Images, Wifi, Tv, Utensils, Bed, Dices, ShowerHead, Clock, Car, PawPrint, AlertTriangle, Hammer } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -117,6 +117,10 @@ type Chalet = {
   description: string;
   image: string;
   features: { icon: typeof Bath; label: string }[];
+  checkIn: string;
+  checkOut: string;
+  specifics: { icon: typeof Bath; label: string }[];
+  warning: string;
 };
 
 const chalets: Chalet[] = [
@@ -131,6 +135,14 @@ const chalets: Chalet[] = [
       { icon: Trees, label: "Vista al bosque" },
       { icon: Coffee, label: "Desayuno incluido" },
     ],
+    checkIn: "3:00 p.m.",
+    checkOut: "12:00 m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Parqueadero privado" },
+    ],
+    warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
   {
     id: "Del Bosque",
@@ -143,6 +155,15 @@ const chalets: Chalet[] = [
       { icon: Trees, label: "Inmerso en naturaleza" },
       { icon: Bath, label: "Jacuzzi privado" },
     ],
+    checkIn: "4:00 p.m.",
+    checkOut: "1:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Trees, label: "Zona de hamacas" },
+      { icon: Car, label: "Zona de parqueadero" },
+    ],
+    warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
   {
     id: "Cattleya",
@@ -155,6 +176,15 @@ const chalets: Chalet[] = [
       { icon: Sparkles, label: "Decoración romántica" },
       { icon: Wine, label: "Botella de bienvenida" },
     ],
+    checkIn: "2:00 p.m.",
+    checkOut: "11:00 a.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con leña" },
+      { icon: Car, label: "Parqueadero privado" },
+      { icon: Bed, label: "Cama auxiliar disponible, capacidad hasta 4 personas" },
+      { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
+    ],
+    warning: "Menores de edad solo con sus padres. Este chalet no incluye chimenea.",
   },
   {
     id: "Ukiyo",
@@ -167,6 +197,15 @@ const chalets: Chalet[] = [
       { icon: Mountain, label: "Vista panorámica" },
       { icon: Flame, label: "Fogata exterior" },
     ],
+    checkIn: "6:00 p.m.",
+    checkOut: "3:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Parqueadero privado" },
+      { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
+    ],
+    warning: "Menores de edad solo con sus padres.",
   },
   {
     id: "Satori",
@@ -179,7 +218,26 @@ const chalets: Chalet[] = [
       { icon: Bath, label: "Jacuzzi privado" },
       { icon: Coffee, label: "Desayuno gourmet" },
     ],
+    checkIn: "5:00 p.m.",
+    checkOut: "2:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Zona de parqueadero" },
+    ],
+    warning: "Menores solo con sus padres. No se aceptan mascotas.",
   },
+];
+
+const includedItems: { icon: typeof Bath; label: string }[] = [
+  { icon: Wifi, label: "Wifi" },
+  { icon: Hammer, label: "Asador a gas listo para usar" },
+  { icon: Tv, label: "TV con plataformas sin anuncios" },
+  { icon: Dices, label: "Juegos de mesa" },
+  { icon: ShowerHead, label: "Baño privado con agua caliente, toallas, papel higiénico y jabón de manos" },
+  { icon: Utensils, label: "Cocina dotada + insumos para preparar desayuno" },
+  { icon: Bed, label: "Cama doble con plumón y calienta colchón" },
+  { icon: Bath, label: "Jacuzzi con hidromasaje" },
 ];
 
 function selectChalet(name: string) {

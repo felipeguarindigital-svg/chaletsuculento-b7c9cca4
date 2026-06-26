@@ -1,5 +1,7 @@
-import coffeeImg from "@/assets/coffee-forest.jpg";
+import cabinAsset from "@/assets/emotional-cabin.jpg.asset.json";
 import { Reveal } from "./Reveal";
+
+const cabinImg = cabinAsset.url;
 
 export function EmotionalSplit() {
   return (

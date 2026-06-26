@@ -45,6 +45,14 @@ import cattleya20 from "@/assets/cattleya-Foto-20.jpg.asset.json";
 import cattleya23 from "@/assets/cattleya-Foto-23.jpg.asset.json";
 import cattleya27 from "@/assets/cattleya-Foto-27.jpg.asset.json";
 import cattleya30 from "@/assets/cattleya-Foto-30.jpg.asset.json";
+import bosque8 from "@/assets/bosque-Foto-8.jpg.asset.json";
+import bosque9 from "@/assets/bosque-Foto-9.jpg.asset.json";
+import bosque18 from "@/assets/bosque-Foto-18.jpg.asset.json";
+import bosque23 from "@/assets/bosque-Foto-23.jpg.asset.json";
+import bosque25 from "@/assets/bosque-Foto-25.jpg.asset.json";
+import bosque30 from "@/assets/bosque-Foto-30.jpg.asset.json";
+import bosque32 from "@/assets/bosque-Foto-32.jpg.asset.json";
+import bosque34 from "@/assets/bosque-Foto-34.jpg.asset.json";
 import { ChaletLightbox, type LightboxImage } from "./ChaletLightbox";
 
 const chaletGalleries: Record<string, LightboxImage[]> = {

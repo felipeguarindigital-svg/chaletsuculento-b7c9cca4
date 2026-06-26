@@ -37,11 +37,32 @@ export function ReservasSection() {
           </p>
         </Reveal>
 
+        <div className="mx-auto mt-10 max-w-md rounded-2xl border border-gold/30 bg-cream/40 px-5 py-4">
+          <p className="font-sans text-[10px] tracking-[0.25em] text-gold uppercase">
+            Tarifas por noche · por pareja
+          </p>
+          <ul className="mt-2 space-y-1 text-sm text-foreground/85">
+            <li className="flex justify-between gap-3">
+              <span>🗓️ Domingo a Jueves</span>
+              <span className="font-medium">$350.000</span>
+            </li>
+            <li className="flex justify-between gap-3">
+              <span>🗓️ Viernes</span>
+              <span className="font-medium">$420.000</span>
+            </li>
+            <li className="flex justify-between gap-3">
+              <span>🗓️ Sábado &amp; Previa Festivo</span>
+              <span className="font-medium">$495.000</span>
+            </li>
+          </ul>
+        </div>
+
         {/* Dropdown */}
-        <div className="mx-auto mt-12 max-w-md">
+        <div className="mx-auto mt-8 max-w-md">
           <label className="block font-sans text-[11px] tracking-[0.25em] text-muted-foreground uppercase">
             Chalet
           </label>
+
           <div className="relative mt-2">
             <button
               type="button"

@@ -44,6 +44,15 @@ function fmtKey(k: string) {
   return `${parseInt(d)} ${MONTH_SHORT[parseInt(m) - 1]} ${y}`;
 }
 
+// Mapeo entre el nombre visible del chalet y el nombre exacto de la pestaña en el Google Sheet
+const SHEET_TAB_BY_CHALET: Record<string, string> = {
+  "Suculento": "Suculento",
+  "Del Bosque": "DelBosque",
+  "Cattleya": "Cattleya",
+  "Ukiyo": "Ukiyo",
+  "Satori": "Satori",
+};
+
 export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -59,14 +68,30 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch(APPS_SCRIPT_URL)
+    const sheet = SHEET_TAB_BY_CHALET[chaletName] ?? "Suculento";
+    setLoading(true);
+    setBlocked([]);
+    // Al cambiar de chalet limpiamos selección previa para no arrastrar fechas
+    setSelectStart(null);
+    setSelectEnd(null);
+
+    // Enviamos varios alias del parámetro para máxima compatibilidad con el Apps Script
+    const url = `${APPS_SCRIPT_URL}?chalet=${encodeURIComponent(sheet)}&sheet=${encodeURIComponent(sheet)}&tab=${encodeURIComponent(sheet)}`;
+    let cancelled = false;
+    fetch(url)
       .then((r) => r.json())
       .then((data: unknown) => {
+        if (cancelled) return;
         setBlocked(Array.isArray(data) ? (data as string[]) : []);
         setLoading(false);
       })
-      .catch(() => setLoading(false));
-  }, []);
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [chaletName]);
 
   function changeMonth(dir: number) {
     let m = viewMonth + dir;

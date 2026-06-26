@@ -5,8 +5,9 @@ import { SensoryBlocks } from "@/components/landing/SensoryBlocks";
 import { MasonryGallery } from "@/components/landing/MasonryGallery";
 import { Transformation } from "@/components/landing/Transformation";
 import { ChaletsCarousel } from "@/components/landing/ChaletsCarousel";
-import { Tarifas } from "@/components/landing/Tarifas";
+import { ReservaCta } from "@/components/landing/ReservaCta";
 import { ReservasSection } from "@/components/landing/ReservasSection";
+
 import { Testimonials } from "@/components/landing/Testimonials";
 import { LocationMap } from "@/components/landing/LocationMap";
 import { Faq } from "@/components/landing/Faq";
@@ -80,12 +81,25 @@ function Index() {
       <EmotionalSplit />
       <SensoryBlocks />
       <ChaletsCarousel />
-      <Tarifas />
+      <ReservaCta
+        eyebrow="Ya viste qué incluye cada refugio."
+        title="¿Cuál es tu favorito?"
+        buttonLabel="Reservar mi chalet"
+      />
       <MasonryGallery />
       <Transformation />
       <Testimonials />
+      <ReservaCta
+        eyebrow="184 parejas confirman: 5 estrellas de verdad."
+        title="¿Listo para tu experiencia?"
+        buttonLabel="Reservar mi experiencia"
+      />
       <LocationMap />
       <Faq />
+      <ReservaCta
+        title="¿Listo para desconectarte?"
+        buttonLabel="Reservar ahora"
+      />
       <ReservasSection />
       <FinalCta />
       <Footer />
@@ -93,3 +107,4 @@ function Index() {
     </main>
   );
 }
+

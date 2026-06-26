@@ -99,6 +99,16 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: cattleya27.url, alt: "Cattleya — baño con detalles en bambú y espejo redondo" },
     { src: cattleya30.url, alt: "Cattleya — vista interior A-frame hacia la hamaca y montaña" },
   ],
+  "Del Bosque": [
+    { src: bosque8.url, alt: "Del Bosque — fachada A-frame iluminada de noche con jacuzzi" },
+    { src: bosque9.url, alt: "Del Bosque — zona de asador bajo pérgola con luces" },
+    { src: bosque18.url, alt: "Del Bosque — escaleras, columpio y fogata entre el bosque" },
+    { src: bosque23.url, alt: "Del Bosque — baño en madera con espejo redondo iluminado" },
+    { src: bosque25.url, alt: "Del Bosque — sala interior con chimenea y vista a la terraza" },
+    { src: bosque30.url, alt: "Del Bosque — habitación A-frame con cama y bar" },
+    { src: bosque32.url, alt: "Del Bosque — cocina equipada con vista al bosque" },
+    { src: bosque34.url, alt: "Del Bosque — interior A-frame con sofá y luz natural" },
+  ],
 };
 
 type Chalet = {

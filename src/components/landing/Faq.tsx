@@ -310,47 +310,54 @@ export function Faq() {
           </Reveal>
         </div>
 
-        <div className="mt-14 space-y-10">
-          {blocks.map((block) => {
-            const Icon = block.icon;
-            return (
-              <Reveal key={block.id}>
-                <div className="rounded-2xl border border-gold/30 bg-background/40 p-6 md:p-8 shadow-soft">
-                  <div className="flex items-center gap-3 border-b border-gold/30 pb-4">
-                    <span className={`flex h-10 w-10 items-center justify-center rounded-full bg-cream ${block.accent}`}>
-                      <Icon size={20} />
+        <Reveal className="mt-14">
+          <Accordion type="single" collapsible className="w-full space-y-4">
+            {blocks.map((block) => {
+              const Icon = block.icon;
+              return (
+                <AccordionItem
+                  key={block.id}
+                  value={block.id}
+                  className="overflow-hidden rounded-2xl border border-gold/30 bg-background/40 shadow-soft"
+                >
+                  <AccordionTrigger className="px-6 py-5 hover:no-underline md:px-8 md:py-6">
+                    <span className="flex items-center gap-4 text-left">
+                      <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-cream ${block.accent}`}>
+                        <Icon size={20} />
+                      </span>
+                      <span className="font-display text-xl text-forest-deep md:text-2xl">
+                        {block.title}
+                      </span>
                     </span>
-                    <h3 className="font-display text-2xl text-forest-deep md:text-3xl">
-                      {block.title}
-                    </h3>
-                  </div>
-
-                  <Accordion type="single" collapsible className="w-full">
-                    {block.items.map((item, i) => (
-                      <AccordionItem
-                        key={i}
-                        value={`${block.id}-${i}`}
-                        className="border-b border-gold/20 last:border-b-0"
-                      >
-                        <AccordionTrigger className="py-5 text-left font-display text-lg text-forest-deep hover:no-underline md:text-xl">
-                          <span className="flex items-start gap-3">
-                            <span className={`mt-0.5 font-serif-soft text-sm ${block.accent}`}>
-                              {String(i + 1).padStart(2, "0")}
+                  </AccordionTrigger>
+                  <AccordionContent className="px-6 pb-2 md:px-8">
+                    <Accordion type="single" collapsible className="w-full border-t border-gold/20">
+                      {block.items.map((item, i) => (
+                        <AccordionItem
+                          key={i}
+                          value={`${block.id}-${i}`}
+                          className="border-b border-gold/20 last:border-b-0"
+                        >
+                          <AccordionTrigger className="py-4 text-left font-display text-base text-forest-deep hover:no-underline md:text-lg">
+                            <span className="flex items-start gap-3">
+                              <span className={`mt-0.5 font-serif-soft text-sm ${block.accent}`}>
+                                {String(i + 1).padStart(2, "0")}
+                              </span>
+                              <span>{item.q}</span>
                             </span>
-                            <span>{item.q}</span>
-                          </span>
-                        </AccordionTrigger>
-                        <AccordionContent className="font-serif-soft text-base leading-relaxed text-foreground/80 md:text-lg">
-                          <div className="pl-9 space-y-3">{item.a}</div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                </div>
-              </Reveal>
-            );
-          })}
-        </div>
+                          </AccordionTrigger>
+                          <AccordionContent className="font-serif-soft text-base leading-relaxed text-foreground/80 md:text-lg">
+                            <div className="pl-9 space-y-3">{item.a}</div>
+                          </AccordionContent>
+                        </AccordionItem>
+                      ))}
+                    </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              );
+            })}
+          </Accordion>
+        </Reveal>
       </div>
     </section>
   );

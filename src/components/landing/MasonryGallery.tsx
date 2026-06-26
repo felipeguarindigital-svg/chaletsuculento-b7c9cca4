@@ -1,5 +1,4 @@
 import { Reveal } from "./Reveal";
-import g18 from "@/assets/gallery-Foto-18.jpg.asset.json";
 import g31 from "@/assets/gallery-Foto-31.jpg.asset.json";
 import g39 from "@/assets/gallery-Foto-39.jpg.asset.json";
 import g47 from "@/assets/gallery-Foto-47.jpg.asset.json";
@@ -10,7 +9,6 @@ import g66 from "@/assets/gallery-Foto-66.jpg.asset.json";
 import g72 from "@/assets/gallery-Foto-72.jpg.asset.json";
 
 const images = [
-  { src: g18.url, alt: "Pareja abrazada en la terraza rodeada de bosque" },
   { src: g31.url, alt: "Pareja en columpio de madera con luces cálidas en la noche" },
   { src: g39.url, alt: "Pareja junto al jardín zen con Buda y velas" },
   { src: g47.url, alt: "Pareja descansando en la cama del chalet" },

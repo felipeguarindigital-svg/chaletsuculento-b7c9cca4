@@ -265,7 +265,7 @@ export function ChaletsCarousel() {
   }, [api]);
 
   return (
-    <section id="chalets" className="bg-background py-24 md:py-32">
+    <section id="chalets" className="bg-background pt-16 pb-10 md:py-32">
       <div className="mx-auto max-w-7xl px-6">
         <Reveal>
           <p className="text-center font-sans text-xs tracking-[0.3em] text-gold uppercase">

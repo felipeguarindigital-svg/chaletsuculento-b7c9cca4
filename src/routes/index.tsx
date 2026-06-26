@@ -5,8 +5,9 @@ import { SensoryBlocks } from "@/components/landing/SensoryBlocks";
 import { MasonryGallery } from "@/components/landing/MasonryGallery";
 import { Transformation } from "@/components/landing/Transformation";
 import { ChaletsCarousel } from "@/components/landing/ChaletsCarousel";
-import { Tarifas } from "@/components/landing/Tarifas";
+import { ReservaCta } from "@/components/landing/ReservaCta";
 import { ReservasSection } from "@/components/landing/ReservasSection";
+
 import { Testimonials } from "@/components/landing/Testimonials";
 import { LocationMap } from "@/components/landing/LocationMap";
 import { Faq } from "@/components/landing/Faq";

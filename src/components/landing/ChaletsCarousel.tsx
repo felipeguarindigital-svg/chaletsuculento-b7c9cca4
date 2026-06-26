@@ -178,7 +178,6 @@ const chalets: Chalet[] = [
     checkOut: "11:00 a.m.",
     specifics: [
       { icon: Flame, label: "Zona de fogata con leña" },
-      { icon: Car, label: "Parqueadero privado" },
       { icon: Bed, label: "Cama auxiliar disponible, capacidad hasta 4 personas" },
       { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
     ],

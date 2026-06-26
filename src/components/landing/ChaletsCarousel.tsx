@@ -399,12 +399,33 @@ export function ChaletsCarousel() {
                         <span className="leading-snug">{c.warning}</span>
                       </div>
 
-                      <button
-                        onClick={() => selectChalet(c.id)}
-                        className="mt-7 inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
-                      >
-                        Ver disponibilidad
-                      </button>
+                      <p className="mt-6 font-sans text-sm text-gold/90">
+                        <span className="mr-1">💰</span>
+                        <span className="font-medium">Desde $350.000</span>
+                        <span className="text-muted-foreground"> / noche</span>
+                      </p>
+
+                      <div className="mt-5 flex flex-wrap gap-3">
+                        {chaletGalleries[c.id] && (
+                          <button
+                            onClick={() => setGalleryOpen(c.id)}
+                            className="inline-flex items-center justify-center rounded-full border border-gold/50 bg-transparent px-6 py-2.5 text-[11px] font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-gold/15"
+                          >
+                            Ver fotos
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            const el = document.getElementById("preguntas");
+                            if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                          }}
+                          className="inline-flex items-center justify-center rounded-full border border-foreground/20 bg-transparent px-6 py-2.5 text-[11px] font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-foreground/5"
+                        >
+                          Leer detalles
+                        </button>
+                      </div>
+
+
 
                     </div>
                   </article>

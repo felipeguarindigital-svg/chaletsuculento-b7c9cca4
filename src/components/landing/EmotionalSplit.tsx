@@ -9,7 +9,7 @@ export function EmotionalSplit() {
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-20">
         <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-warm md:aspect-[3/4]">
           <img
-            src={coffeeImg}
+            src={cabinImg}
             alt="Café humeante entre los árboles de Santa Elena"
             loading="lazy"
             width={1280}

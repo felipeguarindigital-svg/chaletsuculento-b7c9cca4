@@ -68,12 +68,28 @@ export function Hero() {
               <Star key={i} className="h-4 w-4 fill-gold" strokeWidth={0} />
             ))}
           </div>
-          <p className="font-sans text-xs tracking-[0.2em] text-cream/80 uppercase">
-            5.0 · +180 experiencias memorables
-          </p>
-          <p className="mt-1 font-serif-soft text-base italic text-cream/70">
-            A menos de 45 minutos de Medellín
-          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 font-sans text-xs tracking-[0.2em] text-cream/80 uppercase">
+            <span>5.0 · +180 experiencias memorables</span>
+            <span className="hidden sm:inline text-cream/40">·</span>
+            <TooltipProvider delayDuration={150}>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex items-center gap-1.5 cursor-help">
+                    <ShieldCheck className="h-3.5 w-3.5 text-gold" strokeWidth={1.5} />
+                    RNT: 165821
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs text-center normal-case tracking-normal">
+                  Registro Nacional de Turismo - Operador legalmente registrado ante el Ministerio de Comercio, Industria y Turismo de Colombia
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+            <span className="hidden sm:inline text-cream/40">·</span>
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-gold" strokeWidth={1.5} />
+              A menos de 45 minutos de Medellín
+            </span>
+          </div>
         </div>
 
         {/* Amenities */}

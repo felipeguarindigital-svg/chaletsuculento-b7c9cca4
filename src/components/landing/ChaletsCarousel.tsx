@@ -1,4 +1,4 @@
-import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain, Images } from "lucide-react";
+import { Bath, Trees, Flame, Sun, Coffee, Wine, Moon, Sparkles, Mountain, Images, Wifi, Tv, Utensils, Bed, Dices, ShowerHead, Clock, Car, PawPrint, AlertTriangle, Hammer } from "lucide-react";
 import {
   Carousel,
   CarouselContent,
@@ -117,6 +117,10 @@ type Chalet = {
   description: string;
   image: string;
   features: { icon: typeof Bath; label: string }[];
+  checkIn: string;
+  checkOut: string;
+  specifics: { icon: typeof Bath; label: string }[];
+  warning: string;
 };
 
 const chalets: Chalet[] = [
@@ -131,6 +135,14 @@ const chalets: Chalet[] = [
       { icon: Trees, label: "Vista al bosque" },
       { icon: Coffee, label: "Desayuno incluido" },
     ],
+    checkIn: "3:00 p.m.",
+    checkOut: "12:00 m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Parqueadero privado" },
+    ],
+    warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
   {
     id: "Del Bosque",
@@ -143,6 +155,15 @@ const chalets: Chalet[] = [
       { icon: Trees, label: "Inmerso en naturaleza" },
       { icon: Bath, label: "Jacuzzi privado" },
     ],
+    checkIn: "4:00 p.m.",
+    checkOut: "1:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Trees, label: "Zona de hamacas" },
+      { icon: Car, label: "Zona de parqueadero" },
+    ],
+    warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
   {
     id: "Cattleya",
@@ -155,6 +176,15 @@ const chalets: Chalet[] = [
       { icon: Sparkles, label: "Decoración romántica" },
       { icon: Wine, label: "Botella de bienvenida" },
     ],
+    checkIn: "2:00 p.m.",
+    checkOut: "11:00 a.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con leña" },
+      { icon: Car, label: "Parqueadero privado" },
+      { icon: Bed, label: "Cama auxiliar disponible, capacidad hasta 4 personas" },
+      { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
+    ],
+    warning: "Menores de edad solo con sus padres. Este chalet no incluye chimenea.",
   },
   {
     id: "Ukiyo",
@@ -167,6 +197,15 @@ const chalets: Chalet[] = [
       { icon: Mountain, label: "Vista panorámica" },
       { icon: Flame, label: "Fogata exterior" },
     ],
+    checkIn: "6:00 p.m.",
+    checkOut: "3:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Parqueadero privado" },
+      { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
+    ],
+    warning: "Menores de edad solo con sus padres.",
   },
   {
     id: "Satori",
@@ -179,7 +218,26 @@ const chalets: Chalet[] = [
       { icon: Bath, label: "Jacuzzi privado" },
       { icon: Coffee, label: "Desayuno gourmet" },
     ],
+    checkIn: "5:00 p.m.",
+    checkOut: "2:00 p.m.",
+    specifics: [
+      { icon: Flame, label: "Zona de fogata con leña" },
+      { icon: Flame, label: "Chimenea (bioetanol incluido)" },
+      { icon: Car, label: "Zona de parqueadero" },
+    ],
+    warning: "Menores solo con sus padres. No se aceptan mascotas.",
   },
+];
+
+const includedItems: { icon: typeof Bath; label: string }[] = [
+  { icon: Wifi, label: "Wifi" },
+  { icon: Hammer, label: "Asador a gas listo para usar" },
+  { icon: Tv, label: "TV con plataformas sin anuncios" },
+  { icon: Dices, label: "Juegos de mesa" },
+  { icon: ShowerHead, label: "Baño privado con agua caliente, toallas, papel higiénico y jabón de manos" },
+  { icon: Utensils, label: "Cocina dotada + insumos para preparar desayuno" },
+  { icon: Bed, label: "Cama doble con plumón y calienta colchón" },
+  { icon: Bath, label: "Jacuzzi con hidromasaje" },
 ];
 
 function selectChalet(name: string) {
@@ -222,6 +280,35 @@ export function ChaletsCarousel() {
             cinco maneras distintas de sentirlo.
           </p>
         </Reveal>
+
+        <Reveal>
+          <div className="mt-14 rounded-3xl border border-gold/30 bg-cream/40 p-8 md:p-10">
+            <h3 className="text-center font-display text-2xl font-medium text-foreground md:text-3xl">
+              Esto incluye toda tu estadía
+            </h3>
+            <p className="mt-2 text-center font-serif-soft text-sm italic text-muted-foreground">
+              Lo mismo en los 5 chalets — pensado para que solo traigan equipaje y ganas de desconectarse.
+            </p>
+            <ul className="mt-7 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+              {includedItems.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-start gap-3 text-sm text-foreground/85">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+                    <Icon className="h-4 w-4" strokeWidth={1.7} />
+                  </span>
+                  <span className="leading-snug">{label}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 flex items-start gap-2 text-xs italic text-muted-foreground">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-wood" strokeWidth={1.8} />
+              <span>
+                No incluye elementos de aseo personal como shampoo, acondicionador o jabón corporal.
+              </span>
+            </p>
+          </div>
+        </Reveal>
+
+
 
         <div className="mt-14">
           <Carousel
@@ -295,12 +382,42 @@ export function ChaletsCarousel() {
                         ))}
                       </ul>
 
+                      <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-deep px-4 py-2 text-cream shadow-sm">
+                        <Clock className="h-4 w-4" strokeWidth={1.8} />
+                        <span className="font-sans text-[11px] tracking-[0.2em] uppercase">
+                          Ingreso {c.checkIn} · Salida {c.checkOut}
+                        </span>
+                      </div>
+
+                      <div className="mt-5 rounded-2xl border border-border/70 bg-background/60 p-5">
+                        <p className="font-sans text-[10px] tracking-[0.25em] text-gold uppercase">
+                          Lo que tiene este chalet
+                        </p>
+                        <ul className="mt-3 space-y-2.5">
+                          {c.specifics.map(({ icon: Icon, label }) => (
+                            <li
+                              key={label}
+                              className="flex items-start gap-2.5 text-sm text-foreground/85"
+                            >
+                              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-wood" strokeWidth={1.6} />
+                              <span className="leading-snug">{label}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-xs text-foreground/80">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-wood" strokeWidth={1.8} />
+                        <span className="leading-snug">{c.warning}</span>
+                      </div>
+
                       <button
                         onClick={() => selectChalet(c.id)}
                         className="mt-7 inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
                       >
                         Ver disponibilidad
                       </button>
+
                     </div>
                   </article>
                 </CarouselItem>

@@ -36,6 +36,15 @@ import satori9 from "@/assets/satori-Foto-9.jpg.asset.json";
 import satori16 from "@/assets/satori-Foto-16.jpg.asset.json";
 import satori24 from "@/assets/satori-Foto-24.jpg.asset.json";
 import satori33 from "@/assets/satori-Foto-33.jpg.asset.json";
+import cattleya5 from "@/assets/cattleya-Foto-5.jpg.asset.json";
+import cattleya7 from "@/assets/cattleya-Foto-7.jpg.asset.json";
+import cattleya16 from "@/assets/cattleya-Foto-16.jpg.asset.json";
+import cattleya18 from "@/assets/cattleya-Foto-18.jpg.asset.json";
+import cattleya19 from "@/assets/cattleya-Foto-19.jpg.asset.json";
+import cattleya20 from "@/assets/cattleya-Foto-20.jpg.asset.json";
+import cattleya23 from "@/assets/cattleya-Foto-23.jpg.asset.json";
+import cattleya27 from "@/assets/cattleya-Foto-27.jpg.asset.json";
+import cattleya30 from "@/assets/cattleya-Foto-30.jpg.asset.json";
 import { ChaletLightbox, type LightboxImage } from "./ChaletLightbox";
 
 const chaletGalleries: Record<string, LightboxImage[]> = {

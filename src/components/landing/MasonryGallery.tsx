@@ -9,7 +9,7 @@ import g72 from "@/assets/gallery-Foto-72.jpg.asset.json";
 
 const images = [
   { src: g31.url, alt: "Pareja en columpio de madera con luces cálidas en la noche" },
-  { src: g39.url, alt: "Pareja junto al jardín zen con Buda y velas" },
+  
   { src: g47.url, alt: "Pareja descansando en la cama del chalet" },
   { src: g50.url, alt: "Vista frontal del chalet entre la vegetación" },
   { src: g56.url, alt: "Pareja jugando dominó frente a la chimenea" },

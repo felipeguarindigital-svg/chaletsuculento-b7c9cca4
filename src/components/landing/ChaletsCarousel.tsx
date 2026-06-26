@@ -281,6 +281,35 @@ export function ChaletsCarousel() {
           </p>
         </Reveal>
 
+        <Reveal>
+          <div className="mt-14 rounded-3xl border border-gold/30 bg-cream/40 p-8 md:p-10">
+            <h3 className="text-center font-display text-2xl font-medium text-foreground md:text-3xl">
+              Esto incluye toda tu estadía
+            </h3>
+            <p className="mt-2 text-center font-serif-soft text-sm italic text-muted-foreground">
+              Lo mismo en los 5 chalets — pensado para que solo traigan equipaje y ganas de desconectarse.
+            </p>
+            <ul className="mt-7 grid grid-cols-1 gap-x-8 gap-y-4 sm:grid-cols-2 lg:grid-cols-4">
+              {includedItems.map(({ icon: Icon, label }) => (
+                <li key={label} className="flex items-start gap-3 text-sm text-foreground/85">
+                  <span className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold/15 text-gold">
+                    <Icon className="h-4 w-4" strokeWidth={1.7} />
+                  </span>
+                  <span className="leading-snug">{label}</span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-6 flex items-start gap-2 text-xs italic text-muted-foreground">
+              <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-wood" strokeWidth={1.8} />
+              <span>
+                No incluye elementos de aseo personal como shampoo, acondicionador o jabón corporal.
+              </span>
+            </p>
+          </div>
+        </Reveal>
+
+
+
         <div className="mt-14">
           <Carousel
             setApi={setApi}

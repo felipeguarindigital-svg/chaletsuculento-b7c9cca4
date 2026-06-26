@@ -22,13 +22,13 @@ import suculento23 from "@/assets/suculento-Foto-23.jpg.asset.json";
 import suculento26 from "@/assets/suculento-Foto-26.jpg.asset.json";
 import suculento29 from "@/assets/suculento-Foto-29.jpg.asset.json";
 import suculento32 from "@/assets/suculento-Foto-32.jpg.asset.json";
-import ukiyo2a from "@/assets/ukiyo-Foto-2-1.jpg.asset.json";
-import ukiyo2b from "@/assets/ukiyo-Foto-2-3.jpg.asset.json";
-import ukiyo3 from "@/assets/ukiyo-Foto-3-1.jpg.asset.json";
-import ukiyo4 from "@/assets/ukiyo-Foto-4.jpg.asset.json";
-import ukiyo5a from "@/assets/ukiyo-Foto-5-1.jpg.asset.json";
-import ukiyo5b from "@/assets/ukiyo-Foto-5-2.jpg.asset.json";
-import ukiyo6 from "@/assets/ukiyo-Foto-6-1.jpg.asset.json";
+import ukiyoNew1 from "@/assets/ukiyo-new-foto.jpg.asset.json";
+import ukiyoNew2 from "@/assets/ukiyo-new-foto-15-3.jpg.asset.json";
+import ukiyoNew3 from "@/assets/ukiyo-new-foto-19-2.jpg.asset.json";
+import ukiyoNew4 from "@/assets/ukiyo-new-foto-22.jpg.asset.json";
+import ukiyoNew5 from "@/assets/ukiyo-new-foto-28.jpg.asset.json";
+import ukiyoNew6 from "@/assets/ukiyo-new-foto-31-2.jpg.asset.json";
+import ukiyoNew7 from "@/assets/ukiyo-new-foto-35.jpg.asset.json";
 import satori2 from "@/assets/satori-Foto-2.jpg.asset.json";
 import satori6 from "@/assets/satori-Foto-6.jpg.asset.json";
 import satori8 from "@/assets/satori-Foto-8.jpg.asset.json";
@@ -68,14 +68,13 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: suculento32.url, alt: "Suculento — sala interior con chimenea y altillo" },
   ],
   Ukiyo: [
-    { src: chaletUkiyoAsset.url, alt: "Chalet Ukiyo — fachada iluminada con jacuzzi exterior" },
-    { src: ukiyo2a.url, alt: "Ukiyo — interior cálido con cama, chimenea y sala" },
-    { src: ukiyo2b.url, alt: "Ukiyo — vista exterior nocturna entre el bosque" },
-    { src: ukiyo3.url, alt: "Ukiyo — cocina integrada con vista al bosque" },
-    { src: ukiyo4.url, alt: "Ukiyo — jacuzzi privado en terraza iluminada" },
-    { src: ukiyo5a.url, alt: "Ukiyo — interior panorámico de la cabaña" },
-    { src: ukiyo5b.url, alt: "Ukiyo — detalle de terraza con jacuzzi y asador" },
-    { src: ukiyo6.url, alt: "Ukiyo — exterior completo con terraza y jardín" },
+    { src: ukiyoNew1.url, alt: "Ukiyo — fachada A-frame con jacuzzi privado en terraza" },
+    { src: ukiyoNew2.url, alt: "Ukiyo — terraza con vista al jardín zen y Buda" },
+    { src: ukiyoNew3.url, alt: "Ukiyo — cocina integrada con vista al bosque" },
+    { src: ukiyoNew4.url, alt: "Ukiyo — interior cálido con chimenea, TV y cama" },
+    { src: ukiyoNew5.url, alt: "Ukiyo — sala con chimenea y acceso a la terraza" },
+    { src: ukiyoNew6.url, alt: "Ukiyo — baño privado con ventana al bosque" },
+    { src: ukiyoNew7.url, alt: "Ukiyo — zona de fogata y hamaca entre el bosque" },
   ],
   Satori: [
     { src: satori2.url, alt: "Satori — exterior A-frame con luces cálidas y fogata" },

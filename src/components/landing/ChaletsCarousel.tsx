@@ -370,18 +370,6 @@ export function ChaletsCarousel() {
                         {c.description}
                       </p>
 
-                      <ul className="mt-6 flex flex-wrap gap-x-6 gap-y-3">
-                        {c.features.map(({ icon: Icon, label }) => (
-                          <li
-                            key={label}
-                            className="flex items-center gap-2 text-sm text-foreground/80"
-                          >
-                            <Icon className="h-4 w-4 text-gold" strokeWidth={1.6} />
-                            <span>{label}</span>
-                          </li>
-                        ))}
-                      </ul>
-
                       <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-deep px-4 py-2 text-cream shadow-sm">
                         <Clock className="h-4 w-4" strokeWidth={1.8} />
                         <span className="font-sans text-[11px] tracking-[0.2em] uppercase">

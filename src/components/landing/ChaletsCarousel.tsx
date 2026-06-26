@@ -79,6 +79,18 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: satori24.url, alt: "Satori — jacuzzi privado en terraza con vista" },
     { src: satori33.url, alt: "Satori — cocina equipada en madera" },
   ],
+  Cattleya: [
+    { src: chaletCattleyaAsset.url, alt: "Chalet Cattleya — vista aérea entre el bosque" },
+    { src: cattleya5.url, alt: "Cattleya — fachada A-frame iluminada entre la vegetación" },
+    { src: cattleya7.url, alt: "Cattleya — jardín zen con buda, fogata y luces cálidas" },
+    { src: cattleya16.url, alt: "Cattleya — jacuzzi privado interior con luces cálidas" },
+    { src: cattleya18.url, alt: "Cattleya — cocina equipada con TV y atrapasueños" },
+    { src: cattleya19.url, alt: "Cattleya — habitación acogedora con cama king" },
+    { src: cattleya20.url, alt: "Cattleya — cocina completa en madera con TV" },
+    { src: cattleya23.url, alt: "Cattleya — terraza con asador y vista a la montaña" },
+    { src: cattleya27.url, alt: "Cattleya — baño con detalles en bambú y espejo redondo" },
+    { src: cattleya30.url, alt: "Cattleya — vista interior A-frame hacia la hamaca y montaña" },
+  ],
 };
 
 type Chalet = {

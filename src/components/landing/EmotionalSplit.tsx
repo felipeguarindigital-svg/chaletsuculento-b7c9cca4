@@ -1,5 +1,7 @@
-import coffeeImg from "@/assets/coffee-forest.jpg";
+import cabinAsset from "@/assets/emotional-cabin.jpg.asset.json";
 import { Reveal } from "./Reveal";
+
+const cabinImg = cabinAsset.url;
 
 export function EmotionalSplit() {
   return (
@@ -7,8 +9,8 @@ export function EmotionalSplit() {
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-20">
         <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-warm md:aspect-[3/4]">
           <img
-            src={coffeeImg}
-            alt="Café humeante entre los árboles de Santa Elena"
+            src={cabinImg}
+            alt="Chalet de madera en el bosque de Santa Elena con jacuzzi privado en la terraza"
             loading="lazy"
             width={1280}
             height={1280}

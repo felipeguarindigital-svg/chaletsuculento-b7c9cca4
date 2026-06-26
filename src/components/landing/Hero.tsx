@@ -85,9 +85,9 @@ export function Hero() {
               </Tooltip>
             </TooltipProvider>
             <span className="hidden sm:inline text-cream/40">·</span>
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-gold" strokeWidth={1.5} />
-              A menos de 45 minutos de Medellín
+            <span className="inline-flex items-center gap-1.5 whitespace-nowrap">
+              <MapPin className="h-3.5 w-3.5 shrink-0 text-gold" strokeWidth={1.5} />
+              <span>A menos de 45 minutos de Medellín</span>
             </span>
           </div>
         </div>

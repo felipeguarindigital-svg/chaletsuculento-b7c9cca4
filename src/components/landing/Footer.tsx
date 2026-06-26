@@ -68,6 +68,7 @@ export function Footer() {
       <div className="border-t border-cream/10">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-3 px-6 py-6 text-xs text-cream/50 md:flex-row">
           <p>© {new Date().getFullYear()} Chalet Suculento Santa Elena.</p>
+          <p className="text-cream/50">Registro Nacional de Turismo (RNT): 165821</p>
           <p className="font-serif-soft italic">
             Diseñado para parejas que necesitan parar el mundo.
           </p>

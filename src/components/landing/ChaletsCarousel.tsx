@@ -382,12 +382,42 @@ export function ChaletsCarousel() {
                         ))}
                       </ul>
 
+                      <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-forest-deep px-4 py-2 text-cream shadow-sm">
+                        <Clock className="h-4 w-4" strokeWidth={1.8} />
+                        <span className="font-sans text-[11px] tracking-[0.2em] uppercase">
+                          Ingreso {c.checkIn} · Salida {c.checkOut}
+                        </span>
+                      </div>
+
+                      <div className="mt-5 rounded-2xl border border-border/70 bg-background/60 p-5">
+                        <p className="font-sans text-[10px] tracking-[0.25em] text-gold uppercase">
+                          Lo que tiene este chalet
+                        </p>
+                        <ul className="mt-3 space-y-2.5">
+                          {c.specifics.map(({ icon: Icon, label }) => (
+                            <li
+                              key={label}
+                              className="flex items-start gap-2.5 text-sm text-foreground/85"
+                            >
+                              <Icon className="mt-0.5 h-4 w-4 shrink-0 text-wood" strokeWidth={1.6} />
+                              <span className="leading-snug">{label}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+
+                      <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-gold/40 bg-gold/10 px-4 py-3 text-xs text-foreground/80">
+                        <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-wood" strokeWidth={1.8} />
+                        <span className="leading-snug">{c.warning}</span>
+                      </div>
+
                       <button
                         onClick={() => selectChalet(c.id)}
                         className="mt-7 inline-flex items-center justify-center rounded-full bg-gold px-7 py-3 text-xs font-medium tracking-[0.2em] uppercase text-foreground transition hover:bg-wood hover:text-cream"
                       >
                         Ver disponibilidad
                       </button>
+
                     </div>
                   </article>
                 </CarouselItem>

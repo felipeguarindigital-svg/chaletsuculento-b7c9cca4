@@ -240,11 +240,6 @@ const includedItems: { icon: typeof Bath; label: string }[] = [
   { icon: Bath, label: "Jacuzzi con hidromasaje" },
 ];
 
-function selectChalet(name: string) {
-  window.dispatchEvent(new CustomEvent("suculento:select-chalet", { detail: name }));
-  const el = document.getElementById("reservas");
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-}
 
 export function ChaletsCarousel() {
   const [api, setApi] = useState<CarouselApi | null>(null);

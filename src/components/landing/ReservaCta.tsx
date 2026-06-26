@@ -14,7 +14,7 @@ export function ReservaCta({ eyebrow, title, buttonLabel }: Props) {
   };
 
   return (
-    <section className="bg-background py-14 md:py-20">
+    <section className="bg-background py-6 md:py-20">
       <div className="mx-auto max-w-3xl px-6">
         <Reveal>
           <div className="rounded-3xl border border-gold/30 bg-cream/50 px-6 py-10 text-center shadow-soft md:px-12 md:py-14">

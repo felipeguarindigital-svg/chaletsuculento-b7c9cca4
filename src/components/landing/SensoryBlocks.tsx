@@ -37,7 +37,7 @@ const blocks = [
 
 export function SensoryBlocks() {
   return (
-    <section id="experiencia" className="bg-cream py-24 md:py-32">
+    <section id="experiencia" className="bg-cream pt-10 pb-16 md:py-32">
       <div className="mx-auto max-w-6xl px-6 text-center">
         <Reveal>
           <p className="font-serif-soft text-sm tracking-[0.3em] text-gold uppercase">

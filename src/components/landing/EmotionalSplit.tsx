@@ -3,7 +3,7 @@ import { Reveal } from "./Reveal";
 
 export function EmotionalSplit() {
   return (
-    <section className="bg-background py-24 md:py-32">
+    <section className="bg-background pt-16 pb-10 md:py-32">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-6 md:grid-cols-2 md:gap-20">
         <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-warm md:aspect-[3/4]">
           <img

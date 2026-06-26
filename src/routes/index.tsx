@@ -5,6 +5,7 @@ import { SensoryBlocks } from "@/components/landing/SensoryBlocks";
 import { MasonryGallery } from "@/components/landing/MasonryGallery";
 import { Transformation } from "@/components/landing/Transformation";
 import { ChaletsCarousel } from "@/components/landing/ChaletsCarousel";
+import { Tarifas } from "@/components/landing/Tarifas";
 import { ReservasSection } from "@/components/landing/ReservasSection";
 import { Testimonials } from "@/components/landing/Testimonials";
 import { LocationMap } from "@/components/landing/LocationMap";
@@ -79,6 +80,7 @@ function Index() {
       <EmotionalSplit />
       <SensoryBlocks />
       <ChaletsCarousel />
+      <Tarifas />
       <MasonryGallery />
       <Transformation />
       <Testimonials />

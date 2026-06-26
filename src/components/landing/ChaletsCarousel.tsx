@@ -78,7 +78,6 @@ const chaletGalleries: Record<string, LightboxImage[]> = {
     { src: ukiyo6.url, alt: "Ukiyo — exterior completo con terraza y jardín" },
   ],
   Satori: [
-    { src: chaletSatoriAsset.url, alt: "Chalet Satori — fachada iluminada de noche" },
     { src: satori2.url, alt: "Satori — exterior A-frame con luces cálidas y fogata" },
     { src: satori6.url, alt: "Satori — sala interior con chimenea y sofá" },
     { src: satori8.url, alt: "Satori — terraza con asador y vista al bosque" },

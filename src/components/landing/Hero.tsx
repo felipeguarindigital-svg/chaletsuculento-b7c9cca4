@@ -1,5 +1,6 @@
-import { Bath, Trees, Lock, Car, MapPin, Heart, Star, ChevronDown } from "lucide-react";
+import { Bath, Trees, Lock, Car, MapPin, Heart, Star, ChevronDown, ShieldCheck } from "lucide-react";
 import heroImg from "@/assets/hero-portada.jpg.asset.json";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 
 const amenities = [

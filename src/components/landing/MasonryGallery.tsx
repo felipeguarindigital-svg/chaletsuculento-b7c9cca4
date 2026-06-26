@@ -6,14 +6,23 @@ import g56 from "@/assets/gallery-Foto-56.jpg.asset.json";
 import g60 from "@/assets/gallery-Foto-60.jpg.asset.json";
 import g66 from "@/assets/gallery-Foto-66.jpg.asset.json";
 import g72 from "@/assets/gallery-Foto-72.jpg.asset.json";
+import galleryRomantica1 from "@/assets/gallery-romantica-1.jpg.asset.json";
+import galleryCena1 from "@/assets/gallery-cena-1.jpg.asset.json";
+import galleryAsado1 from "@/assets/gallery-asado-1.jpg.asset.json";
+import galleryFlores1 from "@/assets/gallery-flores-1.jpg.asset.json";
+import galleryRomantica2 from "@/assets/gallery-romantica-2.jpg.asset.json";
 
 const images = [
   { src: g31.url, alt: "Pareja en columpio de madera con luces cálidas en la noche" },
-  
+  { src: galleryRomantica1.url, alt: "Habitación decorada de forma romántica con luces, pétalos y corazón de neón" },
   { src: g47.url, alt: "Pareja descansando en la cama del chalet" },
+  { src: galleryCena1.url, alt: "Cena especial servida en el chalet con plato fuerte, ensalada y acompañamientos" },
   { src: g50.url, alt: "Vista frontal del chalet entre la vegetación" },
+  { src: galleryAsado1.url, alt: "Tabla de asado con carnes, salchichas y arepas con queso" },
   { src: g56.url, alt: "Pareja jugando dominó frente a la chimenea" },
+  { src: galleryFlores1.url, alt: "Ramo de flores sobre columpio de madera con vela encendida" },
   { src: g60.url, alt: "Pareja en el sofá disfrutando de la chimenea y TV" },
+  { src: galleryRomantica2.url, alt: "Cama decorada con pétalos, velas y vino para una ocasión especial" },
   { src: g66.url, alt: "Pareja jugando cartas en el jardín con Buda" },
   { src: g72.url, alt: "Pareja en el jacuzzi nocturno con la habitación iluminada" },
 ];

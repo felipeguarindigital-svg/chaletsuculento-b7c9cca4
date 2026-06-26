@@ -233,6 +233,7 @@ const includedItems: { icon: typeof Bath; label: string }[] = [
   { icon: Utensils, label: "Cocina dotada + insumos para preparar desayuno" },
   { icon: Bed, label: "Cama doble con plumón y calienta colchón" },
   { icon: Bath, label: "Jacuzzi con hidromasaje" },
+  { icon: Car, label: "Parqueadero privado" },
 ];
 
 

@@ -14,7 +14,7 @@ export function Tarifas() {
   };
 
   return (
-    <section id="tarifas" className="py-20 md:py-28 bg-background">
+    <section id="tarifas" className="pt-10 pb-16 md:py-28 bg-background">
       <div className="container mx-auto px-4">
         <div className="text-center max-w-2xl mx-auto mb-12 md:mb-16">
           <p className="font-serif italic text-primary/70 text-sm md:text-base tracking-wide mb-3">

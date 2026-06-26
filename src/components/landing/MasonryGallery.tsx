@@ -1,6 +1,5 @@
 import { Reveal } from "./Reveal";
 import g31 from "@/assets/gallery-Foto-31.jpg.asset.json";
-import g39 from "@/assets/gallery-Foto-39.jpg.asset.json";
 import g47 from "@/assets/gallery-Foto-47.jpg.asset.json";
 import g50 from "@/assets/gallery-Foto-50.jpg.asset.json";
 import g56 from "@/assets/gallery-Foto-56.jpg.asset.json";

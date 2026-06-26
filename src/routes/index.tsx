@@ -80,25 +80,12 @@ function Index() {
       <EmotionalSplit />
       <SensoryBlocks />
       <ChaletsCarousel />
-      <ReservaCta
-        eyebrow="Ya viste qué incluye cada refugio."
-        title="¿Cuál es tu favorito?"
-        buttonLabel="Reservar mi chalet"
-      />
       <MasonryGallery />
       <Transformation />
       <Testimonials />
-      <ReservaCta
-        eyebrow="184 parejas confirman: 5 estrellas de verdad."
-        title="¿Listo para tu experiencia?"
-        buttonLabel="Reservar mi experiencia"
-      />
       <LocationMap />
       <Faq />
-      <ReservaCta
-        title="¿Listo para desconectarte?"
-        buttonLabel="Reservar ahora"
-      />
+
       <ReservasSection />
       <FinalCta />
       <Footer />

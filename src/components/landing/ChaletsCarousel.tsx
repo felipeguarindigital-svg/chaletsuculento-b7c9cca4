@@ -140,7 +140,6 @@ const chalets: Chalet[] = [
     specifics: [
       { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
       { icon: Flame, label: "Chimenea (bioetanol incluido)" },
-      { icon: Car, label: "Parqueadero privado" },
     ],
     warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
@@ -161,7 +160,6 @@ const chalets: Chalet[] = [
       { icon: Flame, label: "Zona de fogata con columpio y leña" },
       { icon: Flame, label: "Chimenea (bioetanol incluido)" },
       { icon: Trees, label: "Zona de hamacas" },
-      { icon: Car, label: "Zona de parqueadero" },
     ],
     warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },
@@ -180,7 +178,6 @@ const chalets: Chalet[] = [
     checkOut: "11:00 a.m.",
     specifics: [
       { icon: Flame, label: "Zona de fogata con leña" },
-      { icon: Car, label: "Parqueadero privado" },
       { icon: Bed, label: "Cama auxiliar disponible, capacidad hasta 4 personas" },
       { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
     ],
@@ -202,7 +199,6 @@ const chalets: Chalet[] = [
     specifics: [
       { icon: Flame, label: "Zona de fogata con columpio, hamaca y leña" },
       { icon: Flame, label: "Chimenea (bioetanol incluido)" },
-      { icon: Car, label: "Parqueadero privado" },
       { icon: PawPrint, label: "Pet friendly: aceptamos perros con costo adicional según su tamaño" },
     ],
     warning: "Menores de edad solo con sus padres.",
@@ -223,7 +219,6 @@ const chalets: Chalet[] = [
     specifics: [
       { icon: Flame, label: "Zona de fogata con leña" },
       { icon: Flame, label: "Chimenea (bioetanol incluido)" },
-      { icon: Car, label: "Zona de parqueadero" },
     ],
     warning: "Menores solo con sus padres. No se aceptan mascotas.",
   },
@@ -238,6 +233,7 @@ const includedItems: { icon: typeof Bath; label: string }[] = [
   { icon: Utensils, label: "Cocina dotada + insumos para preparar desayuno" },
   { icon: Bed, label: "Cama doble con plumón y calienta colchón" },
   { icon: Bath, label: "Jacuzzi con hidromasaje" },
+  { icon: Car, label: "Parqueadero privado" },
 ];
 
 

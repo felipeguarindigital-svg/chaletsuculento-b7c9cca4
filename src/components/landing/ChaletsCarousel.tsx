@@ -160,7 +160,6 @@ const chalets: Chalet[] = [
       { icon: Flame, label: "Zona de fogata con columpio y leña" },
       { icon: Flame, label: "Chimenea (bioetanol incluido)" },
       { icon: Trees, label: "Zona de hamacas" },
-      { icon: Car, label: "Zona de parqueadero" },
     ],
     warning: "Menores de edad solo con sus padres. No aceptamos mascotas en este chalet.",
   },

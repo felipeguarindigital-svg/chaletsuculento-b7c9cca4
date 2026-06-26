@@ -10,7 +10,7 @@ export function EmotionalSplit() {
         <Reveal className="relative aspect-[4/5] overflow-hidden rounded-3xl shadow-warm md:aspect-[3/4]">
           <img
             src={cabinImg}
-            alt="Café humeante entre los árboles de Santa Elena"
+            alt="Chalet de madera en el bosque de Santa Elena con jacuzzi privado en la terraza"
             loading="lazy"
             width={1280}
             height={1280}

@@ -131,7 +131,7 @@ export const crearCotizacion = createServerFn({ method: "POST" })
     if (data.adicionales.length > 0) {
       const filas = data.adicionales.map((a) => ({
         reserva_id: reserva.id,
-        servicio_id: a.servicio_id,
+        adicional_id: a.servicio_id,
         precio_cobrado: a.precio_cobrado,
       }));
       const { error: errAd } = await supabaseExternalAdmin

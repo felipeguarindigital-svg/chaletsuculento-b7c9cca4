@@ -50,6 +50,22 @@ export type CrearCotizacionOutput = {
   codigo: string;
 };
 
+function formatSupabaseError(error: {
+  code?: string;
+  message?: string;
+  details?: string | null;
+  hint?: string | null;
+}) {
+  return [
+    error.message,
+    error.code ? `code=${error.code}` : undefined,
+    error.details ? `details=${error.details}` : undefined,
+    error.hint ? `hint=${error.hint}` : undefined,
+  ]
+    .filter(Boolean)
+    .join(" | ");
+}
+
 export const crearCotizacion = createServerFn({ method: "POST" })
   .inputValidator((input: CrearCotizacionInput) => {
     if (!input.nombre?.trim()) throw new Error("Nombre requerido");
@@ -65,26 +81,51 @@ export const crearCotizacion = createServerFn({ method: "POST" })
       "@/integrations/supabase-external/client.server"
     );
 
+    const reservaInsert = {
+      chalet: data.chalet,
+      fecha: data.fecha_checkin,
+      fecha_checkout: data.fecha_checkout,
+      noches: data.noches,
+      desglose_noches: data.desglose,
+      nombre: data.nombre.trim(),
+      whatsapp: data.whatsapp.trim(),
+      tipo_tarifa: data.tipo_tarifa_principal,
+      precio_noche: data.precio_noche_total,
+      estado: "cotizacion" as const,
+      origen: "landing" as const,
+    };
+
+    console.info("[crearCotizacion] valores INSERT reservas", {
+      chalet: reservaInsert.chalet,
+      fecha: reservaInsert.fecha,
+      fecha_checkout: reservaInsert.fecha_checkout,
+      noches: reservaInsert.noches,
+      tipo_tarifa: reservaInsert.tipo_tarifa,
+      precio_noche: reservaInsert.precio_noche,
+      estado: reservaInsert.estado,
+      origen: reservaInsert.origen,
+      adicionales: data.adicionales.length,
+    });
+
     const { data: reserva, error } = await supabaseExternal
       .from("reservas")
-      .insert({
-        chalet: data.chalet,
-        fecha: data.fecha_checkin,
-        fecha_checkout: data.fecha_checkout,
-        noches: data.noches,
-        desglose_noches: data.desglose,
-        nombre: data.nombre.trim(),
-        whatsapp: data.whatsapp.trim(),
-        tipo_tarifa: data.tipo_tarifa_principal,
-        precio_noche: data.precio_noche_total,
-        estado: "cotizacion",
-        origen: "landing",
-      })
+      .insert(reservaInsert)
       .select("id, codigo")
       .single();
 
     if (error || !reserva) {
-      throw new Error(error?.message ?? "No se pudo crear la cotización");
+      if (error) {
+        console.error("[crearCotizacion] error Supabase INSERT reservas", {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          estado_enviado: reservaInsert.estado,
+          origen_enviado: reservaInsert.origen,
+        });
+        throw new Error(formatSupabaseError(error));
+      }
+      throw new Error("No se pudo crear la cotización");
     }
 
     if (data.adicionales.length > 0) {
@@ -99,7 +140,12 @@ export const crearCotizacion = createServerFn({ method: "POST" })
       if (errAd) {
         // No revertimos la reserva: ya quedó la cotización registrada.
         // Solo registramos el fallo para diagnóstico server-side.
-        console.error("[crearCotizacion] adicionales falló:", errAd.message);
+        console.error("[crearCotizacion] error Supabase INSERT adicionales", {
+          code: errAd.code,
+          message: errAd.message,
+          details: errAd.details,
+          hint: errAd.hint,
+        });
       }
     }
 

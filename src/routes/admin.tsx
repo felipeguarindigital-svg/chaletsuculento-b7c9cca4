@@ -143,6 +143,8 @@ function AdminPage() {
           <p className="text-stone-500">Verificando permisos…</p>
         ) : section === "usuarios" && panelUser.rol === "administrador" ? (
           <UsuariosPanelView accessToken={session.access_token} currentUserId={panelUser.id} />
+        ) : section === "analitica" ? (
+          <AnalyticsView accessToken={session.access_token} />
         ) : (
           <Dashboard accessToken={session.access_token} rol={panelUser.rol} />
         )}

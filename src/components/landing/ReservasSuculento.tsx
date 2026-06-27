@@ -354,7 +354,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
                 <div
                   key={key}
                   onClick={() => { if (cls !== "past" && cls !== "blocked") handleDayClick(key); }}
-                  title={cls === "blocked" ? "No disponible" : undefined}
+                  title={cls === "blocked" ? "Noche no disponible" : cls === "blocked-checkout" ? "Solo disponible como salida" : undefined}
                   style={getDayStyle(cls)}
                 >
                   {d}

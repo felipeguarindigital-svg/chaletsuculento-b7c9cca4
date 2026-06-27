@@ -273,15 +273,37 @@ export function AnalyticsView({ accessToken }: Props) {
 
       <ChartCard title="Servicios adicionales más vendidos">
         {sinDatosAdic ? <EmptyMsg /> : (
-          <ResponsiveContainer width="100%" height={Math.max(260, (data?.adicionales_top.length ?? 0) * 34)}>
-            <BarChart layout="vertical" data={data?.adicionales_top ?? []} margin={{ left: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-              <YAxis type="category" dataKey="nombre" width={180} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="cantidad" fill="#f59e0b" radius={[0, 6, 6, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-stone-500 border-b">
+                  <th className="py-2 pr-4 font-medium">Servicio</th>
+                  <th className="py-2 pr-4 font-medium text-right">Veces vendido</th>
+                  <th className="py-2 pl-4 font-medium text-right">Total generado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data?.adicionales_top ?? []).map((a) => (
+                  <tr key={a.nombre} className="border-b last:border-0 hover:bg-stone-50">
+                    <td className="py-2 pr-4 text-stone-800">{a.nombre}</td>
+                    <td className="py-2 pr-4 text-right tabular-nums text-stone-700">{a.cantidad}</td>
+                    <td className="py-2 pl-4 text-right tabular-nums text-stone-700">{formatCOP(a.total_generado)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-stone-300 bg-stone-50 font-semibold text-stone-900">
+                  <td className="py-2 pr-4 uppercase text-xs tracking-wider">Total general</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">
+                    {(data?.adicionales_top ?? []).reduce((s, a) => s + a.cantidad, 0)}
+                  </td>
+                  <td className="py-2 pl-4 text-right tabular-nums">
+                    {formatCOP((data?.adicionales_top ?? []).reduce((s, a) => s + a.total_generado, 0))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         )}
       </ChartCard>
     </div>

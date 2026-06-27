@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { Outlet, createFileRoute, useRouterState } from "@tanstack/react-router";
 import { useEffect, useState, type FormEvent } from "react";
 import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { getExternalSupabase } from "@/integrations/supabase-external/browser-client";
@@ -24,6 +24,18 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminPage() {
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+
+  // /admin también funciona como ruta padre de /admin/invite. En esa ruta hija
+  // no debe ejecutarse el guard/login del panel, solo renderizar el formulario.
+  if (pathname === "/admin/invite") {
+    return <Outlet />;
+  }
+
+  return <AdminPanelPage />;
+}
+
+function AdminPanelPage() {
   const [supabase, setSupabase] = useState<SupabaseClient | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [panelUser, setPanelUser] = useState<PanelUser | null>(null);
@@ -37,13 +49,18 @@ function AdminPage() {
     // ANTES de inicializar el cliente (que de otro modo consumiría el token).
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
+      const safeHref = `${window.location.origin}${window.location.pathname}${window.location.search}${hash ? "#[auth-hash]" : ""}`;
       console.log("[InviteDebug] Admin guard ejecutado", {
         source: "admin-guard",
-        href: window.location.href,
+        href: safeHref,
         pathname: window.location.pathname,
         hasHash: Boolean(hash),
         hashKeys: hash ? Array.from(new URLSearchParams(hash.slice(1)).keys()) : [],
       });
+      if (window.location.pathname === "/admin/invite") {
+        console.log("[InviteDebug] Admin guard: ruta /admin/invite detectada, no redirige");
+        return;
+      }
       if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
         console.log("[InviteDebug] Admin guard: token detectado, redirigiendo a /admin/invite");
         window.location.replace(`/admin/invite${hash}`);

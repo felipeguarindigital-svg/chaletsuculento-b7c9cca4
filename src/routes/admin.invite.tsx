@@ -6,6 +6,30 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(message)), ms);
+    promise
+      .then((value) => {
+        window.clearTimeout(timer);
+        resolve(value);
+      })
+      .catch((error) => {
+        window.clearTimeout(timer);
+        reject(error);
+      });
+  });
+}
+
+function readInviteTokensFromHash() {
+  if (typeof window === "undefined" || !window.location.hash) return null;
+  const params = new URLSearchParams(window.location.hash.slice(1));
+  const accessToken = params.get("access_token");
+  const refreshToken = params.get("refresh_token");
+  if (!accessToken || !refreshToken) return null;
+  return { access_token: accessToken, refresh_token: refreshToken };
+}
+
 export const Route = createFileRoute("/admin/invite")({
   ssr: false,
   head: () => ({ meta: [{ title: "Configura tu contraseña · Panel" }, { name: "robots", content: "noindex, nofollow" }] }),
@@ -24,21 +48,56 @@ function InvitePage() {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
+    let active = true;
     (async () => {
-      const client = await getExternalSupabase();
-      setSupabase(client);
-      // detectSessionInUrl procesa el hash automáticamente
-      const { data } = await client.auth.getSession();
-      if (data.session) setEmail(data.session.user.email ?? null);
-      else {
-        // Esperar un instante por si está procesando el hash
-        await new Promise(r => setTimeout(r, 400));
-        const { data: d2 } = await client.auth.getSession();
-        if (d2.session) setEmail(d2.session.user.email ?? null);
-        else setError("Enlace de invitación inválido o expirado. Pídele al administrador que te reenvíe la invitación.");
+      try {
+        const hashTokens = readInviteTokensFromHash();
+        const client = await withTimeout(
+          getExternalSupabase(),
+          8000,
+          "No se pudo inicializar el acceso al panel. Intenta recargar la página.",
+        );
+        if (!active) return;
+        setSupabase(client);
+
+        if (hashTokens) {
+          const { data, error } = await withTimeout(
+            client.auth.setSession(hashTokens),
+            8000,
+            "No se pudo validar el enlace de invitación. Intenta abrirlo nuevamente.",
+          );
+          if (error) throw error;
+          if (!active) return;
+          setEmail(data.session?.user.email ?? null);
+          if (!data.session) {
+            setError("Enlace de invitación inválido o expirado. Pídele al administrador que te reenvíe la invitación.");
+          } else if (typeof window !== "undefined") {
+            window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
+          }
+          setReady(true);
+          return;
+        }
+
+        const { data, error } = await withTimeout(
+          client.auth.getSession(),
+          8000,
+          "No se pudo leer la sesión de invitación. Intenta recargar la página.",
+        );
+        if (error) throw error;
+        if (!active) return;
+        if (data.session) {
+          setEmail(data.session.user.email ?? null);
+        } else {
+          setError("Enlace de invitación inválido o expirado. Pídele al administrador que te reenvíe la invitación.");
+        }
+        setReady(true);
+      } catch (err) {
+        if (!active) return;
+        setError(err instanceof Error ? err.message : "No se pudo validar la invitación.");
+        setReady(true);
       }
-      setReady(true);
     })();
+    return () => { active = false; };
   }, []);
 
   async function onSubmit(e: FormEvent) {

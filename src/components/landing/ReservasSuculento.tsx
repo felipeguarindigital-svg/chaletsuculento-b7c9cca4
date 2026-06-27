@@ -256,6 +256,10 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
       setError("Selecciona fecha de llegada y de salida (mínimo 1 noche).");
       return;
     }
+    if (rangoTieneNocheBloqueada(checkInKey, checkOutKey)) {
+      setError("El rango seleccionado incluye noches no disponibles. Elige otro rango.");
+      return;
+    }
 
     setSubmitting(true);
     try {

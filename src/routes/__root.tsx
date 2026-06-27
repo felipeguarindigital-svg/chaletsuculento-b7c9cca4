@@ -116,6 +116,17 @@ function RootShell({ children }: { children: React.ReactNode }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
+  // Catch global fallback: si Supabase redirige al Site URL (`/`) tras una
+  // invitación o recuperación, reenviar a /admin/invite con el hash intacto.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    if (window.location.pathname === "/admin/invite") return;
+    const hash = window.location.hash;
+    if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
+      window.location.replace(`/admin/invite${hash}`);
+    }
+  }, []);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />

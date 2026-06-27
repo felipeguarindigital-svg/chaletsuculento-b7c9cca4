@@ -3,13 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listServiciosAdicionales,
   crearCotizacion,
+  getFechasBloqueadas,
   type ServicioAdicional,
 } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche, type TipoTarifa } from "@/lib/tarifas";
 import { PRECIO_POR_TIPO, LABEL_TIPO, formatCOP } from "@/lib/precios";
-
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzRJzjQzJJEBdohrhSN-bkhRcwW9JmxOrK-WuMXtp8Ndbc3WcWOyR7Gjb8oaAvUMEOxXA/exec";
 
 const WHATSAPP_NUMBER = "573013060013";
 

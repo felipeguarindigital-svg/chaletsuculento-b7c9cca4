@@ -91,7 +91,10 @@ export const invitarUsuarioPanel = createServerFn({ method: "POST" })
       userId = match.id;
     } else {
       const { data: inv, error: invErr } = await supabaseExternalAdmin.auth.admin
-        .inviteUserByEmail(email, { data: { nombre: data.nombre.trim() } });
+        .inviteUserByEmail(email, {
+          data: { nombre: data.nombre.trim() },
+          redirectTo: data.redirectTo,
+        });
       if (invErr || !inv.user) throw new Error(invErr?.message ?? "No se pudo invitar al usuario");
       userId = inv.user.id;
     }

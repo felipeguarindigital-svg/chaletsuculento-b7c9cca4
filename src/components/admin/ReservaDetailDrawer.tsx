@@ -9,6 +9,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sh
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCOP, LABEL_TIPO } from "@/lib/precios";
+import { getHorarios } from "@/lib/horarios";
 import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { toast } from "sonner";
 
@@ -17,6 +18,11 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
   const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
   const total = d.total;
+  const horarios = getHorarios(d.chalet);
+  const checkInLine = `📅 Check-in: ${d.fecha}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
+  const checkOutLine = d.fecha_checkout
+    ? `📅 Check-out: ${d.fecha_checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`
+    : null;
   const lines: string[] = [
     `¡Hola ${firstName}! 🎉`,
     ``,
@@ -24,7 +30,8 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     ``,
     `📋 Código: ${d.codigo}`,
     `🏡 Chalet: ${d.chalet}`,
-    `📅 Check-in: ${d.fecha}${d.fecha_checkout ? ` - Check-out: ${d.fecha_checkout}` : ""}`,
+    checkInLine,
+    ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
     `💰 Total: ${formatCOP(total)}`,
   ];
@@ -37,6 +44,7 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
+
 
 type Props = {
   open: boolean;
@@ -125,8 +133,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               <div className="flex justify-between"><span className="text-stone-500">Chalet</span>
                 <span className={`px-2 py-0.5 rounded-md text-xs ${CHALET_COLOR[data.chalet].badge}`}>{data.chalet}</span>
               </div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}</span></div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}</span></div>
+              <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}{getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkIn}` : ""}</span></div>
+              <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}{data.fecha_checkout && getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkOut}` : ""}</span></div>
+
               <div className="flex justify-between"><span className="text-stone-500">Noches</span><span>{data.noches ?? "—"}</span></div>
               <div className="flex justify-between"><span className="text-stone-500">Tarifa</span><span>{LABEL_TIPO[data.tipo_tarifa]}</span></div>
               <div className="flex justify-between"><span className="text-stone-500">Origen</span><span>{data.origen}</span></div>

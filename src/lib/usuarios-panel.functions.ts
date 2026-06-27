@@ -67,7 +67,7 @@ export const listPanelUsers = createServerFn({ method: "POST" })
   });
 
 export const invitarUsuarioPanel = createServerFn({ method: "POST" })
-  .inputValidator((d: { accessToken: string; email: string; nombre: string; rol: RolPanel }) => {
+  .inputValidator((d: { accessToken: string; email: string; nombre: string; rol: RolPanel; redirectTo?: string }) => {
     if (!d.email?.trim()) throw new Error("Correo requerido");
     if (!d.nombre?.trim()) throw new Error("Nombre requerido");
     if (!["administrador", "operador", "lectura"].includes(d.rol)) throw new Error("Rol inválido");

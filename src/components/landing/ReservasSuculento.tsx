@@ -1,4 +1,12 @@
-import { useState, useEffect, type ReactNode } from "react";
+import { useState, useEffect, useMemo, type ReactNode } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import {
+  listServiciosAdicionales,
+  crearCotizacion,
+  type ServicioAdicional,
+} from "@/lib/reservas-external.functions";
+import { tarifasPorNoche, type TipoTarifa } from "@/lib/tarifas";
+import { PRECIO_POR_TIPO, LABEL_TIPO, formatCOP } from "@/lib/precios";
 
 const APPS_SCRIPT_URL =
   "https://script.google.com/macros/s/AKfycbzRJzjQzJJEBdohrhSN-bkhRcwW9JmxOrK-WuMXtp8Ndbc3WcWOyR7Gjb8oaAvUMEOxXA/exec";
@@ -11,7 +19,6 @@ const MONTHS = [
 ];
 const MONTH_SHORT = ["ene", "feb", "mar", "abr", "may", "jun", "jul", "ago", "sep", "oct", "nov", "dic"];
 
-// Cream/light palette tokens (aligned with site brand)
 const C = {
   surface: "#FFFFFF",
   surfaceAlt: "#F8F5EF",
@@ -24,9 +31,12 @@ const C = {
   blockedBg: "#f1e6e6",
   blockedText: "#b89a9a",
   error: "#b3261e",
+  success: "#2e7d32",
 };
 
-type Props = { chaletName?: string };
+type ChaletName = "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";
+
+type Props = { chaletName?: ChaletName | string };
 
 function toKey(y: number, m: number, d: number) {
   return `${y}-${String(m + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -44,7 +54,6 @@ function fmtKey(k: string) {
   return `${parseInt(d)} ${MONTH_SHORT[parseInt(m) - 1]} ${y}`;
 }
 
-// Mapeo entre el nombre visible del chalet y el nombre exacto de la pestaña en el Google Sheet
 const SHEET_TAB_BY_CHALET: Record<string, string> = {
   "Suculento": "Suculento",
   "Del Bosque": "DelBosque",
@@ -52,6 +61,14 @@ const SHEET_TAB_BY_CHALET: Record<string, string> = {
   "Ukiyo": "Ukiyo",
   "Satori": "Satori",
 };
+
+// Tipo predominante de la estadía: el más caro (mayor precio_noche).
+function tipoPredominante(noches: Array<{ tipo: TipoTarifa }>): TipoTarifa {
+  if (noches.length === 0) return "domingo_jueves";
+  return noches.reduce((best, n) =>
+    PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[best.tipo] ? n : best,
+  ).tipo;
+}
 
 export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const today = new Date();
@@ -66,16 +83,30 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  // Adicionales
+  const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
+  const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
+
+  const fetchServicios = useServerFn(listServiciosAdicionales);
+  const submitCotizacion = useServerFn(crearCotizacion);
 
   useEffect(() => {
-    const sheet = SHEET_TAB_BY_CHALET[chaletName] ?? "Suculento";
+    fetchServicios()
+      .then((data) => setServicios(data))
+      .catch((e) => console.error("[servicios_adicionales] error:", e));
+  }, [fetchServicios]);
+
+  useEffect(() => {
+    const sheet = SHEET_TAB_BY_CHALET[chaletName as string] ?? "Suculento";
     setLoading(true);
     setBlocked([]);
-    // Al cambiar de chalet limpiamos selección previa para no arrastrar fechas
     setSelectStart(null);
     setSelectEnd(null);
+    setSeleccionados(new Set());
+    setError("");
 
-    // Enviamos varios alias del parámetro para máxima compatibilidad con el Apps Script
     const url = `${APPS_SCRIPT_URL}?chalet=${encodeURIComponent(sheet)}&sheet=${encodeURIComponent(sheet)}&tab=${encodeURIComponent(sheet)}`;
     let cancelled = false;
     fetch(url)
@@ -133,49 +164,122 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     return "available";
   }
 
-  function enviarWhatsApp() {
+  // -------- Cálculos de fechas y precio --------
+  let startD = selectStart ? keyToDate(selectStart) : null;
+  let endD = selectEnd ? keyToDate(selectEnd) : null;
+  if (startD && endD && startD > endD) { const t = startD; startD = endD; endD = t; }
+
+  const checkInKey = startD ? dateToKey(startD) : null;
+  const checkOutKey = endD ? dateToKey(endD) : null;
+  const nights = startD && endD
+    ? Math.round((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24))
+    : 0;
+
+  const desglose = useMemo(() => {
+    if (!checkInKey || !checkOutKey || nights < 1) return [];
+    return tarifasPorNoche(checkInKey, checkOutKey).map((n) => ({
+      fecha: n.fecha,
+      tipo: n.tipo,
+      precio: PRECIO_POR_TIPO[n.tipo],
+    }));
+  }, [checkInKey, checkOutKey, nights]);
+
+  const subtotalNoches = desglose.reduce((s, n) => s + n.precio, 0);
+  const adicionalesSeleccionados = servicios.filter((s) => seleccionados.has(s.id));
+  const subtotalAdicionales = adicionalesSeleccionados.reduce((s, a) => s + Number(a.precio), 0);
+  const total = subtotalNoches + subtotalAdicionales;
+
+  const showForm = nights >= 1;
+
+  function toggleAdicional(id: string) {
+    setSeleccionados((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  async function submit(incluirAdicionales: boolean) {
+    setError("");
     if (!nombre.trim() || !telefono.trim()) {
-      setError("Por favor completa tu nombre y teléfono.");
+      setError("Por favor completa tu nombre y WhatsApp.");
       return;
     }
-    if (!selectStart) {
-      setError("Por favor selecciona al menos una fecha.");
+    if (!checkInKey || !checkOutKey || nights < 1) {
+      setError("Selecciona fecha de llegada y de salida (mínimo 1 noche).");
       return;
     }
-    let s = selectStart, e = selectEnd;
-    let sd = keyToDate(s), ed = e ? keyToDate(e) : null;
-    if (ed && sd > ed) { const t = sd; sd = ed; ed = t; s = dateToKey(sd); e = dateToKey(ed); }
-    let msg = `Hola, quiero reservar el chalet ${chaletName} 🌿\n\n`;
-    msg += `👤 Nombre: ${nombre.trim()}\n`;
-    msg += `📱 Teléfono: ${telefono.trim()}\n`;
-    msg += `📅 Llegada: ${fmtKey(s)}\n`;
-    if (e) msg += `📅 Salida: ${fmtKey(e)}\n`;
-    msg += `\n¡Quedo atento/a a la confirmación!`;
-    window.open(`https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`, "_blank");
+
+    setSubmitting(true);
+    try {
+      const adicionalesPayload = incluirAdicionales
+        ? adicionalesSeleccionados.map((a) => ({
+            servicio_id: a.id,
+            precio_cobrado: Number(a.precio),
+          }))
+        : [];
+
+      const tipoPrincipal = tipoPredominante(desglose);
+
+      const res = await submitCotizacion({
+        data: {
+          chalet: chaletName as ChaletName,
+          fecha_checkin: checkInKey,
+          fecha_checkout: checkOutKey,
+          noches: nights,
+          desglose,
+          precio_noche_total: subtotalNoches,
+          tipo_tarifa_principal: tipoPrincipal,
+          nombre,
+          whatsapp: telefono,
+          adicionales: adicionalesPayload,
+        },
+      });
+
+      // Mensaje de WhatsApp
+      const totalFinal = subtotalNoches + (incluirAdicionales ? subtotalAdicionales : 0);
+      let msg = `Hola, quiero reservar el chalet ${chaletName} 🌿\n\n`;
+      msg += `🔖 Código: ${res.codigo}\n`;
+      msg += `👤 Nombre: ${nombre.trim()}\n`;
+      msg += `📱 WhatsApp: ${telefono.trim()}\n`;
+      msg += `📅 Llegada: ${fmtKey(checkInKey)}\n`;
+      msg += `📅 Salida: ${fmtKey(checkOutKey)}\n`;
+      msg += `🌙 ${nights} noche${nights !== 1 ? "s" : ""}\n\n`;
+      msg += `💰 Alojamiento: ${formatCOP(subtotalNoches)}\n`;
+      if (incluirAdicionales && adicionalesSeleccionados.length > 0) {
+        msg += `\n✨ Adicionales:\n`;
+        adicionalesSeleccionados.forEach((a) => {
+          msg += `  • ${a.nombre} — ${formatCOP(Number(a.precio))}\n`;
+        });
+        msg += `Subtotal adicionales: ${formatCOP(subtotalAdicionales)}\n`;
+      }
+      msg += `\n*Total estimado: ${formatCOP(totalFinal)}*\n\n`;
+      msg += `¡Quedo atento/a a la confirmación!`;
+
+      window.open(
+        `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`,
+        "_blank",
+      );
+    } catch (e) {
+      console.error("[crearCotizacion] error:", e);
+      setError(
+        e instanceof Error
+          ? `No se pudo registrar la cotización: ${e.message}`
+          : "No se pudo registrar la cotización. Intenta de nuevo.",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   }
 
   const firstDay = new Date(viewYear, viewMonth, 1).getDay();
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
-  let startD = selectStart ? keyToDate(selectStart) : null;
-  let endD = selectEnd ? keyToDate(selectEnd) : null;
-  if (startD && endD && startD > endD) { const t = startD; startD = endD; endD = t; }
-  const nights = startD && endD ? Math.round((endD.getTime() - startD.getTime()) / (1000 * 60 * 60 * 24)) : 0;
-
-  const showForm = !!selectStart;
-
   return (
     <div style={{ fontFamily: "inherit" }}>
       {/* Calendar card */}
-      <div style={{
-        background: C.surface,
-        border: `1px solid ${C.border}`,
-        borderRadius: 20,
-        padding: "1.5rem",
-        marginBottom: "1.25rem",
-        boxShadow: "0 10px 40px -20px rgba(131,105,83,0.25)",
-      }}>
-        {/* Nav */}
+      <div style={cardStyle}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
           <NavBtn onClick={() => changeMonth(-1)}>‹</NavBtn>
           <span style={{ fontSize: 16, fontWeight: 500, color: C.text, fontFamily: "'Playfair Display', serif" }}>
@@ -184,7 +288,6 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
           <NavBtn onClick={() => changeMonth(1)}>›</NavBtn>
         </div>
 
-        {/* Weekdays */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 4 }}>
           {["DOM", "LUN", "MAR", "MIÉ", "JUE", "VIE", "SÁB"].map((d) => (
             <div key={d} style={{ textAlign: "center", fontSize: 10, color: C.textMuted, padding: "6px 0", letterSpacing: "0.12em" }}>{d}</div>
@@ -215,82 +318,206 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
           </div>
         )}
 
-        {/* Legend */}
         <div style={{ display: "flex", gap: "1.25rem", marginTop: 18, flexWrap: "wrap" }}>
-          <LegendItem color={C.gold} label="Seleccionado" />
+          <LegendItem color={C.gold} label="Llegada / Salida" />
           <LegendItem color={C.blockedBg} border={C.blockedText} label="No disponible" />
           <LegendItem color="rgba(197,164,109,0.18)" border="rgba(197,164,109,0.4)" label="Rango" />
         </div>
+
+        <p style={{ marginTop: 12, fontSize: 12, color: C.textMuted, textAlign: "center" }}>
+          Selecciona <strong>llegada</strong> y luego <strong>salida</strong>.
+          Mínimo 1 noche.
+        </p>
       </div>
 
-      {/* Form */}
+      {/* Resumen y formulario */}
       {showForm && (
-        <div style={{
-          background: C.surface,
-          border: `1px solid ${C.border}`,
-          borderRadius: 20,
-          padding: "1.5rem",
-          boxShadow: "0 10px 40px -20px rgba(131,105,83,0.25)",
-        }}>
-          <div style={{
-            background: C.surfaceAlt,
-            border: `1px solid ${C.borderSoft}`,
-            borderRadius: 12,
-            padding: "14px 16px",
-            textAlign: "center",
-            color: C.text,
-            fontSize: 14,
-            marginBottom: "1.5rem",
-            fontFamily: "'Cormorant Garamond', serif",
-            fontStyle: "italic",
-          }}>
-            {selectEnd
-              ? `${fmtKey(dateToKey(startD!))} → ${fmtKey(dateToKey(endD!))} · ${nights} noche${nights !== 1 ? "s" : ""}`
-              : `Llegada: ${fmtKey(selectStart)} — elige también tu fecha de salida`}
+        <div style={cardStyle}>
+          {/* Resumen de fechas + desglose */}
+          <div style={summaryBox}>
+            <div style={{ fontFamily: "'Cormorant Garamond', serif", fontStyle: "italic", fontSize: 16, marginBottom: 12 }}>
+              {fmtKey(checkInKey!)} → {fmtKey(checkOutKey!)} · {nights} noche{nights !== 1 ? "s" : ""}
+            </div>
+            <div style={{ borderTop: `1px dashed ${C.border}`, paddingTop: 12 }}>
+              {desglose.map((n) => (
+                <div key={n.fecha} style={{ display: "flex", justifyContent: "space-between", fontSize: 13, padding: "3px 0" }}>
+                  <span>{fmtKey(n.fecha)} · {LABEL_TIPO[n.tipo]}</span>
+                  <span>{formatCOP(n.precio)}</span>
+                </div>
+              ))}
+              <div style={{ display: "flex", justifyContent: "space-between", marginTop: 8, paddingTop: 8, borderTop: `1px solid ${C.borderSoft}`, fontWeight: 600, fontSize: 14 }}>
+                <span>Alojamiento</span>
+                <span>{formatCOP(subtotalNoches)}</span>
+              </div>
+            </div>
           </div>
 
           <Field label="NOMBRE COMPLETO">
             <Input value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Tu nombre" type="text" />
           </Field>
 
-          <Field label="TELÉFONO / WHATSAPP">
+          <Field label="WHATSAPP">
             <Input value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="+57 300 000 0000" type="tel" />
           </Field>
+
+          {/* Adicionales */}
+          {servicios.length > 0 && (
+            <div style={{ marginBottom: "1.5rem" }}>
+              <label style={{ fontSize: 11, color: C.textMuted, letterSpacing: "0.18em", display: "block", marginBottom: 10 }}>
+                EXPERIENCIAS ADICIONALES (OPCIONAL)
+              </label>
+              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                {servicios.map((s) => {
+                  const checked = seleccionados.has(s.id);
+                  return (
+                    <label
+                      key={s.id}
+                      style={{
+                        display: "flex",
+                        gap: 12,
+                        padding: "12px 14px",
+                        borderRadius: 12,
+                        border: `1px solid ${checked ? C.gold : C.borderSoft}`,
+                        background: checked ? "rgba(197,164,109,0.10)" : C.surfaceAlt,
+                        cursor: "pointer",
+                        transition: "all 0.15s",
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={checked}
+                        onChange={() => toggleAdicional(s.id)}
+                        style={{ marginTop: 3, accentColor: C.gold, cursor: "pointer" }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
+                          <span style={{ fontWeight: 500, color: C.text, fontSize: 14 }}>{s.nombre}</span>
+                          <span style={{ color: C.goldDark, fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
+                            {formatCOP(Number(s.precio))}
+                          </span>
+                        </div>
+                        {s.descripcion && (
+                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 3, lineHeight: 1.45 }}>
+                            {s.descripcion}
+                          </div>
+                        )}
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {adicionalesSeleccionados.length > 0 && (
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 13, color: C.text }}>
+                  <span>Subtotal adicionales</span>
+                  <span>{formatCOP(subtotalAdicionales)}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Total */}
+          <div style={{
+            background: "rgba(197,164,109,0.12)",
+            border: `1px solid ${C.gold}`,
+            borderRadius: 12,
+            padding: "14px 16px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}>
+            <span style={{ fontSize: 13, letterSpacing: "0.1em", color: C.text }}>TOTAL ESTIMADO</span>
+            <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 22, color: C.text }}>
+              {formatCOP(total)}
+            </span>
+          </div>
 
           {error && (
             <p style={{ color: C.error, fontSize: 13, marginBottom: 12 }}>{error}</p>
           )}
 
-          <button
-            onClick={enviarWhatsApp}
-            onMouseEnter={(e) => (e.currentTarget.style.background = C.goldDark)}
-            onMouseLeave={(e) => (e.currentTarget.style.background = C.gold)}
-            style={{
-              width: "100%",
-              background: C.gold,
-              color: C.text,
-              border: "none",
-              padding: "16px",
-              borderRadius: 999,
-              fontSize: 12,
-              fontWeight: 500,
-              cursor: "pointer",
-              letterSpacing: "0.2em",
-              textTransform: "uppercase",
-              fontFamily: "inherit",
-              transition: "background 0.2s",
-            }}
-          >
-            Enviar solicitud por WhatsApp
-          </button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <button
+              onClick={() => submit(true)}
+              disabled={submitting}
+              style={primaryBtn(submitting)}
+            >
+              {submitting ? "Enviando..." : "Continuar a WhatsApp"}
+            </button>
+
+            {adicionalesSeleccionados.length > 0 && (
+              <button
+                onClick={() => submit(false)}
+                disabled={submitting}
+                style={secondaryBtn(submitting)}
+              >
+                Omitir adicionales y continuar
+              </button>
+            )}
+          </div>
 
           <p style={{ fontSize: 12, color: C.textMuted, textAlign: "center", marginTop: 12 }}>
-            Te contactaremos por WhatsApp para confirmar disponibilidad y pago.
+            Al continuar registramos tu cotización y abrimos WhatsApp para confirmar disponibilidad y pago.
           </p>
         </div>
       )}
     </div>
   );
+}
+
+const cardStyle: React.CSSProperties = {
+  background: C.surface,
+  border: `1px solid ${C.border}`,
+  borderRadius: 20,
+  padding: "1.5rem",
+  marginBottom: "1.25rem",
+  boxShadow: "0 10px 40px -20px rgba(131,105,83,0.25)",
+};
+
+const summaryBox: React.CSSProperties = {
+  background: C.surfaceAlt,
+  border: `1px solid ${C.borderSoft}`,
+  borderRadius: 12,
+  padding: "14px 16px",
+  color: C.text,
+  fontSize: 14,
+  marginBottom: "1.5rem",
+};
+
+function primaryBtn(disabled: boolean): React.CSSProperties {
+  return {
+    width: "100%",
+    background: disabled ? "#d8c8a8" : C.gold,
+    color: C.text,
+    border: "none",
+    padding: "16px",
+    borderRadius: 999,
+    fontSize: 12,
+    fontWeight: 500,
+    cursor: disabled ? "not-allowed" : "pointer",
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    fontFamily: "inherit",
+    transition: "background 0.2s",
+  };
+}
+
+function secondaryBtn(disabled: boolean): React.CSSProperties {
+  return {
+    width: "100%",
+    background: "transparent",
+    color: C.goldDark,
+    border: `1px solid ${C.border}`,
+    padding: "14px",
+    borderRadius: 999,
+    fontSize: 11,
+    fontWeight: 500,
+    cursor: disabled ? "not-allowed" : "pointer",
+    letterSpacing: "0.2em",
+    textTransform: "uppercase",
+    fontFamily: "inherit",
+  };
 }
 
 function NavBtn({ onClick, children }: { onClick: () => void; children: ReactNode }) {

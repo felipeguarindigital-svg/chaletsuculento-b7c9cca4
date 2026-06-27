@@ -27,13 +27,15 @@ type ChaletName = (typeof CHALETS)[number];
 
 export type AnalyticsPayload = {
   rango: { desde: string; hasta: string };
+  chalet_filtro: ChaletName | "all";
+  total_reservas: number;
   ocupacion_por_chalet: { chalet: ChaletName; noches_ocupadas: number; noches_totales: number; pct: number }[];
   ingresos_por_mes: { mes: string; ingresos: number }[];
   reservas_por_dia_semana: { dia: string; cantidad: number }[];
   origen_reservas: { origen: string; cantidad: number }[];
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
   conversion: { cotizaciones_creadas: number; ahora_reservadas: number; canceladas: number; pct: number };
-  adicionales_top: { nombre: string; cantidad: number }[];
+  adicionales_top: { nombre: string; cantidad: number; total_generado: number }[];
   tiempo_confirmacion_horas: { promedio: number | null; reservas_consideradas: number; soportado: boolean };
 };
 

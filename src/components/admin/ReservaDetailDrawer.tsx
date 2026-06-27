@@ -12,6 +12,32 @@ import { formatCOP, LABEL_TIPO } from "@/lib/precios";
 import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { toast } from "sonner";
 
+function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
+  let phone = (d.whatsapp || "").replace(/\D/g, "");
+  if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
+  const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
+  const total = d.total;
+  const lines: string[] = [
+    `¡Hola ${firstName}! 🎉`,
+    ``,
+    `Tu reserva en Chalet Suculento ha sido confirmada ✅`,
+    ``,
+    `📋 Código: ${d.codigo}`,
+    `🏡 Chalet: ${d.chalet}`,
+    `📅 Check-in: ${d.fecha}${d.fecha_checkout ? ` - Check-out: ${d.fecha_checkout}` : ""}`,
+    `🌙 Noches: ${d.noches ?? "—"}`,
+    `💰 Total: ${formatCOP(total)}`,
+  ];
+  if (d.adicionales.length > 0) {
+    lines.push("", "✨ Adicionales:");
+    for (const a of d.adicionales) {
+      lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
+    }
+  }
+  lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
+  return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
+}
+
 type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;

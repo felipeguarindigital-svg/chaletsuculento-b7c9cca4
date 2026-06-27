@@ -127,7 +127,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
         }
       }
     }
-    const ocupacion_por_chalet = CHALETS.map((c) => {
+    const chaletsParaOcupacion = chaletFiltro === "all" ? CHALETS : [chaletFiltro as ChaletName];
+    const ocupacion_por_chalet = chaletsParaOcupacion.map((c) => {
       const n = ocupMap.get(c) ?? 0;
       return {
         chalet: c,

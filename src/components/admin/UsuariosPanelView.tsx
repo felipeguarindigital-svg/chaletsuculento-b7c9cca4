@@ -146,7 +146,8 @@ export function UsuariosPanelView({ accessToken, currentUserId }: Props) {
         onOpenChange={setOpenInvite}
         onSubmit={async (form) => {
           try {
-            await invitar({ data: { accessToken, ...form } });
+            const redirectTo = `${window.location.origin}/admin/invite`;
+            await invitar({ data: { accessToken, redirectTo, ...form } });
             toast.success("Invitación enviada por correo");
             setOpenInvite(false);
             setTick(t => t + 1);

@@ -37,9 +37,19 @@ function AdminPage() {
     // ANTES de inicializar el cliente (que de otro modo consumiría el token).
     if (typeof window !== "undefined") {
       const hash = window.location.hash;
+      console.log("[InviteDebug] Admin guard ejecutado", {
+        source: "admin-guard",
+        href: window.location.href,
+        pathname: window.location.pathname,
+        hasHash: Boolean(hash),
+        hashKeys: hash ? Array.from(new URLSearchParams(hash.slice(1)).keys()) : [],
+      });
       if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
+        console.log("[InviteDebug] Admin guard: token detectado, redirigiendo a /admin/invite");
         window.location.replace(`/admin/invite${hash}`);
         return;
+      } else {
+        console.log("[InviteDebug] Admin guard: no detectó token de invitación/recuperación");
       }
     }
     let unsub: (() => void) | undefined;

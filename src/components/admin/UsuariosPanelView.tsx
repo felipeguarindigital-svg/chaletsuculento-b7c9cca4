@@ -147,6 +147,11 @@ export function UsuariosPanelView({ accessToken, currentUserId }: Props) {
         onSubmit={async (form) => {
           try {
             const redirectTo = `${window.location.origin}/admin/invite`;
+            console.log("[InviteDebug] Enviando invitación", {
+              redirectTo,
+              origin: window.location.origin,
+              pathname: window.location.pathname,
+            });
             await invitar({ data: { accessToken, redirectTo, ...form } });
             toast.success("Invitación enviada por correo");
             setOpenInvite(false);

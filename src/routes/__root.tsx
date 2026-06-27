@@ -120,10 +120,26 @@ function RootComponent() {
   // invitación o recuperación, reenviar a /admin/invite con el hash intacto.
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (window.location.pathname === "/admin/invite") return;
+    const debugPayload = {
+      source: "root-guard",
+      href: window.location.href,
+      pathname: window.location.pathname,
+      hasHash: Boolean(window.location.hash),
+      hashKeys: window.location.hash
+        ? Array.from(new URLSearchParams(window.location.hash.slice(1)).keys())
+        : [],
+    };
+    console.log("[InviteDebug] Root guard ejecutado", debugPayload);
+    if (window.location.pathname === "/admin/invite") {
+      console.log("[InviteDebug] Root guard: ya estás en /admin/invite, no redirige");
+      return;
+    }
     const hash = window.location.hash;
     if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
+      console.log("[InviteDebug] Root guard: token detectado, redirigiendo a /admin/invite");
       window.location.replace(`/admin/invite${hash}`);
+    } else {
+      console.log("[InviteDebug] Root guard: no detectó token de invitación/recuperación");
     }
   }, []);
 

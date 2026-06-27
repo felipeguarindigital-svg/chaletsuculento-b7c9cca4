@@ -127,23 +127,70 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     return new Date(y, m, d) < today;
   }
 
+  // ¿Hay alguna noche bloqueada en el rango [startKey, endKey) (excluye checkout)?
+  function rangoTieneNocheBloqueada(startKey: string, endKey: string) {
+    const s = keyToDate(startKey);
+    const e = keyToDate(endKey);
+    if (s >= e) return false;
+    const cur = new Date(s);
+    while (cur < e) {
+      if (blocked.includes(dateToKey(cur))) return true;
+      cur.setDate(cur.getDate() + 1);
+    }
+    return false;
+  }
+
   function handleDayClick(key: string) {
+    const isBlocked = blocked.includes(key);
+
+    // Caso: no hay inicio o el rango ya está completo → iniciar nuevo rango.
     if (!selectStart || (selectStart && selectEnd)) {
+      // Un día bloqueado NO puede ser check-in (esa noche ya está ocupada).
+      if (isBlocked) {
+        setError("Esa noche ya está ocupada. Elige otro día de llegada.");
+        return;
+      }
       setSelectStart(key);
       setSelectEnd(null);
-    } else {
-      if (key === selectStart) {
-        setSelectStart(null);
-      } else {
-        setSelectEnd(key);
-      }
+      setError("");
+      return;
     }
+
+    // Ya hay inicio, falta fin.
+    if (key === selectStart) {
+      setSelectStart(null);
+      setError("");
+      return;
+    }
+
+    // El fin debe ser posterior al inicio.
+    if (keyToDate(key) <= keyToDate(selectStart)) {
+      // Reiniciar desde este día (solo si no está bloqueado).
+      if (isBlocked) {
+        setError("Esa noche ya está ocupada. Elige otro día de llegada.");
+        return;
+      }
+      setSelectStart(key);
+      setSelectEnd(null);
+      setError("");
+      return;
+    }
+
+    // Validar que ninguna noche intermedia [start, key) esté bloqueada.
+    // (El día `key` es checkout y puede coincidir con una noche bloqueada.)
+    if (rangoTieneNocheBloqueada(selectStart, key)) {
+      setError("Este rango incluye noches no disponibles. Elige otro rango.");
+      setSelectEnd(null);
+      return;
+    }
+
+    setSelectEnd(key);
     setError("");
   }
 
   function getDayClass(key: string, y: number, m: number, d: number) {
     if (isPast(y, m, d)) return "past";
-    if (blocked.includes(key)) return "blocked";
+    const isBlocked = blocked.includes(key);
     let s = selectStart ? keyToDate(selectStart) : null;
     let e = selectEnd ? keyToDate(selectEnd) : null;
     if (s && e && s > e) { const t = s; s = e; e = t; }
@@ -151,6 +198,15 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     if (selectStart === key) return "selected";
     if (selectEnd && dateToKey(e!) === key) return "selected-end";
     if (s && e && dt > s && dt < e) return "in-range";
+    if (isBlocked) {
+      // Si ya hay un inicio válido anterior y el rango intermedio está libre,
+      // este día bloqueado puede usarse como checkout.
+      if (selectStart && !selectEnd && keyToDate(key) > keyToDate(selectStart)
+          && !rangoTieneNocheBloqueada(selectStart, key)) {
+        return "blocked-checkout";
+      }
+      return "blocked";
+    }
     return "available";
   }
 
@@ -198,6 +254,10 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     }
     if (!checkInKey || !checkOutKey || nights < 1) {
       setError("Selecciona fecha de llegada y de salida (mínimo 1 noche).");
+      return;
+    }
+    if (rangoTieneNocheBloqueada(checkInKey, checkOutKey)) {
+      setError("El rango seleccionado incluye noches no disponibles. Elige otro rango.");
       return;
     }
 
@@ -298,7 +358,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
                 <div
                   key={key}
                   onClick={() => { if (cls !== "past" && cls !== "blocked") handleDayClick(key); }}
-                  title={cls === "blocked" ? "No disponible" : undefined}
+                  title={cls === "blocked" ? "Noche no disponible" : cls === "blocked-checkout" ? "Solo disponible como salida" : undefined}
                   style={getDayStyle(cls)}
                 >
                   {d}
@@ -607,6 +667,14 @@ function getDayStyle(cls: string): React.CSSProperties {
       return { ...base, background: "rgba(197,164,109,0.18)", borderColor: "rgba(197,164,109,0.4)", color: C.text, cursor: "pointer" };
     case "blocked":
       return { ...base, background: C.blockedBg, color: C.blockedText, cursor: "not-allowed", textDecoration: "line-through" };
+    case "blocked-checkout":
+      return {
+        ...base,
+        background: `linear-gradient(135deg, ${C.blockedBg} 0%, ${C.blockedBg} 50%, rgba(197,164,109,0.25) 50%, rgba(197,164,109,0.25) 100%)`,
+        color: C.text,
+        cursor: "pointer",
+        borderColor: "rgba(197,164,109,0.4)",
+      };
     case "past":
       return { ...base, color: "#c8c0b0", cursor: "not-allowed" };
     default:

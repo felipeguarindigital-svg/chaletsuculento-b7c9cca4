@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminInviteRouteImport } from './routes/admin.invite'
 import { Route as ApiAdminConfigRouteImport } from './routes/api/admin/config'
 
 const AdminRoute = AdminRouteImport.update({
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminInviteRoute = AdminInviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiAdminConfigRoute = ApiAdminConfigRouteImport.update({
   id: '/api/admin/config',
   path: '/api/admin/config',
@@ -31,31 +37,34 @@ const ApiAdminConfigRoute = ApiAdminConfigRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/invite': typeof AdminInviteRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/invite': typeof AdminInviteRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
+  '/admin': typeof AdminRouteWithChildren
+  '/admin/invite': typeof AdminInviteRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/api/admin/config'
+  fullPaths: '/' | '/admin' | '/admin/invite' | '/api/admin/config'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/api/admin/config'
-  id: '__root__' | '/' | '/admin' | '/api/admin/config'
+  to: '/' | '/admin' | '/admin/invite' | '/api/admin/config'
+  id: '__root__' | '/' | '/admin' | '/admin/invite' | '/api/admin/config'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
+  AdminRoute: typeof AdminRouteWithChildren
   ApiAdminConfigRoute: typeof ApiAdminConfigRoute
 }
 
@@ -75,6 +84,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/invite': {
+      id: '/admin/invite'
+      path: '/invite'
+      fullPath: '/admin/invite'
+      preLoaderRoute: typeof AdminInviteRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/admin/config': {
       id: '/api/admin/config'
       path: '/api/admin/config'
@@ -85,9 +101,19 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AdminRouteChildren {
+  AdminInviteRoute: typeof AdminInviteRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminInviteRoute: AdminInviteRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
+  AdminRoute: AdminRouteWithChildren,
   ApiAdminConfigRoute: ApiAdminConfigRoute,
 }
 export const routeTree = rootRouteImport

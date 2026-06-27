@@ -272,6 +272,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
 
     return {
       rango: { desde: data.desde, hasta: data.hasta },
+      chalet_filtro: chaletFiltro,
+      total_reservas: resReservado.length,
       ocupacion_por_chalet,
       ingresos_por_mes,
       reservas_por_dia_semana,

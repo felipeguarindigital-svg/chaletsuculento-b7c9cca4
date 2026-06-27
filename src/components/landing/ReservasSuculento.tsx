@@ -99,7 +99,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     setError("");
 
     let cancelled = false;
-    fetchBloqueadas({ data: { chalet: chaletName as CrearCotizacionChalet } })
+    fetchBloqueadas({ data: { chalet: chaletName as ChaletName } })
       .then((data) => {
         if (cancelled) return;
         setBlocked(Array.isArray(data) ? data : []);

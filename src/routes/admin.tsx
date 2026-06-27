@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
-import { CalendarDays, Users } from "lucide-react";
+import { AnalyticsView } from "@/components/admin/AnalyticsView";
+import { CalendarDays, Users, BarChart3 } from "lucide-react";
 import { Toaster } from "sonner";
 
 type PanelUser = {

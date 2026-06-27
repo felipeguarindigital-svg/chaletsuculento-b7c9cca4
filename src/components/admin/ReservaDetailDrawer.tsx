@@ -182,6 +182,23 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
+            {canEdit && data.estado === "reservado" && (
+              <div className="pt-3 border-t">
+                <Button
+                  size="sm"
+                  className="bg-[#25D366] hover:bg-[#1ebe5d] text-white w-full"
+                  onClick={() => {
+                    const url = buildWhatsAppConfirmUrl(data);
+                    window.open(url, "_blank", "noopener,noreferrer");
+                  }}
+                >
+                  Enviar confirmación por WhatsApp
+                </Button>
+              </div>
+            )}
+
+
+
             {canDelete && (
               <div className="pt-3 border-t">
                 <Button variant="destructive" size="sm" onClick={eliminar} disabled={saving}>

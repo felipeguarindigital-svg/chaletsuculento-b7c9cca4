@@ -140,8 +140,33 @@ export function AnalyticsView({ accessToken }: Props) {
             />
           </div>
         </div>
+        <div className="flex items-end gap-2">
+          <div>
+            <Label htmlFor="chalet" className="text-xs text-stone-500">Chalet</Label>
+            <select
+              id="chalet"
+              value={chalet}
+              onChange={(e) => setChalet(e.target.value as ChaletFiltro)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {CHALET_OPCIONES.map((c) => (
+                <option key={c} value={c}>{c === "all" ? "Todos los chalets" : c}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         {loading && <span className="text-xs text-stone-500 ml-auto">Calculando…</span>}
       </div>
+
+      {/* Tarjetas numéricas destacadas */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <NumberCard
+          label="Reservas en el periodo"
+          value={data ? String(data.total_reservas) : "…"}
+          sub={chalet === "all" ? "Todos los chalets" : chalet}
+          Icon={CalendarCheck2}
+          tone="sky"
+        />
 
       {/* Tarjetas numéricas destacadas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

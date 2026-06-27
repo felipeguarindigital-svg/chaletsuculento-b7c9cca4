@@ -50,12 +50,16 @@ function diffDays(a: Date, b: Date): number {
 }
 
 export const getAnalytics = createServerFn({ method: "POST" })
-  .inputValidator((d: { accessToken: string; desde: string; hasta: string }) => {
+  .inputValidator((d: { accessToken: string; desde: string; hasta: string; chalet?: ChaletName | "all" }) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d.desde) || !/^\d{4}-\d{2}-\d{2}$/.test(d.hasta)) {
       throw new Error("Fechas inválidas");
     }
     if (d.desde > d.hasta) throw new Error("Rango inválido");
-    return d;
+    const chalet = d.chalet ?? "all";
+    if (chalet !== "all" && !CHALETS.includes(chalet as ChaletName)) {
+      throw new Error("Chalet inválido");
+    }
+    return { ...d, chalet };
   })
   .handler(async ({ data }): Promise<AnalyticsPayload> => {
     await verifyToken(data.accessToken);
@@ -66,38 +70,46 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const desde = ymdToDate(data.desde);
     const hasta = ymdToDate(data.hasta);
     const totalDiasPeriodo = diffDays(desde, hasta) + 1;
+    const chaletFiltro = (data.chalet ?? "all") as ChaletName | "all";
 
     // ---- Reservas con check-in dentro del periodo (para stays) ----
-    const { data: resStay, error: e1 } = await supabaseExternalAdmin
+    let qStay = supabaseExternalAdmin
       .from("reservas")
       .select("id, chalet, fecha, fecha_checkout, noches, desglose_noches, precio_noche, estado, origen, creado_en")
       .gte("fecha", data.desde)
       .lte("fecha", data.hasta);
+    if (chaletFiltro !== "all") qStay = qStay.eq("chalet", chaletFiltro);
+    const { data: resStay, error: e1 } = await qStay;
     if (e1) throw new Error(e1.message);
 
     // ---- Reservas creadas dentro del periodo (cohorte para conversión / origen / tiempo) ----
     const desdeIso = data.desde + "T00:00:00";
     const hastaIso = data.hasta + "T23:59:59";
-    const { data: resCohort, error: e2 } = await supabaseExternalAdmin
+    let qCohort = supabaseExternalAdmin
       .from("reservas")
-      .select("id, estado, origen, creado_en, confirmado_en")
+      .select("id, chalet, estado, origen, creado_en, confirmado_en")
       .gte("creado_en", desdeIso)
       .lte("creado_en", hastaIso);
+    if (chaletFiltro !== "all") qCohort = qCohort.eq("chalet", chaletFiltro);
+    const { data: resCohort, error: e2 } = await qCohort;
     // Si la columna confirmado_en no existe, reintentamos sin ella.
     let cohortRows: any[] = [];
     let confirmadoEnSoportado = true;
     if (e2) {
       confirmadoEnSoportado = false;
-      const { data: r2, error: e2b } = await supabaseExternalAdmin
+      let qCohort2 = supabaseExternalAdmin
         .from("reservas")
-        .select("id, estado, origen, creado_en")
+        .select("id, chalet, estado, origen, creado_en")
         .gte("creado_en", desdeIso)
         .lte("creado_en", hastaIso);
+      if (chaletFiltro !== "all") qCohort2 = qCohort2.eq("chalet", chaletFiltro);
+      const { data: r2, error: e2b } = await qCohort2;
       if (e2b) throw new Error(e2b.message);
       cohortRows = r2 ?? [];
     } else {
       cohortRows = resCohort ?? [];
     }
+
 
     // ===== Ocupación por chalet (basado en noches reservadas que caen dentro del periodo) =====
     const ocupMap = new Map<ChaletName, number>();

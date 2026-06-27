@@ -26,6 +26,46 @@ export const listServiciosAdicionales = createServerFn({ method: "GET" }).handle
   },
 );
 
+export type FechasBloqueadasInput = {
+  chalet: "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";
+};
+
+// Devuelve las fechas (YYYY-MM-DD) bloqueadas por reservas confirmadas (estado='reservado')
+// para el chalet indicado. Se expande el rango [fecha, fecha_checkout) — el día de checkout
+// queda libre. Solo se exponen fechas: ningún dato personal sale del servidor.
+export const getFechasBloqueadas = createServerFn({ method: "GET" })
+  .inputValidator((input: FechasBloqueadasInput) => {
+    if (!input?.chalet) throw new Error("chalet requerido");
+    return input;
+  })
+  .handler(async ({ data }): Promise<string[]> => {
+    const { supabaseExternalAdmin } = await import(
+      "@/integrations/supabase-external/client.server"
+    );
+    const { data: rows, error } = await supabaseExternalAdmin
+      .from("reservas")
+      .select("fecha, fecha_checkout")
+      .eq("chalet", data.chalet)
+      .eq("estado", "reservado");
+    if (error) throw new Error(error.message);
+
+    const bloqueadas = new Set<string>();
+    for (const r of (rows ?? []) as Array<{ fecha: string; fecha_checkout: string | null }>) {
+      if (!r.fecha) continue;
+      const start = new Date(r.fecha + "T00:00:00");
+      const end = r.fecha_checkout
+        ? new Date(r.fecha_checkout + "T00:00:00")
+        : new Date(start.getTime() + 24 * 60 * 60 * 1000);
+      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, "0");
+        const day = String(d.getDate()).padStart(2, "0");
+        bloqueadas.add(`${y}-${m}-${day}`);
+      }
+    }
+    return Array.from(bloqueadas).sort();
+  });
+
 export type NocheDesglose = {
   fecha: string;
   tipo: "domingo_jueves" | "viernes" | "sabado" | "previa_festivo";

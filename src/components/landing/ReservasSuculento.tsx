@@ -663,6 +663,14 @@ function getDayStyle(cls: string): React.CSSProperties {
       return { ...base, background: "rgba(197,164,109,0.18)", borderColor: "rgba(197,164,109,0.4)", color: C.text, cursor: "pointer" };
     case "blocked":
       return { ...base, background: C.blockedBg, color: C.blockedText, cursor: "not-allowed", textDecoration: "line-through" };
+    case "blocked-checkout":
+      return {
+        ...base,
+        background: `linear-gradient(135deg, ${C.blockedBg} 0%, ${C.blockedBg} 50%, rgba(197,164,109,0.25) 50%, rgba(197,164,109,0.25) 100%)`,
+        color: C.text,
+        cursor: "pointer",
+        borderColor: "rgba(197,164,109,0.4)",
+      };
     case "past":
       return { ...base, color: "#c8c0b0", cursor: "not-allowed" };
     default:

@@ -11,9 +11,11 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Gauge, TrendingUp, Timer } from "lucide-react";
+import { Gauge, TrendingUp, Timer, CalendarCheck2 } from "lucide-react";
 
 type Props = { accessToken: string };
+type ChaletFiltro = "all" | "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";
+const CHALET_OPCIONES: ChaletFiltro[] = ["all", "Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"];
 
 function fmtYmd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;

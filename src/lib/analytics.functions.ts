@@ -68,7 +68,7 @@ export const getAnalytics = createServerFn({ method: "POST" })
     // ---- Reservas con check-in dentro del periodo (para stays) ----
     const { data: resStay, error: e1 } = await supabaseExternalAdmin
       .from("reservas")
-      .select("id, chalet, fecha, fecha_checkout, noches, desglose_noches, precio_noche, estado, origen, created_at")
+      .select("id, chalet, fecha, fecha_checkout, noches, desglose_noches, precio_noche, estado, origen, creado_en")
       .gte("fecha", data.desde)
       .lte("fecha", data.hasta);
     if (e1) throw new Error(e1.message);
@@ -78,9 +78,9 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const hastaIso = data.hasta + "T23:59:59";
     const { data: resCohort, error: e2 } = await supabaseExternalAdmin
       .from("reservas")
-      .select("id, estado, origen, created_at, confirmado_en")
-      .gte("created_at", desdeIso)
-      .lte("created_at", hastaIso);
+      .select("id, estado, origen, creado_en, confirmado_en")
+      .gte("creado_en", desdeIso)
+      .lte("creado_en", hastaIso);
     // Si la columna confirmado_en no existe, reintentamos sin ella.
     let cohortRows: any[] = [];
     let confirmadoEnSoportado = true;
@@ -88,9 +88,9 @@ export const getAnalytics = createServerFn({ method: "POST" })
       confirmadoEnSoportado = false;
       const { data: r2, error: e2b } = await supabaseExternalAdmin
         .from("reservas")
-        .select("id, estado, origen, created_at")
-        .gte("created_at", desdeIso)
-        .lte("created_at", hastaIso);
+        .select("id, estado, origen, creado_en")
+        .gte("creado_en", desdeIso)
+        .lte("creado_en", hastaIso);
       if (e2b) throw new Error(e2b.message);
       cohortRows = r2 ?? [];
     } else {
@@ -191,7 +191,7 @@ export const getAnalytics = createServerFn({ method: "POST" })
       reservas_consideradas: resReservado.length,
     };
 
-    // ===== Tasa de conversión (cohorte por created_at) =====
+    // ===== Tasa de conversión (cohorte por creado_en) =====
     const cotizCohort = cohortRows; // todas las creadas (independiente del estado actual)
     const ahoraReservadas = cotizCohort.filter((r) => r.estado === "reservado").length;
     const canceladas = cotizCohort.filter((r) => r.estado === "cancelado").length;
@@ -230,11 +230,11 @@ export const getAnalytics = createServerFn({ method: "POST" })
     };
     if (confirmadoEnSoportado) {
       const confirmadas = cohortRows.filter(
-        (r) => r.estado === "reservado" && r.created_at && r.confirmado_en,
+        (r) => r.estado === "reservado" && r.creado_en && r.confirmado_en,
       );
       if (confirmadas.length > 0) {
         const sumaHoras = confirmadas.reduce((s, r) => {
-          const a = new Date(r.created_at as string).getTime();
+          const a = new Date(r.creado_en as string).getTime();
           const b = new Date(r.confirmado_en as string).getTime();
           return s + Math.max(0, (b - a) / 3600000);
         }, 0);

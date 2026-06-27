@@ -225,17 +225,24 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const nombreById = new Map<string, string>();
     for (const c of catalogo ?? []) nombreById.set(c.id as string, c.nombre as string);
     const adCount = new Map<string, number>();
+    const adTotal = new Map<string, number>();
     for (const a of adsAll ?? []) {
       const k = a.adicional_id as string;
       adCount.set(k, (adCount.get(k) ?? 0) + 1);
+      adTotal.set(k, (adTotal.get(k) ?? 0) + Number(a.precio_cobrado || 0));
     }
-    // Asegurar que aparezcan los 10 servicios aunque estén en 0
+    // Asegurar que aparezcan todos los servicios aunque estén en 0
     for (const c of catalogo ?? []) {
       if (!adCount.has(c.id as string)) adCount.set(c.id as string, 0);
+      if (!adTotal.has(c.id as string)) adTotal.set(c.id as string, 0);
     }
     const adicionales_top = Array.from(adCount.entries())
-      .map(([id, cantidad]) => ({ nombre: nombreById.get(id) ?? "—", cantidad }))
-      .sort((a, b) => b.cantidad - a.cantidad);
+      .map(([id, cantidad]) => ({
+        nombre: nombreById.get(id) ?? "—",
+        cantidad,
+        total_generado: adTotal.get(id) ?? 0,
+      }))
+      .sort((a, b) => b.total_generado - a.total_generado);
 
     // ===== Tiempo promedio de confirmación =====
     let tiempo: AnalyticsPayload["tiempo_confirmacion_horas"] = {

@@ -7,7 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
-import { CalendarDays, Users } from "lucide-react";
+import { AnalyticsView } from "@/components/admin/AnalyticsView";
+import { CalendarDays, Users, BarChart3 } from "lucide-react";
 import { Toaster } from "sonner";
 
 type PanelUser = {
@@ -28,7 +29,7 @@ function AdminPage() {
   const [panelUser, setPanelUser] = useState<PanelUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleError, setRoleError] = useState<string | null>(null);
-  const [section, setSection] = useState<"reservas" | "usuarios">("reservas");
+  const [section, setSection] = useState<"reservas" | "analitica" | "usuarios">("reservas");
 
   useEffect(() => {
     // Si Supabase cae aquí por fallback al Site URL trayendo un hash de
@@ -95,16 +96,24 @@ function AdminPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {panelUser?.rol === "administrador" && (
-              <div className="inline-flex rounded-lg border bg-white p-1">
-                <button
-                  onClick={() => setSection("reservas")}
-                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
-                    section === "reservas" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
-                  }`}
-                >
-                  <CalendarDays className="h-4 w-4" /> Reservas
-                </button>
+            <div className="inline-flex rounded-lg border bg-white p-1">
+              <button
+                onClick={() => setSection("reservas")}
+                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                  section === "reservas" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                }`}
+              >
+                <CalendarDays className="h-4 w-4" /> Reservas
+              </button>
+              <button
+                onClick={() => setSection("analitica")}
+                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                  section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" /> Analítica
+              </button>
+              {panelUser?.rol === "administrador" && (
                 <button
                   onClick={() => setSection("usuarios")}
                   className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
@@ -113,8 +122,8 @@ function AdminPage() {
                 >
                   <Users className="h-4 w-4" /> Usuarios
                 </button>
-              </div>
-            )}
+              )}
+            </div>
             <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
               Cerrar sesión
             </Button>
@@ -134,6 +143,8 @@ function AdminPage() {
           <p className="text-stone-500">Verificando permisos…</p>
         ) : section === "usuarios" && panelUser.rol === "administrador" ? (
           <UsuariosPanelView accessToken={session.access_token} currentUserId={panelUser.id} />
+        ) : section === "analitica" ? (
+          <AnalyticsView accessToken={session.access_token} />
         ) : (
           <Dashboard accessToken={session.access_token} rol={panelUser.rol} />
         )}

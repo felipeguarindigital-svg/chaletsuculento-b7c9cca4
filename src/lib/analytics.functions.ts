@@ -1,0 +1,262 @@
+// Métricas analíticas del Panel Interno. Lee del Supabase externo con service_role
+// tras verificar la sesión y el rol del usuario. Acepta un rango [desde, hasta]
+// (ambos YYYY-MM-DD inclusivos).
+import { createServerFn } from "@tanstack/react-start";
+
+type RolPanel = "administrador" | "operador" | "lectura";
+
+async function verifyToken(accessToken: string): Promise<{ userId: string; rol: RolPanel }> {
+  if (!accessToken) throw new Error("Sesión requerida");
+  const { supabaseExternalAdmin } = await import(
+    "@/integrations/supabase-external/client.server"
+  );
+  const { data, error } = await supabaseExternalAdmin.auth.getUser(accessToken);
+  if (error || !data.user) throw new Error("Sesión inválida");
+  const { data: row, error: rolErr } = await supabaseExternalAdmin
+    .from("usuarios_panel")
+    .select("id, rol")
+    .eq("id", data.user.id)
+    .maybeSingle();
+  if (rolErr) throw new Error(rolErr.message);
+  if (!row) throw new Error("Sin acceso al panel");
+  return { userId: row.id as string, rol: row.rol as RolPanel };
+}
+
+const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"] as const;
+type ChaletName = (typeof CHALETS)[number];
+
+export type AnalyticsPayload = {
+  rango: { desde: string; hasta: string };
+  ocupacion_por_chalet: { chalet: ChaletName; noches_ocupadas: number; noches_totales: number; pct: number }[];
+  ingresos_por_mes: { mes: string; ingresos: number }[];
+  reservas_por_dia_semana: { dia: string; cantidad: number }[];
+  origen_reservas: { origen: string; cantidad: number }[];
+  ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
+  conversion: { cotizaciones_creadas: number; ahora_reservadas: number; canceladas: number; pct: number };
+  adicionales_top: { nombre: string; cantidad: number }[];
+  tiempo_confirmacion_horas: { promedio: number | null; reservas_consideradas: number; soportado: boolean };
+};
+
+function ymdToDate(s: string): Date {
+  return new Date(s + "T00:00:00");
+}
+function fmtYmd(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+function diffDays(a: Date, b: Date): number {
+  return Math.round((b.getTime() - a.getTime()) / 86400000);
+}
+
+export const getAnalytics = createServerFn({ method: "POST" })
+  .inputValidator((d: { accessToken: string; desde: string; hasta: string }) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(d.desde) || !/^\d{4}-\d{2}-\d{2}$/.test(d.hasta)) {
+      throw new Error("Fechas inválidas");
+    }
+    if (d.desde > d.hasta) throw new Error("Rango inválido");
+    return d;
+  })
+  .handler(async ({ data }): Promise<AnalyticsPayload> => {
+    await verifyToken(data.accessToken);
+    const { supabaseExternalAdmin } = await import(
+      "@/integrations/supabase-external/client.server"
+    );
+
+    const desde = ymdToDate(data.desde);
+    const hasta = ymdToDate(data.hasta);
+    const totalDiasPeriodo = diffDays(desde, hasta) + 1;
+
+    // ---- Reservas con check-in dentro del periodo (para stays) ----
+    const { data: resStay, error: e1 } = await supabaseExternalAdmin
+      .from("reservas")
+      .select("id, chalet, fecha, fecha_checkout, noches, desglose_noches, precio_noche, estado, origen, created_at")
+      .gte("fecha", data.desde)
+      .lte("fecha", data.hasta);
+    if (e1) throw new Error(e1.message);
+
+    // ---- Reservas creadas dentro del periodo (cohorte para conversión / origen / tiempo) ----
+    const desdeIso = data.desde + "T00:00:00";
+    const hastaIso = data.hasta + "T23:59:59";
+    const { data: resCohort, error: e2 } = await supabaseExternalAdmin
+      .from("reservas")
+      .select("id, estado, origen, created_at, confirmado_en")
+      .gte("created_at", desdeIso)
+      .lte("created_at", hastaIso);
+    // Si la columna confirmado_en no existe, reintentamos sin ella.
+    let cohortRows: any[] = [];
+    let confirmadoEnSoportado = true;
+    if (e2) {
+      confirmadoEnSoportado = false;
+      const { data: r2, error: e2b } = await supabaseExternalAdmin
+        .from("reservas")
+        .select("id, estado, origen, created_at")
+        .gte("created_at", desdeIso)
+        .lte("created_at", hastaIso);
+      if (e2b) throw new Error(e2b.message);
+      cohortRows = r2 ?? [];
+    } else {
+      cohortRows = resCohort ?? [];
+    }
+
+    // ===== Ocupación por chalet (basado en noches reservadas que caen dentro del periodo) =====
+    const ocupMap = new Map<ChaletName, number>();
+    CHALETS.forEach((c) => ocupMap.set(c, 0));
+    for (const r of resStay ?? []) {
+      if (r.estado !== "reservado") continue;
+      const ci = ymdToDate(r.fecha);
+      const co = r.fecha_checkout
+        ? ymdToDate(r.fecha_checkout)
+        : new Date(ci.getTime() + Number(r.noches ?? 1) * 86400000);
+      for (let d = new Date(ci); d < co; d.setDate(d.getDate() + 1)) {
+        if (d >= desde && d <= hasta) {
+          const c = r.chalet as ChaletName;
+          if (ocupMap.has(c)) ocupMap.set(c, (ocupMap.get(c) ?? 0) + 1);
+        }
+      }
+    }
+    const ocupacion_por_chalet = CHALETS.map((c) => {
+      const n = ocupMap.get(c) ?? 0;
+      return {
+        chalet: c,
+        noches_ocupadas: n,
+        noches_totales: totalDiasPeriodo,
+        pct: totalDiasPeriodo > 0 ? Math.round((n / totalDiasPeriodo) * 100) : 0,
+      };
+    });
+
+    // ===== Reservas reservado en el periodo (para ingresos, día semana, ticket, adicionales) =====
+    const resReservado = (resStay ?? []).filter((r) => r.estado === "reservado");
+    const idsReservado = resReservado.map((r) => r.id as string);
+
+    const { data: adsAll } = idsReservado.length
+      ? await supabaseExternalAdmin
+          .from("reserva_adicionales")
+          .select("reserva_id, precio_cobrado, adicional_id, servicios_adicionales(nombre)")
+          .in("reserva_id", idsReservado)
+      : { data: [] as any[] };
+
+    const adsPorReserva = new Map<string, number>();
+    for (const a of adsAll ?? []) {
+      const k = a.reserva_id as string;
+      adsPorReserva.set(k, (adsPorReserva.get(k) ?? 0) + Number(a.precio_cobrado || 0));
+    }
+
+    function totalNochesDe(r: any): number {
+      const dg = r.desglose_noches as { precio: number }[] | null;
+      if (dg && dg.length > 0) return dg.reduce((s, n) => s + Number(n.precio || 0), 0);
+      return Number(r.precio_noche || 0) * Number(r.noches || 1);
+    }
+
+    // ===== Ingresos por mes =====
+    const ingresosMap = new Map<string, number>();
+    for (const r of resReservado) {
+      const mes = (r.fecha as string).slice(0, 7); // YYYY-MM
+      const ingreso = totalNochesDe(r) + (adsPorReserva.get(r.id as string) ?? 0);
+      ingresosMap.set(mes, (ingresosMap.get(mes) ?? 0) + ingreso);
+    }
+    const ingresos_por_mes = Array.from(ingresosMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([mes, ingresos]) => ({ mes, ingresos }));
+
+    // ===== Día semana más reservado (por check-in) =====
+    const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
+    const diaCount = [0, 0, 0, 0, 0, 0, 0];
+    for (const r of resReservado) {
+      const d = ymdToDate(r.fecha as string);
+      const dow = d.getDay(); // 0 dom
+      const idx = dow === 0 ? 6 : dow - 1;
+      diaCount[idx]++;
+    }
+    const reservas_por_dia_semana = DIAS.map((dia, i) => ({ dia, cantidad: diaCount[i] }));
+
+    // ===== Origen reservas (en cohorte) =====
+    const origenMap = new Map<string, number>();
+    for (const r of cohortRows) {
+      const o = (r.origen as string) ?? "manual";
+      origenMap.set(o, (origenMap.get(o) ?? 0) + 1);
+    }
+    const origen_reservas = Array.from(origenMap.entries()).map(([origen, cantidad]) => ({ origen, cantidad }));
+
+    // ===== Ticket promedio =====
+    let sumaCon = 0;
+    let sumaSin = 0;
+    for (const r of resReservado) {
+      const noches = totalNochesDe(r);
+      const ads = adsPorReserva.get(r.id as string) ?? 0;
+      sumaSin += noches;
+      sumaCon += noches + ads;
+    }
+    const ticket_promedio = {
+      con_adicionales: resReservado.length > 0 ? Math.round(sumaCon / resReservado.length) : 0,
+      sin_adicionales: resReservado.length > 0 ? Math.round(sumaSin / resReservado.length) : 0,
+      reservas_consideradas: resReservado.length,
+    };
+
+    // ===== Tasa de conversión (cohorte por created_at) =====
+    const cotizCohort = cohortRows; // todas las creadas (independiente del estado actual)
+    const ahoraReservadas = cotizCohort.filter((r) => r.estado === "reservado").length;
+    const canceladas = cotizCohort.filter((r) => r.estado === "cancelado").length;
+    const denom = cotizCohort.length - canceladas;
+    const conversion = {
+      cotizaciones_creadas: cotizCohort.length,
+      ahora_reservadas: ahoraReservadas,
+      canceladas,
+      pct: denom > 0 ? Math.round((ahoraReservadas / denom) * 100) : 0,
+    };
+
+    // ===== Adicionales más vendidos =====
+    const { data: catalogo } = await supabaseExternalAdmin
+      .from("servicios_adicionales")
+      .select("id, nombre");
+    const nombreById = new Map<string, string>();
+    for (const c of catalogo ?? []) nombreById.set(c.id as string, c.nombre as string);
+    const adCount = new Map<string, number>();
+    for (const a of adsAll ?? []) {
+      const k = a.adicional_id as string;
+      adCount.set(k, (adCount.get(k) ?? 0) + 1);
+    }
+    // Asegurar que aparezcan los 10 servicios aunque estén en 0
+    for (const c of catalogo ?? []) {
+      if (!adCount.has(c.id as string)) adCount.set(c.id as string, 0);
+    }
+    const adicionales_top = Array.from(adCount.entries())
+      .map(([id, cantidad]) => ({ nombre: nombreById.get(id) ?? "—", cantidad }))
+      .sort((a, b) => b.cantidad - a.cantidad);
+
+    // ===== Tiempo promedio de confirmación =====
+    let tiempo: AnalyticsPayload["tiempo_confirmacion_horas"] = {
+      promedio: null,
+      reservas_consideradas: 0,
+      soportado: confirmadoEnSoportado,
+    };
+    if (confirmadoEnSoportado) {
+      const confirmadas = cohortRows.filter(
+        (r) => r.estado === "reservado" && r.created_at && r.confirmado_en,
+      );
+      if (confirmadas.length > 0) {
+        const sumaHoras = confirmadas.reduce((s, r) => {
+          const a = new Date(r.created_at as string).getTime();
+          const b = new Date(r.confirmado_en as string).getTime();
+          return s + Math.max(0, (b - a) / 3600000);
+        }, 0);
+        tiempo = {
+          promedio: Math.round((sumaHoras / confirmadas.length) * 10) / 10,
+          reservas_consideradas: confirmadas.length,
+          soportado: true,
+        };
+      } else {
+        tiempo = { promedio: null, reservas_consideradas: 0, soportado: true };
+      }
+    }
+
+    return {
+      rango: { desde: data.desde, hasta: data.hasta },
+      ocupacion_por_chalet,
+      ingresos_por_mes,
+      reservas_por_dia_semana,
+      origen_reservas,
+      ticket_promedio,
+      conversion,
+      adicionales_top,
+      tiempo_confirmacion_horas: tiempo,
+    };
+  });

@@ -133,8 +133,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               <div className="flex justify-between"><span className="text-stone-500">Chalet</span>
                 <span className={`px-2 py-0.5 rounded-md text-xs ${CHALET_COLOR[data.chalet].badge}`}>{data.chalet}</span>
               </div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}</span></div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}</span></div>
+              <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}{getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkIn}` : ""}</span></div>
+              <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}{data.fecha_checkout && getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkOut}` : ""}</span></div>
+
               <div className="flex justify-between"><span className="text-stone-500">Noches</span><span>{data.noches ?? "—"}</span></div>
               <div className="flex justify-between"><span className="text-stone-500">Tarifa</span><span>{LABEL_TIPO[data.tipo_tarifa]}</span></div>
               <div className="flex justify-between"><span className="text-stone-500">Origen</span><span>{data.origen}</span></div>

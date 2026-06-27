@@ -3,13 +3,11 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   listServiciosAdicionales,
   crearCotizacion,
+  getFechasBloqueadas,
   type ServicioAdicional,
 } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche, type TipoTarifa } from "@/lib/tarifas";
 import { PRECIO_POR_TIPO, LABEL_TIPO, formatCOP } from "@/lib/precios";
-
-const APPS_SCRIPT_URL =
-  "https://script.google.com/macros/s/AKfycbzRJzjQzJJEBdohrhSN-bkhRcwW9JmxOrK-WuMXtp8Ndbc3WcWOyR7Gjb8oaAvUMEOxXA/exec";
 
 const WHATSAPP_NUMBER = "573013060013";
 
@@ -54,13 +52,6 @@ function fmtKey(k: string) {
   return `${parseInt(d)} ${MONTH_SHORT[parseInt(m) - 1]} ${y}`;
 }
 
-const SHEET_TAB_BY_CHALET: Record<string, string> = {
-  "Suculento": "Suculento",
-  "Del Bosque": "DelBosque",
-  "Cattleya": "Cattleya",
-  "Ukiyo": "Ukiyo",
-  "Satori": "Satori",
-};
 
 // Tipo predominante de la estadía: el más caro (mayor precio_noche).
 function tipoPredominante(noches: Array<{ tipo: TipoTarifa }>): TipoTarifa {
@@ -91,6 +82,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
 
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submitCotizacion = useServerFn(crearCotizacion);
+  const fetchBloqueadas = useServerFn(getFechasBloqueadas);
 
   useEffect(() => {
     fetchServicios()
@@ -99,7 +91,6 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   }, [fetchServicios]);
 
   useEffect(() => {
-    const sheet = SHEET_TAB_BY_CHALET[chaletName as string] ?? "Suculento";
     setLoading(true);
     setBlocked([]);
     setSelectStart(null);
@@ -107,22 +98,21 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     setSeleccionados(new Set());
     setError("");
 
-    const url = `${APPS_SCRIPT_URL}?chalet=${encodeURIComponent(sheet)}&sheet=${encodeURIComponent(sheet)}&tab=${encodeURIComponent(sheet)}`;
     let cancelled = false;
-    fetch(url)
-      .then((r) => r.json())
-      .then((data: unknown) => {
+    fetchBloqueadas({ data: { chalet: chaletName as ChaletName } })
+      .then((data) => {
         if (cancelled) return;
-        setBlocked(Array.isArray(data) ? (data as string[]) : []);
+        setBlocked(Array.isArray(data) ? data : []);
         setLoading(false);
       })
-      .catch(() => {
+      .catch((e) => {
+        console.error("[fechas_bloqueadas] error:", e);
         if (!cancelled) setLoading(false);
       });
     return () => {
       cancelled = true;
     };
-  }, [chaletName]);
+  }, [chaletName, fetchBloqueadas]);
 
   function changeMonth(dir: number) {
     let m = viewMonth + dir;

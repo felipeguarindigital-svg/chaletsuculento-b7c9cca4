@@ -84,9 +84,31 @@ function AdminPage() {
               </p>
             )}
           </div>
-          <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
-            Cerrar sesión
-          </Button>
+          <div className="flex items-center gap-2">
+            {panelUser?.rol === "administrador" && (
+              <div className="inline-flex rounded-lg border bg-white p-1">
+                <button
+                  onClick={() => setSection("reservas")}
+                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                    section === "reservas" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                  }`}
+                >
+                  <CalendarDays className="h-4 w-4" /> Reservas
+                </button>
+                <button
+                  onClick={() => setSection("usuarios")}
+                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                    section === "usuarios" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                  }`}
+                >
+                  <Users className="h-4 w-4" /> Usuarios
+                </button>
+              </div>
+            )}
+            <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
+              Cerrar sesión
+            </Button>
+          </div>
         </div>
       </header>
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -100,6 +122,8 @@ function AdminPage() {
           </div>
         ) : !panelUser ? (
           <p className="text-stone-500">Verificando permisos…</p>
+        ) : section === "usuarios" && panelUser.rol === "administrador" ? (
+          <UsuariosPanelView accessToken={session.access_token} currentUserId={panelUser.id} />
         ) : (
           <Dashboard accessToken={session.access_token} rol={panelUser.rol} />
         )}

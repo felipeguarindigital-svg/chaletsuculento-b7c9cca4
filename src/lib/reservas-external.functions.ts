@@ -49,18 +49,29 @@ export const getFechasBloqueadas = createServerFn({ method: "GET" })
       .eq("estado", "reservado");
     if (error) throw new Error(error.message);
 
+    // Aritmética puramente en strings YYYY-MM-DD para evitar cualquier
+    // desplazamiento por zona horaria. Bloqueamos las NOCHES dormidas:
+    // desde `fecha` (inclusive) hasta `fecha_checkout` (EXCLUSIVE). El día
+    // de checkout queda libre porque el chalet se libera esa misma mañana.
+    const toYmd = (v: string) => v.slice(0, 10); // soporta "YYYY-MM-DD" o ISO completo
+    const addDay = (ymd: string) => {
+      const [y, m, d] = ymd.split("-").map(Number);
+      const next = new Date(Date.UTC(y, m - 1, d) + 86400000);
+      const ny = next.getUTCFullYear();
+      const nm = String(next.getUTCMonth() + 1).padStart(2, "0");
+      const nd = String(next.getUTCDate()).padStart(2, "0");
+      return `${ny}-${nm}-${nd}`;
+    };
+
     const bloqueadas = new Set<string>();
     for (const r of (rows ?? []) as Array<{ fecha: string; fecha_checkout: string | null }>) {
       if (!r.fecha) continue;
-      const start = new Date(r.fecha + "T00:00:00");
-      const end = r.fecha_checkout
-        ? new Date(r.fecha_checkout + "T00:00:00")
-        : new Date(start.getTime() + 24 * 60 * 60 * 1000);
-      for (let d = new Date(start); d < end; d.setDate(d.getDate() + 1)) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, "0");
-        const day = String(d.getDate()).padStart(2, "0");
-        bloqueadas.add(`${y}-${m}-${day}`);
+      const start = toYmd(r.fecha);
+      // Si no hay checkout, asumimos 1 noche → checkout = start + 1 día.
+      const end = r.fecha_checkout ? toYmd(r.fecha_checkout) : addDay(start);
+      // Recorremos [start, end) — nunca incluimos el día de checkout.
+      for (let cur = start; cur < end; cur = addDay(cur)) {
+        bloqueadas.add(cur);
       }
     }
     return Array.from(bloqueadas).sort();

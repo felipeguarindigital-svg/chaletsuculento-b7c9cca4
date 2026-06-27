@@ -312,11 +312,12 @@ export function AnalyticsView({ accessToken }: Props) {
 
 function NumberCard({
   label, value, sub, Icon, tone,
-}: { label: string; value: string; sub?: string; Icon: any; tone: "emerald" | "amber" | "indigo" }) {
+}: { label: string; value: string; sub?: string; Icon: any; tone: "emerald" | "amber" | "indigo" | "sky" }) {
   const tones: Record<string, string> = {
     emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
     amber: "bg-amber-50 text-amber-700 ring-amber-200",
     indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200",
+    sky: "bg-sky-50 text-sky-700 ring-sky-200",
   };
   return (
     <div className="rounded-xl border bg-white p-5 shadow-sm">

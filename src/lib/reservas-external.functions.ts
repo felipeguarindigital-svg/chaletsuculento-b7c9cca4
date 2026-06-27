@@ -77,7 +77,7 @@ export const crearCotizacion = createServerFn({ method: "POST" })
     return input;
   })
   .handler(async ({ data }): Promise<CrearCotizacionOutput> => {
-    const { supabaseExternal } = await import(
+    const { supabaseExternalAdmin } = await import(
       "@/integrations/supabase-external/client.server"
     );
 
@@ -107,7 +107,7 @@ export const crearCotizacion = createServerFn({ method: "POST" })
       adicionales: data.adicionales.length,
     });
 
-    const { data: reserva, error } = await supabaseExternal
+    const { data: reserva, error } = await supabaseExternalAdmin
       .from("reservas")
       .insert(reservaInsert)
       .select("id, codigo")
@@ -134,7 +134,7 @@ export const crearCotizacion = createServerFn({ method: "POST" })
         servicio_id: a.servicio_id,
         precio_cobrado: a.precio_cobrado,
       }));
-      const { error: errAd } = await supabaseExternal
+      const { error: errAd } = await supabaseExternalAdmin
         .from("reserva_adicionales")
         .insert(filas);
       if (errAd) {

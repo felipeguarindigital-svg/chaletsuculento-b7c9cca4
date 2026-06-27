@@ -11,9 +11,11 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Gauge, TrendingUp, Timer } from "lucide-react";
+import { Gauge, TrendingUp, Timer, CalendarCheck2 } from "lucide-react";
 
 type Props = { accessToken: string };
+type ChaletFiltro = "all" | "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";
+const CHALET_OPCIONES: ChaletFiltro[] = ["all", "Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"];
 
 function fmtYmd(d: Date) {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -59,16 +61,17 @@ export function AnalyticsView({ accessToken }: Props) {
   const fetchAnalytics = useServerFn(getAnalytics);
   const [preset, setPreset] = useState<Preset>("mes");
   const [rango, setRango] = useState(() => rangoPreset("mes"));
+  const [chalet, setChalet] = useState<ChaletFiltro>("all");
   const [data, setData] = useState<AnalyticsPayload | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    fetchAnalytics({ data: { accessToken, desde: rango.desde, hasta: rango.hasta } })
+    fetchAnalytics({ data: { accessToken, desde: rango.desde, hasta: rango.hasta, chalet } })
       .then(setData)
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
-  }, [accessToken, rango.desde, rango.hasta, fetchAnalytics]);
+  }, [accessToken, rango.desde, rango.hasta, chalet, fetchAnalytics]);
 
   function elegirPreset(p: Preset) {
     setPreset(p);
@@ -137,11 +140,33 @@ export function AnalyticsView({ accessToken }: Props) {
             />
           </div>
         </div>
+        <div className="flex items-end gap-2">
+          <div>
+            <Label htmlFor="chalet" className="text-xs text-stone-500">Chalet</Label>
+            <select
+              id="chalet"
+              value={chalet}
+              onChange={(e) => setChalet(e.target.value as ChaletFiltro)}
+              className="h-9 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {CHALET_OPCIONES.map((c) => (
+                <option key={c} value={c}>{c === "all" ? "Todos los chalets" : c}</option>
+              ))}
+            </select>
+          </div>
+        </div>
         {loading && <span className="text-xs text-stone-500 ml-auto">Calculando…</span>}
       </div>
 
       {/* Tarjetas numéricas destacadas */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <NumberCard
+          label="Reservas en el periodo"
+          value={data ? String(data.total_reservas) : "…"}
+          sub={chalet === "all" ? "Todos los chalets" : chalet}
+          Icon={CalendarCheck2}
+          tone="sky"
+        />
         <NumberCard
           label="Ticket promedio por reserva"
           value={data ? formatCOP(data.ticket_promedio.con_adicionales) : "…"}
@@ -248,15 +273,37 @@ export function AnalyticsView({ accessToken }: Props) {
 
       <ChartCard title="Servicios adicionales más vendidos">
         {sinDatosAdic ? <EmptyMsg /> : (
-          <ResponsiveContainer width="100%" height={Math.max(260, (data?.adicionales_top.length ?? 0) * 34)}>
-            <BarChart layout="vertical" data={data?.adicionales_top ?? []} margin={{ left: 24 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
-              <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12 }} />
-              <YAxis type="category" dataKey="nombre" width={180} tick={{ fontSize: 12 }} />
-              <Tooltip />
-              <Bar dataKey="cantidad" fill="#f59e0b" radius={[0, 6, 6, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-xs uppercase tracking-wider text-stone-500 border-b">
+                  <th className="py-2 pr-4 font-medium">Servicio</th>
+                  <th className="py-2 pr-4 font-medium text-right">Veces vendido</th>
+                  <th className="py-2 pl-4 font-medium text-right">Total generado</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(data?.adicionales_top ?? []).map((a) => (
+                  <tr key={a.nombre} className="border-b last:border-0 hover:bg-stone-50">
+                    <td className="py-2 pr-4 text-stone-800">{a.nombre}</td>
+                    <td className="py-2 pr-4 text-right tabular-nums text-stone-700">{a.cantidad}</td>
+                    <td className="py-2 pl-4 text-right tabular-nums text-stone-700">{formatCOP(a.total_generado)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr className="border-t-2 border-stone-300 bg-stone-50 font-semibold text-stone-900">
+                  <td className="py-2 pr-4 uppercase text-xs tracking-wider">Total general</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">
+                    {(data?.adicionales_top ?? []).reduce((s, a) => s + a.cantidad, 0)}
+                  </td>
+                  <td className="py-2 pl-4 text-right tabular-nums">
+                    {formatCOP((data?.adicionales_top ?? []).reduce((s, a) => s + a.total_generado, 0))}
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
         )}
       </ChartCard>
     </div>
@@ -265,11 +312,12 @@ export function AnalyticsView({ accessToken }: Props) {
 
 function NumberCard({
   label, value, sub, Icon, tone,
-}: { label: string; value: string; sub?: string; Icon: any; tone: "emerald" | "amber" | "indigo" }) {
+}: { label: string; value: string; sub?: string; Icon: any; tone: "emerald" | "amber" | "indigo" | "sky" }) {
   const tones: Record<string, string> = {
     emerald: "bg-emerald-50 text-emerald-700 ring-emerald-200",
     amber: "bg-amber-50 text-amber-700 ring-amber-200",
     indigo: "bg-indigo-50 text-indigo-700 ring-indigo-200",
+    sky: "bg-sky-50 text-sky-700 ring-sky-200",
   };
   return (
     <div className="rounded-xl border bg-white p-5 shadow-sm">

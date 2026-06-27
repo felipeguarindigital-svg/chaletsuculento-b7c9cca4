@@ -27,13 +27,15 @@ type ChaletName = (typeof CHALETS)[number];
 
 export type AnalyticsPayload = {
   rango: { desde: string; hasta: string };
+  chalet_filtro: ChaletName | "all";
+  total_reservas: number;
   ocupacion_por_chalet: { chalet: ChaletName; noches_ocupadas: number; noches_totales: number; pct: number }[];
   ingresos_por_mes: { mes: string; ingresos: number }[];
   reservas_por_dia_semana: { dia: string; cantidad: number }[];
   origen_reservas: { origen: string; cantidad: number }[];
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
   conversion: { cotizaciones_creadas: number; ahora_reservadas: number; canceladas: number; pct: number };
-  adicionales_top: { nombre: string; cantidad: number }[];
+  adicionales_top: { nombre: string; cantidad: number; total_generado: number }[];
   tiempo_confirmacion_horas: { promedio: number | null; reservas_consideradas: number; soportado: boolean };
 };
 
@@ -48,12 +50,16 @@ function diffDays(a: Date, b: Date): number {
 }
 
 export const getAnalytics = createServerFn({ method: "POST" })
-  .inputValidator((d: { accessToken: string; desde: string; hasta: string }) => {
+  .inputValidator((d: { accessToken: string; desde: string; hasta: string; chalet?: ChaletName | "all" }) => {
     if (!/^\d{4}-\d{2}-\d{2}$/.test(d.desde) || !/^\d{4}-\d{2}-\d{2}$/.test(d.hasta)) {
       throw new Error("Fechas inválidas");
     }
     if (d.desde > d.hasta) throw new Error("Rango inválido");
-    return d;
+    const chalet = d.chalet ?? "all";
+    if (chalet !== "all" && !CHALETS.includes(chalet as ChaletName)) {
+      throw new Error("Chalet inválido");
+    }
+    return { ...d, chalet };
   })
   .handler(async ({ data }): Promise<AnalyticsPayload> => {
     await verifyToken(data.accessToken);
@@ -64,38 +70,46 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const desde = ymdToDate(data.desde);
     const hasta = ymdToDate(data.hasta);
     const totalDiasPeriodo = diffDays(desde, hasta) + 1;
+    const chaletFiltro = (data.chalet ?? "all") as ChaletName | "all";
 
     // ---- Reservas con check-in dentro del periodo (para stays) ----
-    const { data: resStay, error: e1 } = await supabaseExternalAdmin
+    let qStay = supabaseExternalAdmin
       .from("reservas")
       .select("id, chalet, fecha, fecha_checkout, noches, desglose_noches, precio_noche, estado, origen, creado_en")
       .gte("fecha", data.desde)
       .lte("fecha", data.hasta);
+    if (chaletFiltro !== "all") qStay = qStay.eq("chalet", chaletFiltro);
+    const { data: resStay, error: e1 } = await qStay;
     if (e1) throw new Error(e1.message);
 
     // ---- Reservas creadas dentro del periodo (cohorte para conversión / origen / tiempo) ----
     const desdeIso = data.desde + "T00:00:00";
     const hastaIso = data.hasta + "T23:59:59";
-    const { data: resCohort, error: e2 } = await supabaseExternalAdmin
+    let qCohort = supabaseExternalAdmin
       .from("reservas")
-      .select("id, estado, origen, creado_en, confirmado_en")
+      .select("id, chalet, estado, origen, creado_en, confirmado_en")
       .gte("creado_en", desdeIso)
       .lte("creado_en", hastaIso);
+    if (chaletFiltro !== "all") qCohort = qCohort.eq("chalet", chaletFiltro);
+    const { data: resCohort, error: e2 } = await qCohort;
     // Si la columna confirmado_en no existe, reintentamos sin ella.
     let cohortRows: any[] = [];
     let confirmadoEnSoportado = true;
     if (e2) {
       confirmadoEnSoportado = false;
-      const { data: r2, error: e2b } = await supabaseExternalAdmin
+      let qCohort2 = supabaseExternalAdmin
         .from("reservas")
-        .select("id, estado, origen, creado_en")
+        .select("id, chalet, estado, origen, creado_en")
         .gte("creado_en", desdeIso)
         .lte("creado_en", hastaIso);
+      if (chaletFiltro !== "all") qCohort2 = qCohort2.eq("chalet", chaletFiltro);
+      const { data: r2, error: e2b } = await qCohort2;
       if (e2b) throw new Error(e2b.message);
       cohortRows = r2 ?? [];
     } else {
       cohortRows = resCohort ?? [];
     }
+
 
     // ===== Ocupación por chalet (basado en noches reservadas que caen dentro del periodo) =====
     const ocupMap = new Map<ChaletName, number>();
@@ -113,7 +127,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
         }
       }
     }
-    const ocupacion_por_chalet = CHALETS.map((c) => {
+    const chaletsParaOcupacion = chaletFiltro === "all" ? CHALETS : [chaletFiltro as ChaletName];
+    const ocupacion_por_chalet = chaletsParaOcupacion.map((c) => {
       const n = ocupMap.get(c) ?? 0;
       return {
         chalet: c,
@@ -210,17 +225,24 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const nombreById = new Map<string, string>();
     for (const c of catalogo ?? []) nombreById.set(c.id as string, c.nombre as string);
     const adCount = new Map<string, number>();
+    const adTotal = new Map<string, number>();
     for (const a of adsAll ?? []) {
       const k = a.adicional_id as string;
       adCount.set(k, (adCount.get(k) ?? 0) + 1);
+      adTotal.set(k, (adTotal.get(k) ?? 0) + Number(a.precio_cobrado || 0));
     }
-    // Asegurar que aparezcan los 10 servicios aunque estén en 0
+    // Asegurar que aparezcan todos los servicios aunque estén en 0
     for (const c of catalogo ?? []) {
       if (!adCount.has(c.id as string)) adCount.set(c.id as string, 0);
+      if (!adTotal.has(c.id as string)) adTotal.set(c.id as string, 0);
     }
     const adicionales_top = Array.from(adCount.entries())
-      .map(([id, cantidad]) => ({ nombre: nombreById.get(id) ?? "—", cantidad }))
-      .sort((a, b) => b.cantidad - a.cantidad);
+      .map(([id, cantidad]) => ({
+        nombre: nombreById.get(id) ?? "—",
+        cantidad,
+        total_generado: adTotal.get(id) ?? 0,
+      }))
+      .sort((a, b) => b.total_generado - a.total_generado);
 
     // ===== Tiempo promedio de confirmación =====
     let tiempo: AnalyticsPayload["tiempo_confirmacion_horas"] = {
@@ -250,6 +272,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
 
     return {
       rango: { desde: data.desde, hasta: data.hasta },
+      chalet_filtro: chaletFiltro,
+      total_reservas: resReservado.length,
       ocupacion_por_chalet,
       ingresos_por_mes,
       reservas_por_dia_semana,

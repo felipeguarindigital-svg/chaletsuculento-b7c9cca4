@@ -96,16 +96,24 @@ function AdminPage() {
             )}
           </div>
           <div className="flex items-center gap-2">
-            {panelUser?.rol === "administrador" && (
-              <div className="inline-flex rounded-lg border bg-white p-1">
-                <button
-                  onClick={() => setSection("reservas")}
-                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
-                    section === "reservas" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
-                  }`}
-                >
-                  <CalendarDays className="h-4 w-4" /> Reservas
-                </button>
+            <div className="inline-flex rounded-lg border bg-white p-1">
+              <button
+                onClick={() => setSection("reservas")}
+                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                  section === "reservas" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                }`}
+              >
+                <CalendarDays className="h-4 w-4" /> Reservas
+              </button>
+              <button
+                onClick={() => setSection("analitica")}
+                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                  section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                }`}
+              >
+                <BarChart3 className="h-4 w-4" /> Analítica
+              </button>
+              {panelUser?.rol === "administrador" && (
                 <button
                   onClick={() => setSection("usuarios")}
                   className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
@@ -114,8 +122,8 @@ function AdminPage() {
                 >
                   <Users className="h-4 w-4" /> Usuarios
                 </button>
-              </div>
-            )}
+              )}
+            </div>
             <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
               Cerrar sesión
             </Button>

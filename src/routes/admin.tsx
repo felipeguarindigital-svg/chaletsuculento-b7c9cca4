@@ -31,6 +31,16 @@ function AdminPage() {
   const [section, setSection] = useState<"reservas" | "usuarios">("reservas");
 
   useEffect(() => {
+    // Si Supabase cae aquí por fallback al Site URL trayendo un hash de
+    // invitación o recuperación, redirige a /admin/invite preservando el hash
+    // ANTES de inicializar el cliente (que de otro modo consumiría el token).
+    if (typeof window !== "undefined") {
+      const hash = window.location.hash;
+      if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
+        window.location.replace(`/admin/invite${hash}`);
+        return;
+      }
+    }
     let unsub: (() => void) | undefined;
     (async () => {
       const client = await getExternalSupabase();

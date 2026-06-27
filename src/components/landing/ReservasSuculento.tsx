@@ -113,10 +113,6 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
       cancelled = true;
     };
   }, [chaletName, fetchBloqueadas]);
-    return () => {
-      cancelled = true;
-    };
-  }, [chaletName]);
 
   function changeMonth(dir: number) {
     let m = viewMonth + dir;

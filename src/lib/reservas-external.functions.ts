@@ -134,7 +134,7 @@ export const crearCotizacion = createServerFn({ method: "POST" })
         servicio_id: a.servicio_id,
         precio_cobrado: a.precio_cobrado,
       }));
-      const { error: errAd } = await supabaseExternal
+      const { error: errAd } = await supabaseExternalAdmin
         .from("reserva_adicionales")
         .insert(filas);
       if (errAd) {

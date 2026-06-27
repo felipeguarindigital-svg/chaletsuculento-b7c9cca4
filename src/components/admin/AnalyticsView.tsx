@@ -61,16 +61,17 @@ export function AnalyticsView({ accessToken }: Props) {
   const fetchAnalytics = useServerFn(getAnalytics);
   const [preset, setPreset] = useState<Preset>("mes");
   const [rango, setRango] = useState(() => rangoPreset("mes"));
+  const [chalet, setChalet] = useState<ChaletFiltro>("all");
   const [data, setData] = useState<AnalyticsPayload | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLoading(true);
-    fetchAnalytics({ data: { accessToken, desde: rango.desde, hasta: rango.hasta } })
+    fetchAnalytics({ data: { accessToken, desde: rango.desde, hasta: rango.hasta, chalet } })
       .then(setData)
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
-  }, [accessToken, rango.desde, rango.hasta, fetchAnalytics]);
+  }, [accessToken, rango.desde, rango.hasta, chalet, fetchAnalytics]);
 
   function elegirPreset(p: Preset) {
     setPreset(p);

@@ -52,13 +52,6 @@ function fmtKey(k: string) {
   return `${parseInt(d)} ${MONTH_SHORT[parseInt(m) - 1]} ${y}`;
 }
 
-const SHEET_TAB_BY_CHALET: Record<string, string> = {
-  "Suculento": "Suculento",
-  "Del Bosque": "DelBosque",
-  "Cattleya": "Cattleya",
-  "Ukiyo": "Ukiyo",
-  "Satori": "Satori",
-};
 
 // Tipo predominante de la estadía: el más caro (mayor precio_noche).
 function tipoPredominante(noches: Array<{ tipo: TipoTarifa }>): TipoTarifa {

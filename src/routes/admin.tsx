@@ -28,6 +28,7 @@ function AdminPage() {
   const [panelUser, setPanelUser] = useState<PanelUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [roleError, setRoleError] = useState<string | null>(null);
+  const [section, setSection] = useState<"reservas" | "usuarios">("reservas");
 
   useEffect(() => {
     let unsub: (() => void) | undefined;

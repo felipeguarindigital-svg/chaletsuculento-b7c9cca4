@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dashboard } from "@/components/admin/Dashboard";
+import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
+import { CalendarDays, Users } from "lucide-react";
 import { Toaster } from "sonner";
 
 type PanelUser = {

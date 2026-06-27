@@ -167,9 +167,6 @@ export function AnalyticsView({ accessToken }: Props) {
           Icon={CalendarCheck2}
           tone="sky"
         />
-
-      {/* Tarjetas numéricas destacadas */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <NumberCard
           label="Ticket promedio por reserva"
           value={data ? formatCOP(data.ticket_promedio.con_adicionales) : "…"}

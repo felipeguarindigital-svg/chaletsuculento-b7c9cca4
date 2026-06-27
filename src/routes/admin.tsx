@@ -5,6 +5,8 @@ import { getExternalSupabase } from "@/integrations/supabase-external/browser-cl
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dashboard } from "@/components/admin/Dashboard";
+import { Toaster } from "sonner";
 
 type PanelUser = {
   id: string;
@@ -65,19 +67,26 @@ function AdminPage() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="border-b bg-white">
-        <div className="max-w-5xl mx-auto px-6 py-4 flex items-center justify-between">
-          <h1 className="text-lg font-semibold tracking-tight">Panel · Chalets Suculento</h1>
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={async () => { await supabase?.auth.signOut(); }}
-          >
+      <Toaster richColors position="top-right" />
+      <header className="border-b bg-white sticky top-0 z-20">
+        <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between gap-4">
+          <div>
+            <h1 className="text-base font-semibold tracking-tight">Panel · Chalets Suculento</h1>
+            {panelUser && (
+              <p className="text-xs text-stone-500">
+                {panelUser.nombre} ·{" "}
+                <span className="inline-block px-1.5 py-0.5 rounded bg-amber-100 text-amber-900 font-medium">
+                  {panelUser.rol}
+                </span>
+              </p>
+            )}
+          </div>
+          <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
             Cerrar sesión
           </Button>
         </div>
       </header>
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {roleError ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
             <p className="font-medium">No se pudo cargar tu rol.</p>
@@ -89,23 +98,7 @@ function AdminPage() {
         ) : !panelUser ? (
           <p className="text-stone-500">Verificando permisos…</p>
         ) : (
-          <div className="rounded-xl border bg-white p-8 shadow-sm">
-            <p className="text-sm uppercase tracking-wider text-stone-500">Sesión iniciada</p>
-            <h2 className="mt-1 text-2xl font-semibold">Hola, {panelUser.nombre}</h2>
-            <p className="mt-2 text-stone-600">
-              Correo: <span className="font-mono">{session.user.email}</span>
-            </p>
-            <p className="mt-1 text-stone-600">
-              Rol detectado:{" "}
-              <span className="inline-block px-2 py-0.5 rounded-md bg-amber-100 text-amber-900 font-medium">
-                {panelUser.rol}
-              </span>
-            </p>
-            <p className="mt-6 text-sm text-stone-500">
-              El sistema de login y roles está activo. Las pantallas del panel (calendario,
-              reservas, gestión de usuarios) se construirán en el siguiente paso.
-            </p>
-          </div>
+          <Dashboard accessToken={session.access_token} rol={panelUser.rol} />
         )}
       </main>
     </div>
@@ -140,30 +133,14 @@ function LoginForm({ supabase }: { supabase: SupabaseClient | null }) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="email">Correo</Label>
-          <Input
-            id="email"
-            type="email"
-            autoComplete="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-          />
+          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="space-y-2">
           <Label htmlFor="password">Contraseña</Label>
-          <Input
-            id="password"
-            type="password"
-            autoComplete="current-password"
-            required
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
+          <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">
-            {error}
-          </p>
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
         )}
         <Button type="submit" className="w-full" disabled={submitting || !supabase}>
           {submitting ? "Entrando…" : "Entrar"}

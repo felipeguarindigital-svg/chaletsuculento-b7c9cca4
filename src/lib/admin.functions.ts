@@ -285,7 +285,9 @@ export type ReservaPatch = Partial<{
   desglose_noches: NocheDesglose[];
   precio_noche: number;
   tipo_tarifa: TipoTarifa;
+  estado: EstadoReserva;
 }>;
+
 
 export const updateReserva = createServerFn({ method: "POST" })
   .inputValidator((d: {

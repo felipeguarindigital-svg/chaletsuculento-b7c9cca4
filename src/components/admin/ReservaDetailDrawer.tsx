@@ -167,7 +167,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             desglose_noches: desgloseEdit,
             precio_noche: subNochesEdit,
             tipo_tarifa: tipoPrincipalEdit,
+            estado: edit.estado,
           },
+
           adicionales: adicionalesSelEdit.map(a => ({
             adicional_id: a.id,
             precio_cobrado: Number(a.precio),

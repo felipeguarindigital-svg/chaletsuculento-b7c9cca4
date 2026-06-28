@@ -133,9 +133,11 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       fecha_checkout: data.fecha_checkout ?? "",
       nombre: data.nombre,
       whatsapp: data.whatsapp,
+      estado: data.estado,
       selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
     });
     setEditMode(true);
+
   }
 
   function cancelarEdicion() {

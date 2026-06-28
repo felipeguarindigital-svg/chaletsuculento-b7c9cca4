@@ -394,6 +394,21 @@ export function ChaletsCarousel() {
                         <span className="text-muted-foreground"> / noche</span>
                       </p>
 
+                      <button
+                        type="button"
+                        onClick={() => {
+                          window.dispatchEvent(
+                            new CustomEvent("suculento:select-chalet", { detail: c.id })
+                          );
+                          const el = document.getElementById("reservas");
+                          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                        }}
+                        className="mt-5 inline-flex w-full items-center justify-center rounded-full bg-forest-deep px-6 py-3 font-sans text-xs tracking-[0.25em] uppercase text-cream shadow-sm transition hover:bg-forest-deep/90"
+                      >
+                        Reservar ahora
+                      </button>
+
+
 
 
 

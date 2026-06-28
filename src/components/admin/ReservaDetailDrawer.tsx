@@ -280,9 +280,26 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                   <span>Noches: <b>{nochesEdit}</b></span>
                   <span>Tarifa principal: <b>{LABEL_TIPO[tipoPrincipalEdit]}</b></span>
                 </div>
+                <div>
+                  <Label className="text-xs">Estado</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {(["cotizacion","reservado","cancelado"] as EstadoReserva[]).map(s => (
+                      <Button
+                        key={s}
+                        type="button"
+                        size="sm"
+                        variant={edit!.estado === s ? "default" : "outline"}
+                        onClick={() => setEdit({ ...edit!, estado: s })}
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <div className="text-xs text-stone-500">
                   Código <b>{data.codigo}</b> y origen <b>{data.origen}</b> no son editables.
                 </div>
+
               </div>
             )}
 

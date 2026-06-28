@@ -60,7 +60,46 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
     : "domingo_jueves" as const;
 
-  async function onSubmit() {
+  function buildWhatsAppUrl(codigo: string) {
+    let phone = (whatsapp || "").replace(/\D/g, "");
+    if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
+    const firstName = (nombre || "").trim().split(/\s+/)[0] || "";
+    const horarios = getHorarios(chalet);
+    const checkInLine = `📅 Check-in: ${checkin}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
+    const checkOutLine = `📅 Check-out: ${checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`;
+    const lines: string[] = [];
+    if (estado === "reservado") {
+      lines.push(
+        `¡Hola ${firstName}! 🎉`, ``,
+        `Tu reserva en Chalet Suculento ha sido confirmada ✅`, ``,
+      );
+    } else {
+      lines.push(
+        `¡Hola ${firstName}! 👋`, ``,
+        `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``,
+      );
+    }
+    lines.push(
+      `📋 Código: ${codigo}`,
+      `🏡 Chalet: ${chalet}`,
+      checkInLine,
+      checkOutLine,
+      `🌙 Noches: ${noches}`,
+    );
+    if (adicionalesSel.length > 0) {
+      lines.push("", "✨ Adicionales:");
+      for (const a of adicionalesSel) {
+        lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
+      }
+    }
+    lines.push("", `💰 Total: ${formatCOP(total)}`);
+    if (estado === "reservado") {
+      lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
+    }
+    return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
+  }
+
+  async function onSubmit(sendWhatsApp = false) {
     if (!nombre.trim() || !whatsapp.trim()) { toast.error("Nombre y WhatsApp son requeridos"); return; }
     if (noches < 1) { toast.error("Selecciona check-in y check-out"); return; }
     setSaving(true);
@@ -75,6 +114,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         },
       });
       toast.success(`Reserva creada: ${res.codigo}`);
+      if (sendWhatsApp) {
+        window.open(buildWhatsAppUrl(res.codigo), "_blank", "noopener,noreferrer");
+      }
       onCreated();
       onOpenChange(false);
       // reset

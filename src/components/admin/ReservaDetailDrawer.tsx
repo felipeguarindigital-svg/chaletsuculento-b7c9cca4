@@ -1,16 +1,21 @@
-// Drawer de detalle de reserva con cambios de estado, notas y eliminación.
-import { useEffect, useState } from "react";
+// Drawer de detalle de reserva con modo edición, cambios de estado y eliminación.
+import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  getReservaDetail, updateEstadoReserva, updateNotasReserva, deleteReserva,
-  type ReservaDetail, type EstadoReserva, type RolPanel,
+  getReservaDetail, updateEstadoReserva, updateNotasReserva, updateReserva,
+  deleteReserva, listServiciosAdicionales,
+  type ReservaDetail, type EstadoReserva, type RolPanel, type ChaletName,
 } from "@/lib/admin.functions";
+import type { ServicioAdicional } from "@/lib/reservas-external.functions";
+import { tarifasPorNoche } from "@/lib/tarifas";
+import { PRECIO_POR_TIPO, formatCOP, LABEL_TIPO } from "@/lib/precios";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCOP, LABEL_TIPO } from "@/lib/precios";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { getHorarios } from "@/lib/horarios";
-import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
+import { CHALETS, CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { toast } from "sonner";
 
 function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
@@ -45,7 +50,6 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 
-
 type Props = {
   open: boolean;
   onOpenChange: (o: boolean) => void;
@@ -55,27 +59,129 @@ type Props = {
   onChanged: () => void;
 };
 
+type EditState = {
+  chalet: ChaletName;
+  fecha: string;
+  fecha_checkout: string;
+  nombre: string;
+  whatsapp: string;
+  selAdicionales: Set<string>;
+};
+
 export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken, rol, onChanged }: Props) {
   const getDetail = useServerFn(getReservaDetail);
   const setEstado = useServerFn(updateEstadoReserva);
   const setNotas = useServerFn(updateNotasReserva);
+  const saveReserva = useServerFn(updateReserva);
+  const fetchServicios = useServerFn(listServiciosAdicionales);
   const remove = useServerFn(deleteReserva);
+
   const [data, setData] = useState<ReservaDetail | null>(null);
   const [loading, setLoading] = useState(false);
   const [notas, setNotasLocal] = useState("");
   const [saving, setSaving] = useState(false);
 
+  const [editMode, setEditMode] = useState(false);
+  const [edit, setEdit] = useState<EditState | null>(null);
+  const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
+
   const canEdit = rol === "administrador" || rol === "operador";
   const canDelete = rol === "administrador";
 
   useEffect(() => {
-    if (!open || !reservaId) { setData(null); return; }
+    if (!open || !reservaId) { setData(null); setEditMode(false); setEdit(null); return; }
     setLoading(true);
+    setEditMode(false);
     getDetail({ data: { accessToken, id: reservaId } })
       .then(d => { setData(d); setNotasLocal(d.notas ?? ""); })
       .catch(e => toast.error(e.message))
       .finally(() => setLoading(false));
   }, [open, reservaId, accessToken, getDetail]);
+
+  // Cargar catálogo cuando se entra en modo edición.
+  useEffect(() => {
+    if (editMode && servicios.length === 0) {
+      fetchServicios().then(setServicios).catch(() => {});
+    }
+  }, [editMode, fetchServicios, servicios.length]);
+
+  // Recálculo de noches y desglose en modo edición.
+  const desgloseEdit = useMemo(() => {
+    if (!edit || !edit.fecha || !edit.fecha_checkout || edit.fecha >= edit.fecha_checkout) return [];
+    return tarifasPorNoche(edit.fecha, edit.fecha_checkout).map(n => ({
+      fecha: n.fecha, tipo: n.tipo, precio: PRECIO_POR_TIPO[n.tipo],
+    }));
+  }, [edit]);
+  const nochesEdit = desgloseEdit.length;
+  const subNochesEdit = desgloseEdit.reduce((s, n) => s + n.precio, 0);
+  const tipoPrincipalEdit = desgloseEdit.length > 0
+    ? desgloseEdit.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
+    : "domingo_jueves" as const;
+  const adicionalesSelEdit = edit
+    ? servicios.filter(s => edit.selAdicionales.has(s.id))
+    : [];
+  const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0);
+  const totalEdit = subNochesEdit + subAdEdit;
+
+  function entrarEdicion() {
+    if (!data) return;
+    setEdit({
+      chalet: data.chalet,
+      fecha: data.fecha,
+      fecha_checkout: data.fecha_checkout ?? "",
+      nombre: data.nombre,
+      whatsapp: data.whatsapp,
+      selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
+    });
+    setEditMode(true);
+  }
+
+  function cancelarEdicion() {
+    setEditMode(false);
+    setEdit(null);
+  }
+
+  async function guardarEdicion() {
+    if (!data || !edit) return;
+    if (!edit.nombre.trim() || !edit.whatsapp.trim()) {
+      toast.error("Nombre y WhatsApp son requeridos"); return;
+    }
+    if (nochesEdit < 1) { toast.error("Selecciona check-in y check-out válidos"); return; }
+    setSaving(true);
+    try {
+      await saveReserva({
+        data: {
+          accessToken,
+          id: data.id,
+          patch: {
+            chalet: edit.chalet,
+            fecha: edit.fecha,
+            fecha_checkout: edit.fecha_checkout,
+            nombre: edit.nombre.trim(),
+            whatsapp: edit.whatsapp.trim(),
+            noches: nochesEdit,
+            desglose_noches: desgloseEdit,
+            precio_noche: subNochesEdit,
+            tipo_tarifa: tipoPrincipalEdit,
+          },
+          adicionales: adicionalesSelEdit.map(a => ({
+            adicional_id: a.id,
+            precio_cobrado: Number(a.precio),
+          })),
+        },
+      });
+      toast.success("Cambios guardados");
+      // refrescar detalle
+      const fresh = await getDetail({ data: { accessToken, id: data.id } });
+      setData(fresh);
+      setNotasLocal(fresh.notas ?? "");
+      setEditMode(false);
+      setEdit(null);
+      onChanged();
+    } catch (e: any) {
+      toast.error(e.message ?? "No se pudo guardar");
+    } finally { setSaving(false); }
+  }
 
   async function cambiarEstado(nuevo: EstadoReserva) {
     if (!data) return;
@@ -115,7 +221,7 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg overflow-y-auto">
         <SheetHeader>
-          <SheetTitle>Detalle de reserva</SheetTitle>
+          <SheetTitle>{editMode ? "Editar reserva" : "Detalle de reserva"}</SheetTitle>
         </SheetHeader>
 
         {loading || !data ? (
@@ -129,25 +235,73 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </span>
             </div>
 
-            <div className="rounded-lg border bg-stone-50 p-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span className="text-stone-500">Chalet</span>
-                <span className={`px-2 py-0.5 rounded-md text-xs ${CHALET_COLOR[data.chalet].badge}`}>{data.chalet}</span>
+            {!editMode ? (
+              <div className="rounded-lg border bg-stone-50 p-3 space-y-1 text-sm">
+                <div className="flex justify-between"><span className="text-stone-500">Chalet</span>
+                  <span className={`px-2 py-0.5 rounded-md text-xs ${CHALET_COLOR[data.chalet].badge}`}>{data.chalet}</span>
+                </div>
+                <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}{getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkIn}` : ""}</span></div>
+                <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}{data.fecha_checkout && getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkOut}` : ""}</span></div>
+                <div className="flex justify-between"><span className="text-stone-500">Noches</span><span>{data.noches ?? "—"}</span></div>
+                <div className="flex justify-between"><span className="text-stone-500">Tarifa</span><span>{LABEL_TIPO[data.tipo_tarifa]}</span></div>
+                <div className="flex justify-between"><span className="text-stone-500">Origen</span><span>{data.origen}</span></div>
               </div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-in</span><span>{data.fecha}{getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkIn}` : ""}</span></div>
-              <div className="flex justify-between"><span className="text-stone-500">Check-out</span><span>{data.fecha_checkout ?? "—"}{data.fecha_checkout && getHorarios(data.chalet) ? ` · ${getHorarios(data.chalet)!.checkOut}` : ""}</span></div>
+            ) : (
+              <div className="rounded-lg border bg-amber-50/50 p-3 space-y-3 text-sm">
+                <div>
+                  <Label className="text-xs">Chalet</Label>
+                  <select
+                    value={edit!.chalet}
+                    onChange={e => setEdit({ ...edit!, chalet: e.target.value as ChaletName })}
+                    className="w-full mt-1 rounded-md border px-3 py-1.5 text-sm bg-white"
+                  >
+                    {CHALETS.map(c => <option key={c} value={c}>{c}</option>)}
+                  </select>
+                </div>
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label className="text-xs">Check-in</Label>
+                    <Input type="date" value={edit!.fecha}
+                      onChange={e => setEdit({ ...edit!, fecha: e.target.value })} />
+                  </div>
+                  <div>
+                    <Label className="text-xs">Check-out</Label>
+                    <Input type="date" value={edit!.fecha_checkout}
+                      onChange={e => setEdit({ ...edit!, fecha_checkout: e.target.value })} />
+                  </div>
+                </div>
+                <div className="flex justify-between text-xs text-stone-600 pt-1">
+                  <span>Noches: <b>{nochesEdit}</b></span>
+                  <span>Tarifa principal: <b>{LABEL_TIPO[tipoPrincipalEdit]}</b></span>
+                </div>
+                <div className="text-xs text-stone-500">
+                  Código <b>{data.codigo}</b> y origen <b>{data.origen}</b> no son editables.
+                </div>
+              </div>
+            )}
 
-              <div className="flex justify-between"><span className="text-stone-500">Noches</span><span>{data.noches ?? "—"}</span></div>
-              <div className="flex justify-between"><span className="text-stone-500">Tarifa</span><span>{LABEL_TIPO[data.tipo_tarifa]}</span></div>
-              <div className="flex justify-between"><span className="text-stone-500">Origen</span><span>{data.origen}</span></div>
-            </div>
+            {!editMode ? (
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Huésped</p>
+                <p className="font-medium">{data.nombre}</p>
+                <p className="font-mono text-xs text-stone-600">{data.whatsapp}</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div>
+                  <Label className="text-xs">Nombre</Label>
+                  <Input value={edit!.nombre}
+                    onChange={e => setEdit({ ...edit!, nombre: e.target.value })} />
+                </div>
+                <div>
+                  <Label className="text-xs">WhatsApp</Label>
+                  <Input value={edit!.whatsapp}
+                    onChange={e => setEdit({ ...edit!, whatsapp: e.target.value })} />
+                </div>
+              </div>
+            )}
 
-            <div>
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Huésped</p>
-              <p className="font-medium">{data.nombre}</p>
-              <p className="font-mono text-xs text-stone-600">{data.whatsapp}</p>
-            </div>
-
-            {data.desglose_noches && data.desglose_noches.length > 0 && (
+            {!editMode && data.desglose_noches && data.desglose_noches.length > 0 && (
               <div>
                 <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Desglose noches</p>
                 <div className="rounded-lg border divide-y text-sm">
@@ -161,44 +315,91 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
-            <div>
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Adicionales</p>
-              {data.adicionales.length === 0 ? (
-                <p className="text-sm text-stone-500">Sin adicionales</p>
-              ) : (
-                <div className="rounded-lg border divide-y text-sm">
-                  {data.adicionales.map(a => (
-                    <div key={a.id} className="flex justify-between px-3 py-1.5">
-                      <span>{a.nombre ?? a.adicional_id}</span>
-                      <span className="tabular-nums">{formatCOP(a.precio_cobrado)}</span>
+            {editMode && desgloseEdit.length > 0 && (
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Desglose recalculado</p>
+                <div className="rounded-lg border divide-y text-sm bg-stone-50">
+                  {desgloseEdit.map(n => (
+                    <div key={n.fecha} className="flex justify-between px-3 py-1.5">
+                      <span>{n.fecha} · <span className="text-stone-500">{LABEL_TIPO[n.tipo]}</span></span>
+                      <span className="tabular-nums">{formatCOP(n.precio)}</span>
                     </div>
                   ))}
+                  <div className="flex justify-between px-3 py-1.5 font-medium">
+                    <span>Alojamiento</span><span className="tabular-nums">{formatCOP(subNochesEdit)}</span>
+                  </div>
                 </div>
+              </div>
+            )}
+
+            <div>
+              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Adicionales</p>
+              {!editMode ? (
+                data.adicionales.length === 0 ? (
+                  <p className="text-sm text-stone-500">Sin adicionales</p>
+                ) : (
+                  <div className="rounded-lg border divide-y text-sm">
+                    {data.adicionales.map(a => (
+                      <div key={a.id} className="flex justify-between px-3 py-1.5">
+                        <span>{a.nombre ?? a.adicional_id}</span>
+                        <span className="tabular-nums">{formatCOP(a.precio_cobrado)}</span>
+                      </div>
+                    ))}
+                  </div>
+                )
+              ) : (
+                servicios.length === 0 ? (
+                  <p className="text-sm text-stone-500">Cargando servicios…</p>
+                ) : (
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
+                    {servicios.map(s => {
+                      const checked = edit!.selAdicionales.has(s.id);
+                      return (
+                        <label key={s.id} className={`flex items-center gap-2 p-2 rounded-md border text-sm cursor-pointer ${checked ? "bg-amber-50 border-amber-300" : "border-stone-200"}`}>
+                          <input type="checkbox" checked={checked} onChange={() => {
+                            const n = new Set(edit!.selAdicionales);
+                            if (checked) n.delete(s.id); else n.add(s.id);
+                            setEdit({ ...edit!, selAdicionales: n });
+                          }} />
+                          <span className="flex-1">{s.nombre}</span>
+                          <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
+                        </label>
+                      );
+                    })}
+                    <p className="text-[11px] text-stone-500 mt-1">
+                      Los adicionales nuevos se guardan al precio actual del catálogo.
+                    </p>
+                  </div>
+                )
               )}
             </div>
 
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
               <span className="text-sm font-medium">Total</span>
-              <span className="text-lg font-semibold tabular-nums">{formatCOP(data.total)}</span>
+              <span className="text-lg font-semibold tabular-nums">
+                {formatCOP(editMode ? totalEdit : data.total)}
+              </span>
             </div>
 
-            <div>
-              <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Notas internas</p>
-              <Textarea
-                value={notas}
-                onChange={(e) => setNotasLocal(e.target.value)}
-                disabled={!canEdit}
-                rows={3}
-                placeholder="Notas internas para el equipo…"
-              />
-              {canEdit && (
-                <Button size="sm" variant="outline" className="mt-2" onClick={guardarNotas} disabled={saving}>
-                  Guardar notas
-                </Button>
-              )}
-            </div>
+            {!editMode && (
+              <div>
+                <p className="text-xs text-stone-500 uppercase tracking-wider mb-2">Notas internas</p>
+                <Textarea
+                  value={notas}
+                  onChange={(e) => setNotasLocal(e.target.value)}
+                  disabled={!canEdit}
+                  rows={3}
+                  placeholder="Notas internas para el equipo…"
+                />
+                {canEdit && (
+                  <Button size="sm" variant="outline" className="mt-2" onClick={guardarNotas} disabled={saving}>
+                    Guardar notas
+                  </Button>
+                )}
+              </div>
+            )}
 
-            {canEdit && (
+            {canEdit && !editMode && (
               <div className="space-y-2">
                 <p className="text-xs text-stone-500 uppercase tracking-wider">Cambiar estado</p>
                 <div className="flex flex-wrap gap-2">
@@ -217,7 +418,7 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
-            {canEdit && data.estado === "reservado" && (
+            {canEdit && !editMode && data.estado === "reservado" && (
               <div className="pt-3 border-t">
                 <Button
                   size="sm"
@@ -232,9 +433,26 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
+            {canEdit && (
+              <div className="pt-3 border-t flex flex-wrap gap-2">
+                {!editMode ? (
+                  <Button size="sm" variant="outline" onClick={entrarEdicion}>
+                    Editar
+                  </Button>
+                ) : (
+                  <>
+                    <Button size="sm" onClick={guardarEdicion} disabled={saving}>
+                      {saving ? "Guardando…" : "Guardar"}
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={cancelarEdicion} disabled={saving}>
+                      Cancelar edición
+                    </Button>
+                  </>
+                )}
+              </div>
+            )}
 
-
-            {canDelete && (
+            {canDelete && !editMode && (
               <div className="pt-3 border-t">
                 <Button variant="destructive" size="sm" onClick={eliminar} disabled={saving}>
                   Eliminar reserva

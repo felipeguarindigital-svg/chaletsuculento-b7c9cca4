@@ -300,6 +300,36 @@ export const updateReserva = createServerFn({ method: "POST" })
     const { supabaseExternalAdmin } = await import(
       "@/integrations/supabase-external/client.server"
     );
+
+    // Conflict check: si se editan chalet/fecha/fecha_checkout, validar que no
+    // se solape con otra reserva "reservado" del mismo chalet (excluyendo esta).
+    const p = data.patch;
+    if (p.chalet || p.fecha || p.fecha_checkout) {
+      const { data: actual, error: eAct } = await supabaseExternalAdmin
+        .from("reservas")
+        .select("chalet, fecha, fecha_checkout")
+        .eq("id", data.id)
+        .single();
+      if (eAct || !actual) throw new Error(eAct?.message ?? "Reserva no encontrada");
+      const chalet = p.chalet ?? (actual.chalet as ChaletName);
+      const ci = p.fecha ?? (actual.fecha as string);
+      const co = p.fecha_checkout ?? (actual.fecha_checkout as string);
+      if (chalet && ci && co) {
+        const { data: otras, error: eOt } = await supabaseExternalAdmin
+          .from("reservas")
+          .select("id, fecha, fecha_checkout")
+          .eq("chalet", chalet)
+          .eq("estado", "reservado")
+          .neq("id", data.id)
+          .lt("fecha", co)
+          .gt("fecha_checkout", ci);
+        if (eOt) throw new Error(eOt.message);
+        if ((otras ?? []).length > 0) {
+          throw new Error("Este chalet ya tiene una reserva confirmada en estas fechas");
+        }
+      }
+    }
+
     const { error } = await supabaseExternalAdmin
       .from("reservas").update(data.patch).eq("id", data.id);
     if (error) throw new Error(error.message);

@@ -65,8 +65,10 @@ type EditState = {
   fecha_checkout: string;
   nombre: string;
   whatsapp: string;
+  estado: EstadoReserva;
   selAdicionales: Set<string>;
 };
+
 
 export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken, rol, onChanged }: Props) {
   const getDetail = useServerFn(getReservaDetail);
@@ -131,9 +133,11 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       fecha_checkout: data.fecha_checkout ?? "",
       nombre: data.nombre,
       whatsapp: data.whatsapp,
+      estado: data.estado,
       selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
     });
     setEditMode(true);
+
   }
 
   function cancelarEdicion() {
@@ -163,7 +167,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             desglose_noches: desgloseEdit,
             precio_noche: subNochesEdit,
             tipo_tarifa: tipoPrincipalEdit,
+            estado: edit.estado,
           },
+
           adicionales: adicionalesSelEdit.map(a => ({
             adicional_id: a.id,
             precio_cobrado: Number(a.precio),
@@ -274,9 +280,26 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                   <span>Noches: <b>{nochesEdit}</b></span>
                   <span>Tarifa principal: <b>{LABEL_TIPO[tipoPrincipalEdit]}</b></span>
                 </div>
+                <div>
+                  <Label className="text-xs">Estado</Label>
+                  <div className="flex flex-wrap gap-2 mt-1">
+                    {(["cotizacion","reservado","cancelado"] as EstadoReserva[]).map(s => (
+                      <Button
+                        key={s}
+                        type="button"
+                        size="sm"
+                        variant={edit!.estado === s ? "default" : "outline"}
+                        onClick={() => setEdit({ ...edit!, estado: s })}
+                      >
+                        {s}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
                 <div className="text-xs text-stone-500">
                   Código <b>{data.codigo}</b> y origen <b>{data.origen}</b> no son editables.
                 </div>
+
               </div>
             )}
 

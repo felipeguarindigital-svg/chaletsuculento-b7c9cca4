@@ -65,8 +65,10 @@ type EditState = {
   fecha_checkout: string;
   nombre: string;
   whatsapp: string;
+  estado: EstadoReserva;
   selAdicionales: Set<string>;
 };
+
 
 export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken, rol, onChanged }: Props) {
   const getDetail = useServerFn(getReservaDetail);

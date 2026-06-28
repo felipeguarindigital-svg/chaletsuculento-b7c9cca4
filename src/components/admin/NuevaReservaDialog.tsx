@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CHALETS } from "./chalet-styles";
+import { getHorarios } from "@/lib/horarios";
 import { toast } from "sonner";
 
 type Props = {

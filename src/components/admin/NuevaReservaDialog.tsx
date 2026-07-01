@@ -97,7 +97,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
       }
     }
-    lines.push("", `💰 Total: ${formatCOP(total)}`);
+    if (descuentoMonto > 0) {
+      lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
+      lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
+      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
+    } else {
+      lines.push("", `💰 Total: ${formatCOP(total)}`);
+    }
     if (estado === "reservado") {
       lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
     }

@@ -379,31 +379,70 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                   <p className="text-sm text-stone-500">Sin adicionales</p>
                 ) : (
                   <div className="rounded-lg border divide-y text-sm">
-                    {data.adicionales.map(a => (
-                      <div key={a.id} className="flex justify-between px-3 py-1.5">
-                        <span>{a.nombre ?? a.adicional_id}</span>
-                        <span className="tabular-nums">{formatCOP(a.precio_cobrado)}</span>
-                      </div>
-                    ))}
+                    {data.adicionales.map(a => {
+                      const catLabel = a.categoria === "experiencias_decoraciones"
+                        ? "✨ Experiencias y Decoraciones"
+                        : a.categoria === "alimentacion_adicionales"
+                          ? "🍽️ Alimentación y Adicionales"
+                          : "Sin categoría";
+                      return (
+                        <div key={a.id} className="flex items-start justify-between px-3 py-1.5 gap-3">
+                          <div className="min-w-0">
+                            <p className="truncate">{a.nombre ?? a.adicional_id}</p>
+                            <p className="text-[11px] text-stone-500">{catLabel}</p>
+                          </div>
+                          <span className="tabular-nums whitespace-nowrap">{formatCOP(a.precio_cobrado)}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                 )
               ) : (
                 servicios.length === 0 ? (
                   <p className="text-sm text-stone-500">Cargando servicios…</p>
                 ) : (
-                  <div className="space-y-1.5 max-h-48 overflow-y-auto">
-                    {servicios.map(s => {
-                      const checked = edit!.selAdicionales.has(s.id);
+                  <div className="max-h-72 overflow-y-auto space-y-3">
+                    {([
+                      ["experiencias_decoraciones", "✨ Experiencias y Decoraciones"],
+                      ["alimentacion_adicionales", "🍽️ Alimentación y Adicionales"],
+                    ] as const).map(([cat, label]) => {
+                      const items = servicios.filter(s => s.categoria === cat);
+                      if (items.length === 0) return null;
+                      const selectedInCat = items.filter(s => edit!.selAdicionales.has(s.id)).length;
                       return (
-                        <label key={s.id} className={`flex items-center gap-2 p-2 rounded-md border text-sm cursor-pointer ${checked ? "bg-amber-50 border-amber-300" : "border-stone-200"}`}>
-                          <input type="checkbox" checked={checked} onChange={() => {
-                            const n = new Set(edit!.selAdicionales);
-                            if (checked) n.delete(s.id); else n.add(s.id);
-                            setEdit({ ...edit!, selAdicionales: n });
-                          }} />
-                          <span className="flex-1">{s.nombre}</span>
-                          <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
-                        </label>
+                        <div key={cat}>
+                          <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center justify-between">
+                            <span>{label}</span>
+                            <span className="text-stone-500 font-normal">{selectedInCat} de {items.length}</span>
+                          </p>
+                          <div className="space-y-1.5">
+                            {items.map(s => {
+                              const checked = edit!.selAdicionales.has(s.id);
+                              return (
+                                <div key={s.id} className={`rounded-md border text-sm ${checked ? "bg-amber-50 border-amber-300" : "border-stone-200"}`}>
+                                  <label className="flex items-center gap-2 p-2 cursor-pointer">
+                                    <input type="checkbox" checked={checked} onChange={() => {
+                                      const n = new Set(edit!.selAdicionales);
+                                      if (checked) n.delete(s.id); else n.add(s.id);
+                                      setEdit({ ...edit!, selAdicionales: n });
+                                    }} />
+                                    <span className="flex-1">{s.nombre}</span>
+                                    <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
+                                  </label>
+                                  {s.descripcion_larga && (
+                                    <details className="px-2 pb-2 -mt-1">
+                                      <summary className="text-[11px] text-amber-700 hover:underline cursor-pointer select-none">Ver descripción</summary>
+                                      <p className="text-[12px] text-stone-600 whitespace-pre-line mt-1">{s.descripcion_larga}</p>
+                                      {s.notas_adicionales && (
+                                        <p className="text-[11px] text-amber-800 mt-1">⚠️ {s.notas_adicionales}</p>
+                                      )}
+                                    </details>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
                       );
                     })}
                     <p className="text-[11px] text-stone-500 mt-1">
@@ -413,6 +452,7 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                 )
               )}
             </div>
+
 
             {/* Descuento */}
             {!editMode ? (

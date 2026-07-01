@@ -28,6 +28,7 @@ type Props = {
 export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated }: Props) {
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submit = useServerFn(crearReservaManual);
+  const checkDispo = useServerFn(checkDisponibilidadChalet);
 
   const [chalet, setChalet] = useState<ChaletName>("Suculento");
   const [checkin, setCheckin] = useState("");

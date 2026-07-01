@@ -39,11 +39,12 @@ export function Dashboard({ accessToken, rol }: Props) {
   const canCreate = rol === "administrador" || rol === "operador";
 
   useEffect(() => {
+    if (rol === "lectura") { setLoadingM(false); return; }
     setLoadingM(true);
     fetchMetrics({ data: { accessToken } })
       .then(setMetrics).catch(e => toast.error(e.message))
       .finally(() => setLoadingM(false));
-  }, [accessToken, tick, fetchMetrics]);
+  }, [accessToken, tick, fetchMetrics, rol]);
 
   useEffect(() => {
     fetchReservas({ data: { accessToken, filters } })
@@ -64,7 +65,13 @@ export function Dashboard({ accessToken, rol }: Props) {
 
   return (
     <div className="space-y-6">
-      <SummaryCards metrics={metrics} loading={loadingM} />
+      {rol === "lectura" ? (
+        <div className="rounded-lg border border-dashed border-stone-300 bg-white/60 p-4 text-sm text-stone-500">
+          Acceso restringido a tu rol
+        </div>
+      ) : (
+        <SummaryCards metrics={metrics} loading={loadingM} />
+      )}
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="inline-flex rounded-lg border bg-white p-1">

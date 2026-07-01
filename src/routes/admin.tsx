@@ -9,7 +9,7 @@ import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
 import { AnalyticsView } from "@/components/admin/AnalyticsView";
 import { CalendarDays, Users, BarChart3 } from "lucide-react";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 
 type PanelUser = {
   id: string;
@@ -100,6 +100,13 @@ function AdminPanelPage() {
       });
   }, [supabase, session]);
 
+  useEffect(() => {
+    if (panelUser?.rol === "lectura" && section === "analitica") {
+      setSection("reservas");
+      toast.error("No tienes permisos para ver esta sección");
+    }
+  }, [panelUser, section]);
+
   if (loading) {
     return <div className="min-h-screen grid place-items-center text-stone-500">Cargando…</div>;
   }
@@ -132,14 +139,16 @@ function AdminPanelPage() {
               >
                 <CalendarDays className="h-4 w-4" /> Reservas
               </button>
-              <button
-                onClick={() => setSection("analitica")}
-                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
-                  section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
-                }`}
-              >
-                <BarChart3 className="h-4 w-4" /> Analítica
-              </button>
+              {panelUser?.rol !== "lectura" && (
+                <button
+                  onClick={() => setSection("analitica")}
+                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                    section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                  }`}
+                >
+                  <BarChart3 className="h-4 w-4" /> Analítica
+                </button>
+              )}
               {panelUser?.rol === "administrador" && (
                 <button
                   onClick={() => setSection("usuarios")}

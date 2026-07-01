@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   getReservaDetail, updateEstadoReserva, updateNotasReserva, updateReserva,
-  deleteReserva, listServiciosAdicionales,
+  deleteReserva, listServiciosAdicionales, computeDescuento,
   type ReservaDetail, type EstadoReserva, type RolPanel, type ChaletName,
+  type DescuentoTipo,
 } from "@/lib/admin.functions";
 import type { ServicioAdicional } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche } from "@/lib/tarifas";

@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   crearReservaManual, listServiciosAdicionales,
-  type ChaletName,
+  computeDescuento,
+  type ChaletName, type DescuentoTipo,
 } from "@/lib/admin.functions";
 import type { ServicioAdicional } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche } from "@/lib/tarifas";

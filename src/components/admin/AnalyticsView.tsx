@@ -289,8 +289,8 @@ export function AnalyticsView({ accessToken }: Props) {
               </thead>
               <tbody>
                 {(data?.adicionales_por_categoria ?? []).map((g) => (
-                  <>
-                    <tr key={`h-${g.categoria}`} className="bg-amber-50/60">
+                  <Fragment key={g.categoria}>
+                    <tr className="bg-amber-50/60">
                       <td colSpan={3} className="py-2 px-2 text-xs font-semibold uppercase tracking-wider text-amber-900">
                         {CAT_LABEL[g.categoria] ?? g.categoria}
                       </td>

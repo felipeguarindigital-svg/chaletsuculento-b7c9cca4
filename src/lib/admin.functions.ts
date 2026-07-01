@@ -52,12 +52,15 @@ export function computeDescuento(
   return Math.min(Math.round(v), subtotal);
 }
 
+export type ServicioCategoriaLite = "experiencias_decoraciones" | "alimentacion_adicionales" | null;
+
 export type ReservaAdicional = {
   id: string;
   reserva_id: string;
   adicional_id: string;
   precio_cobrado: number;
   nombre?: string;
+  categoria?: ServicioCategoriaLite;
 };
 
 export type ReservaDetail = ReservaRow & {

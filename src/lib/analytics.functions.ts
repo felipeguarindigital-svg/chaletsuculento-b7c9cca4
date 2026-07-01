@@ -325,6 +325,9 @@ export const getAnalytics = createServerFn({ method: "POST" })
       ticket_promedio,
       conversion,
       adicionales_top,
+      adicionales_por_categoria,
+      adicionales_total_cantidad,
+      adicionales_total_generado,
       tiempo_confirmacion_horas: tiempo,
     };
   });

@@ -453,6 +453,20 @@ export const crearReservaManual = createServerFn({ method: "POST" })
     const { supabaseExternalAdmin } = await import(
       "@/integrations/supabase-external/client.server"
     );
+    if (data.estado === "reservado") {
+      const { data: otras, error: eOt } = await supabaseExternalAdmin
+        .from("reservas")
+        .select("id")
+        .eq("chalet", data.chalet)
+        .eq("estado", "reservado")
+        .lt("fecha", data.fecha_checkout)
+        .gt("fecha_checkout", data.fecha_checkin)
+        .limit(1);
+      if (eOt) throw new Error(eOt.message);
+      if ((otras ?? []).length > 0) {
+        throw new Error("Este chalet ya tiene una reserva confirmada en estas fechas");
+      }
+    }
     const insert = {
       chalet: data.chalet,
       fecha: data.fecha_checkin,

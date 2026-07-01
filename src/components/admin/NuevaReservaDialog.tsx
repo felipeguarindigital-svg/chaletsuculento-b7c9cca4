@@ -134,6 +134,7 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onOpenChange(false);
       // reset
       setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setDescuentoTipo("porcentaje"); setDescuentoValor(0);
     } catch (e: any) {
       toast.error(e.message);
     } finally { setSaving(false); }

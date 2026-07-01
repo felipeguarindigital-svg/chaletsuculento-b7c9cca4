@@ -246,7 +246,7 @@ export const getReservaDetail = createServerFn({ method: "POST" })
     if (error || !r) throw new Error(error?.message ?? "Reserva no encontrada");
     const { data: ads, error: errAd } = await supabaseExternalAdmin
       .from("reserva_adicionales")
-      .select("id, reserva_id, adicional_id, precio_cobrado, servicios_adicionales(nombre)")
+      .select("id, reserva_id, adicional_id, precio_cobrado, servicios_adicionales(nombre, categoria)")
       .eq("reserva_id", data.id);
     if (errAd) throw new Error(errAd.message);
     const adicionales: ReservaAdicional[] = (ads ?? []).map((a: any) => ({
@@ -254,7 +254,8 @@ export const getReservaDetail = createServerFn({ method: "POST" })
       reserva_id: a.reserva_id,
       adicional_id: a.adicional_id,
       precio_cobrado: Number(a.precio_cobrado),
-      nombre: a.servicios_adicionales?.nombre,
+      nombre: a.servicios_adicionales?.nombre ?? "Servicio eliminado",
+      categoria: (a.servicios_adicionales?.categoria ?? null) as ServicioCategoriaLite,
     }));
     const totalAd = adicionales.reduce((s, a) => s + a.precio_cobrado, 0);
     const desglose = (r.desglose_noches as NocheDesglose[] | null) ?? null;

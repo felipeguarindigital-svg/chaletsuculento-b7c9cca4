@@ -132,14 +132,16 @@ function AdminPanelPage() {
               >
                 <CalendarDays className="h-4 w-4" /> Reservas
               </button>
-              <button
-                onClick={() => setSection("analitica")}
-                className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
-                  section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
-                }`}
-              >
-                <BarChart3 className="h-4 w-4" /> Analítica
-              </button>
+              {panelUser?.rol !== "lectura" && (
+                <button
+                  onClick={() => setSection("analitica")}
+                  className={`px-3 py-1.5 text-sm rounded-md inline-flex items-center gap-1.5 ${
+                    section === "analitica" ? "bg-stone-900 text-white" : "text-stone-600 hover:bg-stone-100"
+                  }`}
+                >
+                  <BarChart3 className="h-4 w-4" /> Analítica
+                </button>
+              )}
               {panelUser?.rol === "administrador" && (
                 <button
                   onClick={() => setSection("usuarios")}

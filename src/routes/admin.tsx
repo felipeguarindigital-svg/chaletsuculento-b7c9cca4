@@ -9,7 +9,7 @@ import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
 import { AnalyticsView } from "@/components/admin/AnalyticsView";
 import { CalendarDays, Users, BarChart3 } from "lucide-react";
-import { Toaster } from "sonner";
+import { Toaster, toast } from "sonner";
 
 type PanelUser = {
   id: string;

@@ -79,6 +79,8 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   // Adicionales
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
+  const [expandido, setExpandido] = useState<string | null>(null);
+  const [tabCategoria, setTabCategoria] = useState<"experiencias_decoraciones" | "alimentacion_adicionales">("experiencias_decoraciones");
 
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submitCotizacion = useServerFn(crearCotizacion);
@@ -414,53 +416,207 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
           {servicios.length > 0 && (
             <div style={{ marginBottom: "1.5rem" }}>
               <label style={{ fontSize: 11, color: C.textMuted, letterSpacing: "0.18em", display: "block", marginBottom: 10 }}>
-                EXPERIENCIAS ADICIONALES (OPCIONAL)
+                SERVICIOS ADICIONALES (OPCIONAL)
               </label>
-              <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                {servicios.map((s) => {
-                  const checked = seleccionados.has(s.id);
+
+              {/* Tabs de categoría */}
+              <div style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: 6,
+                background: C.surfaceAlt,
+                padding: 4,
+                borderRadius: 12,
+                border: `1px solid ${C.borderSoft}`,
+                marginBottom: 12,
+              }}>
+                {([
+                  { id: "experiencias_decoraciones", label: "✨ Experiencias" },
+                  { id: "alimentacion_adicionales", label: "🍽️ Alimentación" },
+                ] as const).map((tab) => {
+                  const active = tabCategoria === tab.id;
+                  const count = servicios.filter((s) => s.categoria === tab.id).length;
+                  const sel = servicios.filter((s) => s.categoria === tab.id && seleccionados.has(s.id)).length;
                   return (
-                    <label
-                      key={s.id}
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setTabCategoria(tab.id)}
                       style={{
-                        display: "flex",
-                        gap: 12,
-                        padding: "12px 14px",
-                        borderRadius: 12,
-                        border: `1px solid ${checked ? C.gold : C.borderSoft}`,
-                        background: checked ? "rgba(197,164,109,0.10)" : C.surfaceAlt,
+                        background: active ? C.surface : "transparent",
+                        border: active ? `1px solid ${C.gold}` : "1px solid transparent",
+                        color: active ? C.text : C.textMuted,
+                        borderRadius: 8,
+                        padding: "10px 8px",
+                        fontSize: 12,
+                        fontWeight: active ? 600 : 500,
                         cursor: "pointer",
+                        fontFamily: "inherit",
                         transition: "all 0.15s",
+                        boxShadow: active ? "0 2px 8px -4px rgba(131,105,83,0.25)" : "none",
                       }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={checked}
-                        onChange={() => toggleAdicional(s.id)}
-                        style={{ marginTop: 3, accentColor: C.gold, cursor: "pointer" }}
-                      />
-                      <div style={{ flex: 1 }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "baseline" }}>
-                          <span style={{ fontWeight: 500, color: C.text, fontSize: 14 }}>{s.nombre}</span>
-                          <span style={{ color: C.goldDark, fontSize: 13, fontWeight: 500, whiteSpace: "nowrap" }}>
-                            {formatCOP(Number(s.precio))}
-                          </span>
-                        </div>
-                        {s.descripcion && (
-                          <div style={{ fontSize: 12, color: C.textMuted, marginTop: 3, lineHeight: 1.45 }}>
-                            {s.descripcion}
-                          </div>
-                        )}
-                      </div>
-                    </label>
+                      {tab.label}
+                      <span style={{ display: "block", fontSize: 10, marginTop: 2, color: active ? C.goldDark : C.textMuted, letterSpacing: "0.05em" }}>
+                        {sel > 0 ? `${sel} de ${count} seleccionado${sel !== 1 ? "s" : ""}` : `${count} disponibles`}
+                      </span>
+                    </button>
                   );
                 })}
               </div>
 
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {servicios
+                  .filter((s) => s.categoria === tabCategoria)
+                  .map((s) => {
+                    const checked = seleccionados.has(s.id);
+                    const isOpen = expandido === s.id;
+                    return (
+                      <div
+                        key={s.id}
+                        style={{
+                          borderRadius: 14,
+                          border: `1px solid ${checked ? C.gold : C.borderSoft}`,
+                          background: checked ? "rgba(197,164,109,0.08)" : C.surface,
+                          overflow: "hidden",
+                          transition: "all 0.15s",
+                        }}
+                      >
+                        <div style={{ display: "flex", gap: 12, padding: 10, alignItems: "center" }}>
+                          <div style={{
+                            width: 64,
+                            height: 64,
+                            borderRadius: 10,
+                            flexShrink: 0,
+                            background: s.imagen_url
+                              ? `url(${s.imagen_url}) center/cover no-repeat`
+                              : `linear-gradient(135deg, rgba(197,164,109,0.35) 0%, rgba(197,164,109,0.15) 50%, rgba(131,105,83,0.25) 100%)`,
+                            display: "grid",
+                            placeItems: "center",
+                            fontSize: 24,
+                            color: C.goldDark,
+                          }}>
+                            {!s.imagen_url && (s.categoria === "alimentacion_adicionales" ? "🍽️" : "✨")}
+                          </div>
+
+                          <button
+                            type="button"
+                            onClick={() => setExpandido(isOpen ? null : s.id)}
+                            style={{
+                              flex: 1,
+                              minWidth: 0,
+                              background: "transparent",
+                              border: "none",
+                              padding: 0,
+                              textAlign: "left",
+                              cursor: "pointer",
+                              fontFamily: "inherit",
+                              color: C.text,
+                            }}
+                          >
+                            <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "baseline" }}>
+                              <span style={{ fontWeight: 500, fontSize: 14, lineHeight: 1.25 }}>{s.nombre}</span>
+                              <span style={{ color: C.goldDark, fontSize: 13, fontWeight: 600, whiteSpace: "nowrap" }}>
+                                {formatCOP(Number(s.precio))}
+                              </span>
+                            </div>
+                            <div style={{
+                              marginTop: 4,
+                              fontSize: 11,
+                              color: C.textMuted,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 4,
+                              letterSpacing: "0.03em",
+                            }}>
+                              <span>{isOpen ? "Ocultar detalles" : "Ver detalles"}</span>
+                              <span style={{
+                                display: "inline-block",
+                                transform: isOpen ? "rotate(180deg)" : "rotate(0deg)",
+                                transition: "transform 0.2s",
+                                fontSize: 10,
+                              }}>⌄</span>
+                            </div>
+                          </button>
+
+                          <label style={{
+                            display: "grid",
+                            placeItems: "center",
+                            width: 32,
+                            height: 32,
+                            cursor: "pointer",
+                            flexShrink: 0,
+                          }}>
+                            <input
+                              type="checkbox"
+                              checked={checked}
+                              onChange={() => toggleAdicional(s.id)}
+                              style={{ width: 20, height: 20, accentColor: C.gold, cursor: "pointer" }}
+                            />
+                          </label>
+                        </div>
+
+                        {isOpen && (
+                          <div style={{
+                            padding: "12px 14px 14px",
+                            borderTop: `1px dashed ${C.border}`,
+                            background: "rgba(248,245,239,0.5)",
+                          }}>
+                            {s.descripcion_larga ? (
+                              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.55, whiteSpace: "pre-line" }}>
+                                {s.descripcion_larga}
+                              </div>
+                            ) : s.descripcion ? (
+                              <div style={{ fontSize: 13, color: C.text, lineHeight: 1.55 }}>
+                                {s.descripcion}
+                              </div>
+                            ) : null}
+                            {s.notas_adicionales && (
+                              <div style={{
+                                marginTop: 10,
+                                padding: "8px 10px",
+                                background: "rgba(197,164,109,0.10)",
+                                border: `1px solid ${C.border}`,
+                                borderRadius: 8,
+                                fontSize: 11,
+                                color: C.textMuted,
+                                lineHeight: 1.5,
+                                display: "flex",
+                                gap: 6,
+                                whiteSpace: "pre-line",
+                              }}>
+                                <span style={{ flexShrink: 0 }}>⚠️</span>
+                                <span>{s.notas_adicionales}</span>
+                              </div>
+                            )}
+                            <label style={{
+                              marginTop: 12,
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 8,
+                              fontSize: 12,
+                              color: C.text,
+                              cursor: "pointer",
+                            }}>
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleAdicional(s.id)}
+                                style={{ width: 18, height: 18, accentColor: C.gold, cursor: "pointer" }}
+                              />
+                              <span>{checked ? "Añadido a tu reserva" : "Añadir a mi reserva"}</span>
+                            </label>
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+              </div>
+
               {adicionalesSeleccionados.length > 0 && (
-                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 10, fontSize: 13, color: C.text }}>
-                  <span>Subtotal adicionales</span>
-                  <span>{formatCOP(subtotalAdicionales)}</span>
+                <div style={{ display: "flex", justifyContent: "space-between", marginTop: 12, fontSize: 13, color: C.text }}>
+                  <span>Subtotal adicionales ({adicionalesSeleccionados.length})</span>
+                  <span style={{ fontWeight: 600 }}>{formatCOP(subtotalAdicionales)}</span>
                 </div>
               )}
             </div>

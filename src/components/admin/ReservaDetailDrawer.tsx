@@ -183,6 +183,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             precio_noche: subNochesEdit,
             tipo_tarifa: tipoPrincipalEdit,
             estado: edit.estado,
+            descuento_tipo: edit.descuentoValor > 0 ? edit.descuentoTipo : null,
+            descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
           },
 
           adicionales: adicionalesSelEdit.map(a => ({

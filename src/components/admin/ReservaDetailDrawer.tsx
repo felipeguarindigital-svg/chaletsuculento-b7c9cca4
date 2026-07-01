@@ -414,6 +414,61 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               )}
             </div>
 
+            {/* Descuento */}
+            {!editMode ? (
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm">
+                <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Descuento (interno)</p>
+                {data.descuento_monto > 0 ? (
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Tipo</span>
+                      <span>{data.descuento_tipo === "porcentaje" ? `${Number(data.descuento_valor ?? 0)}%` : "Valor fijo"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Subtotal</span>
+                      <span className="tabular-nums">{formatCOP(data.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700">
+                      <span>Descuento</span>
+                      <span className="tabular-nums">-{formatCOP(data.descuento_monto)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-stone-500">Sin descuento aplicado ($0 / 0%)</p>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+                <p className="text-xs text-stone-500 uppercase tracking-wider">Descuento (interno)</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["porcentaje","valor_fijo"] as DescuentoTipo[]).map(t => (
+                    <Button
+                      key={t}
+                      type="button"
+                      size="sm"
+                      variant={edit!.descuentoTipo === t ? "default" : "outline"}
+                      onClick={() => setEdit({ ...edit!, descuentoTipo: t })}
+                    >
+                      {t === "porcentaje" ? "% Porcentaje" : "$ Valor fijo"}
+                    </Button>
+                  ))}
+                  <Input
+                    type="number"
+                    min={0}
+                    value={edit!.descuentoValor}
+                    onChange={e => setEdit({ ...edit!, descuentoValor: Math.max(0, Number(e.target.value) || 0) })}
+                    className="w-32"
+                  />
+                </div>
+                {descuentoMontoEdit > 0 && (
+                  <div className="flex justify-between text-xs text-stone-600">
+                    <span>Subtotal: {formatCOP(subtotalEdit)}</span>
+                    <span>Descuento: -{formatCOP(descuentoMontoEdit)}</span>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
               <span className="text-sm font-medium">Total</span>
               <span className="text-lg font-semibold tabular-nums">

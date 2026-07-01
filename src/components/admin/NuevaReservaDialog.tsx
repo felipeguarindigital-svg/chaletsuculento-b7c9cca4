@@ -221,6 +221,36 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           <Input value={notas} onChange={e => setNotas(e.target.value)} />
         </div>
 
+        <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+          <p className="text-xs text-stone-500 uppercase tracking-wider">Descuento (interno)</p>
+          <div className="flex gap-2">
+            {(["porcentaje","valor_fijo"] as DescuentoTipo[]).map(t => (
+              <Button
+                key={t}
+                type="button"
+                size="sm"
+                variant={descuentoTipo === t ? "default" : "outline"}
+                onClick={() => setDescuentoTipo(t)}
+              >
+                {t === "porcentaje" ? "% Porcentaje" : "$ Valor fijo"}
+              </Button>
+            ))}
+            <Input
+              type="number"
+              min={0}
+              value={descuentoValor}
+              onChange={e => setDescuentoValor(Math.max(0, Number(e.target.value) || 0))}
+              className="w-32"
+            />
+          </div>
+          {descuentoMonto > 0 && (
+            <div className="flex justify-between text-xs text-stone-600">
+              <span>Subtotal: {formatCOP(subtotal)}</span>
+              <span>Descuento: -{formatCOP(descuentoMonto)}</span>
+            </div>
+          )}
+        </div>
+
         <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
           <span className="text-sm font-medium">Total</span>
           <span className="text-lg font-semibold tabular-nums">{formatCOP(total)}</span>

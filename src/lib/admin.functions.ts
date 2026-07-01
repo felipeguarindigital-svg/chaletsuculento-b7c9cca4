@@ -258,11 +258,17 @@ export const getReservaDetail = createServerFn({ method: "POST" })
     const totalNoches = desglose && desglose.length > 0
       ? desglose.reduce((s, n) => s + Number(n.precio || 0), 0)
       : Number(r.precio_noche || 0) * Number(r.noches || 1);
+    const subtotal = totalNoches + totalAd;
+    const descTipo = (r as any).descuento_tipo as DescuentoTipo | null;
+    const descValor = Number((r as any).descuento_valor ?? 0);
+    const descuento_monto = computeDescuento(subtotal, descTipo, descValor);
     return {
       ...(r as ReservaRow),
       adicionales,
       total_adicionales: totalAd,
-      total: totalNoches + totalAd,
+      subtotal,
+      descuento_monto,
+      total: subtotal - descuento_monto,
     };
   });
 

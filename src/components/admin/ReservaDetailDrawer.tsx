@@ -75,6 +75,8 @@ type EditState = {
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
+  descuentoTipo: DescuentoTipo;
+  descuentoValor: number;
 };
 
 

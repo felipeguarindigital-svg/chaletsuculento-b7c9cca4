@@ -224,11 +224,6 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
                               }} />
                               <span className="flex-1">{s.nombre}</span>
                               <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
-                              {s.descripcion_larga && (
-                                <details className="ml-1">
-                                  <summary className="list-none cursor-pointer text-[11px] text-amber-700 hover:underline select-none">Ver</summary>
-                                </details>
-                              )}
                             </label>
                             {s.descripcion_larga && (
                               <details className="px-2 pb-2 -mt-1">

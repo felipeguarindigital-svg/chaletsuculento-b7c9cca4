@@ -3,10 +3,16 @@
 // dentro de cada handler para no filtrarlo al bundle del navegador.
 import { createServerFn } from "@tanstack/react-start";
 
+export type ServicioCategoria = "experiencias_decoraciones" | "alimentacion_adicionales";
+
 export type ServicioAdicional = {
   id: string;
   nombre: string;
   descripcion: string | null;
+  descripcion_larga: string | null;
+  notas_adicionales: string | null;
+  imagen_url: string | null;
+  categoria: ServicioCategoria | null;
   precio: number;
   activo: boolean;
 };
@@ -18,7 +24,7 @@ export const listServiciosAdicionales = createServerFn({ method: "GET" }).handle
     );
     const { data, error } = await supabaseExternal
       .from("servicios_adicionales")
-      .select("id, nombre, descripcion, precio, activo")
+      .select("id, nombre, descripcion, descripcion_larga, notas_adicionales, imagen_url, categoria, precio, activo")
       .eq("activo", true)
       .order("precio", { ascending: true });
     if (error) throw new Error(error.message);

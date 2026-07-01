@@ -90,7 +90,12 @@ export function AnalyticsView({ accessToken }: Props) {
   const sinDatosIngresos = data && data.ingresos_por_mes.length === 0;
   const sinDatosDia = data && data.reservas_por_dia_semana.every((d) => d.cantidad === 0);
   const sinDatosOrigen = data && data.origen_reservas.length === 0;
-  const sinDatosAdic = data && data.adicionales_top.every((a) => a.cantidad === 0);
+  const sinDatosAdic = data && (data.adicionales_total_cantidad ?? 0) === 0;
+  const CAT_LABEL: Record<string, string> = {
+    experiencias_decoraciones: "✨ Experiencias y Decoraciones",
+    alimentacion_adicionales: "🍽️ Alimentación y Adicionales",
+    sin_categoria: "Sin categoría",
+  };
 
   return (
     <div className="space-y-6">

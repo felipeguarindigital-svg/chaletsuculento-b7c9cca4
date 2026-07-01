@@ -313,6 +313,8 @@ export type ReservaPatch = Partial<{
   precio_noche: number;
   tipo_tarifa: TipoTarifa;
   estado: EstadoReserva;
+  descuento_tipo: DescuentoTipo | null;
+  descuento_valor: number | null;
 }>;
 
 

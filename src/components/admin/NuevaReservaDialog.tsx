@@ -122,6 +122,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           tipo_tarifa_principal: tipoPrincipal,
           nombre, whatsapp, estado, notas: notas || undefined,
           adicionales: adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+          descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
+          descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
         },
       });
       toast.success(`Reserva creada: ${res.codigo}`);

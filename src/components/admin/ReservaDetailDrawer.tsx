@@ -3,8 +3,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   getReservaDetail, updateEstadoReserva, updateNotasReserva, updateReserva,
-  deleteReserva, listServiciosAdicionales,
+  deleteReserva, listServiciosAdicionales, computeDescuento,
   type ReservaDetail, type EstadoReserva, type RolPanel, type ChaletName,
+  type DescuentoTipo,
 } from "@/lib/admin.functions";
 import type { ServicioAdicional } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche } from "@/lib/tarifas";
@@ -22,7 +23,6 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   let phone = (d.whatsapp || "").replace(/\D/g, "");
   if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
   const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
-  const total = d.total;
   const horarios = getHorarios(d.chalet);
   const checkInLine = `📅 Check-in: ${d.fecha}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
   const checkOutLine = d.fecha_checkout
@@ -38,8 +38,16 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     checkInLine,
     ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
-    `💰 Total: ${formatCOP(total)}`,
   ];
+  if (d.descuento_monto > 0) {
+    lines.push(
+      `💰 Subtotal: ${formatCOP(d.subtotal)}`,
+      `🎁 Descuento: -${formatCOP(d.descuento_monto)}`,
+      `✅ Total a pagar: ${formatCOP(d.total)}`,
+    );
+  } else {
+    lines.push(`💰 Total: ${formatCOP(d.total)}`);
+  }
   if (d.adicionales.length > 0) {
     lines.push("", "✨ Adicionales:");
     for (const a of d.adicionales) {
@@ -67,6 +75,8 @@ type EditState = {
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
+  descuentoTipo: DescuentoTipo;
+  descuentoValor: number;
 };
 
 
@@ -123,7 +133,11 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
     ? servicios.filter(s => edit.selAdicionales.has(s.id))
     : [];
   const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0);
-  const totalEdit = subNochesEdit + subAdEdit;
+  const subtotalEdit = subNochesEdit + subAdEdit;
+  const descuentoMontoEdit = edit
+    ? computeDescuento(subtotalEdit, edit.descuentoTipo, edit.descuentoValor)
+    : 0;
+  const totalEdit = subtotalEdit - descuentoMontoEdit;
 
   function entrarEdicion() {
     if (!data) return;
@@ -135,9 +149,10 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       whatsapp: data.whatsapp,
       estado: data.estado,
       selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
+      descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
+      descuentoValor: Number(data.descuento_valor ?? 0),
     });
     setEditMode(true);
-
   }
 
   function cancelarEdicion() {
@@ -168,6 +183,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             precio_noche: subNochesEdit,
             tipo_tarifa: tipoPrincipalEdit,
             estado: edit.estado,
+            descuento_tipo: edit.descuentoValor > 0 ? edit.descuentoTipo : null,
+            descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
           },
 
           adicionales: adicionalesSelEdit.map(a => ({
@@ -396,6 +413,61 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                 )
               )}
             </div>
+
+            {/* Descuento */}
+            {!editMode ? (
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 text-sm">
+                <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Descuento (interno)</p>
+                {data.descuento_monto > 0 ? (
+                  <div className="space-y-0.5">
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Tipo</span>
+                      <span>{data.descuento_tipo === "porcentaje" ? `${Number(data.descuento_valor ?? 0)}%` : "Valor fijo"}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-stone-500">Subtotal</span>
+                      <span className="tabular-nums">{formatCOP(data.subtotal)}</span>
+                    </div>
+                    <div className="flex justify-between text-emerald-700">
+                      <span>Descuento</span>
+                      <span className="tabular-nums">-{formatCOP(data.descuento_monto)}</span>
+                    </div>
+                  </div>
+                ) : (
+                  <p className="text-stone-500">Sin descuento aplicado ($0 / 0%)</p>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+                <p className="text-xs text-stone-500 uppercase tracking-wider">Descuento (interno)</p>
+                <div className="flex flex-wrap gap-2">
+                  {(["porcentaje","valor_fijo"] as DescuentoTipo[]).map(t => (
+                    <Button
+                      key={t}
+                      type="button"
+                      size="sm"
+                      variant={edit!.descuentoTipo === t ? "default" : "outline"}
+                      onClick={() => setEdit({ ...edit!, descuentoTipo: t })}
+                    >
+                      {t === "porcentaje" ? "% Porcentaje" : "$ Valor fijo"}
+                    </Button>
+                  ))}
+                  <Input
+                    type="number"
+                    min={0}
+                    value={edit!.descuentoValor}
+                    onChange={e => setEdit({ ...edit!, descuentoValor: Math.max(0, Number(e.target.value) || 0) })}
+                    className="w-32"
+                  />
+                </div>
+                {descuentoMontoEdit > 0 && (
+                  <div className="flex justify-between text-xs text-stone-600">
+                    <span>Subtotal: {formatCOP(subtotalEdit)}</span>
+                    <span>Descuento: -{formatCOP(descuentoMontoEdit)}</span>
+                  </div>
+                )}
+              </div>
+            )}
 
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
               <span className="text-sm font-medium">Total</span>

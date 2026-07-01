@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   crearReservaManual, listServiciosAdicionales,
-  type ChaletName,
+  computeDescuento,
+  type ChaletName, type DescuentoTipo,
 } from "@/lib/admin.functions";
 import type { ServicioAdicional } from "@/lib/reservas-external.functions";
 import { tarifasPorNoche } from "@/lib/tarifas";
@@ -37,6 +38,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [notas, setNotas] = useState("");
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
+  const [descuentoValor, setDescuentoValor] = useState<number>(0);
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -55,7 +58,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const subNoches = desglose.reduce((s, n) => s + n.precio, 0);
   const adicionalesSel = servicios.filter(s => sel.has(s.id));
   const subAd = adicionalesSel.reduce((s, a) => s + Number(a.precio), 0);
-  const total = subNoches + subAd;
+  const subtotal = subNoches + subAd;
+  const descuentoMonto = computeDescuento(subtotal, descuentoTipo, descuentoValor);
+  const total = subtotal - descuentoMonto;
   const tipoPrincipal = desglose.length > 0
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
     : "domingo_jueves" as const;
@@ -92,7 +97,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
       }
     }
-    lines.push("", `💰 Total: ${formatCOP(total)}`);
+    if (descuentoMonto > 0) {
+      lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
+      lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
+      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
+    } else {
+      lines.push("", `💰 Total: ${formatCOP(total)}`);
+    }
     if (estado === "reservado") {
       lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
     }
@@ -111,6 +122,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           tipo_tarifa_principal: tipoPrincipal,
           nombre, whatsapp, estado, notas: notas || undefined,
           adicionales: adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+          descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
+          descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
         },
       });
       toast.success(`Reserva creada: ${res.codigo}`);
@@ -121,6 +134,7 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onOpenChange(false);
       // reset
       setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setDescuentoTipo("porcentaje"); setDescuentoValor(0);
     } catch (e: any) {
       toast.error(e.message);
     } finally { setSaving(false); }
@@ -205,6 +219,36 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         <div className="mt-2">
           <Label>Notas internas (opcional)</Label>
           <Input value={notas} onChange={e => setNotas(e.target.value)} />
+        </div>
+
+        <div className="mt-2 rounded-lg border border-stone-200 bg-stone-50 p-3 space-y-2">
+          <p className="text-xs text-stone-500 uppercase tracking-wider">Descuento (interno)</p>
+          <div className="flex gap-2">
+            {(["porcentaje","valor_fijo"] as DescuentoTipo[]).map(t => (
+              <Button
+                key={t}
+                type="button"
+                size="sm"
+                variant={descuentoTipo === t ? "default" : "outline"}
+                onClick={() => setDescuentoTipo(t)}
+              >
+                {t === "porcentaje" ? "% Porcentaje" : "$ Valor fijo"}
+              </Button>
+            ))}
+            <Input
+              type="number"
+              min={0}
+              value={descuentoValor}
+              onChange={e => setDescuentoValor(Math.max(0, Number(e.target.value) || 0))}
+              className="w-32"
+            />
+          </div>
+          {descuentoMonto > 0 && (
+            <div className="flex justify-between text-xs text-stone-600">
+              <span>Subtotal: {formatCOP(subtotal)}</span>
+              <span>Descuento: -{formatCOP(descuentoMonto)}</span>
+            </div>
+          )}
         </div>
 
         <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">

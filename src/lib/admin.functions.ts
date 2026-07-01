@@ -15,6 +15,8 @@ export type TipoTarifa = "domingo_jueves" | "viernes" | "sabado" | "previa_festi
 
 export type NocheDesglose = { fecha: string; tipo: TipoTarifa; precio: number };
 
+export type DescuentoTipo = "porcentaje" | "valor_fijo";
+
 export type ReservaRow = {
   id: string;
   codigo: string;
@@ -31,7 +33,24 @@ export type ReservaRow = {
   origen: OrigenReserva;
   notas: string | null;
   created_at: string;
+  descuento_tipo: DescuentoTipo | null;
+  descuento_valor: number | null;
 };
+
+/** Calcula el monto de descuento en pesos a partir del subtotal (noches + adicionales). */
+export function computeDescuento(
+  subtotal: number,
+  tipo: DescuentoTipo | null | undefined,
+  valor: number | null | undefined,
+): number {
+  const v = Number(valor ?? 0);
+  if (!tipo || !v || v <= 0 || subtotal <= 0) return 0;
+  if (tipo === "porcentaje") {
+    const pct = Math.max(0, Math.min(100, v));
+    return Math.round((subtotal * pct) / 100);
+  }
+  return Math.min(Math.round(v), subtotal);
+}
 
 export type ReservaAdicional = {
   id: string;
@@ -44,6 +63,8 @@ export type ReservaAdicional = {
 export type ReservaDetail = ReservaRow & {
   adicionales: ReservaAdicional[];
   total_adicionales: number;
+  subtotal: number;
+  descuento_monto: number;
   total: number;
 };
 
@@ -237,11 +258,17 @@ export const getReservaDetail = createServerFn({ method: "POST" })
     const totalNoches = desglose && desglose.length > 0
       ? desglose.reduce((s, n) => s + Number(n.precio || 0), 0)
       : Number(r.precio_noche || 0) * Number(r.noches || 1);
+    const subtotal = totalNoches + totalAd;
+    const descTipo = (r as any).descuento_tipo as DescuentoTipo | null;
+    const descValor = Number((r as any).descuento_valor ?? 0);
+    const descuento_monto = computeDescuento(subtotal, descTipo, descValor);
     return {
       ...(r as ReservaRow),
       adicionales,
       total_adicionales: totalAd,
-      total: totalNoches + totalAd,
+      subtotal,
+      descuento_monto,
+      total: subtotal - descuento_monto,
     };
   });
 
@@ -286,6 +313,8 @@ export type ReservaPatch = Partial<{
   precio_noche: number;
   tipo_tarifa: TipoTarifa;
   estado: EstadoReserva;
+  descuento_tipo: DescuentoTipo | null;
+  descuento_valor: number | null;
 }>;
 
 
@@ -379,6 +408,8 @@ export type CrearManualInput = {
   estado: "cotizacion" | "reservado";
   notas?: string;
   adicionales: Array<{ adicional_id: string; precio_cobrado: number }>;
+  descuento_tipo?: DescuentoTipo | null;
+  descuento_valor?: number | null;
 };
 
 export const crearReservaManual = createServerFn({ method: "POST" })
@@ -407,6 +438,8 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       estado: data.estado,
       origen: "manual" as const,
       notas: data.notas ?? null,
+      descuento_tipo: data.descuento_tipo ?? null,
+      descuento_valor: data.descuento_valor ?? 0,
     };
     const { data: r, error } = await supabaseExternalAdmin
       .from("reservas").insert(insert).select("id, codigo").single();

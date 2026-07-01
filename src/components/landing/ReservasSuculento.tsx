@@ -79,6 +79,8 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   // Adicionales
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [seleccionados, setSeleccionados] = useState<Set<string>>(new Set());
+  const [expandido, setExpandido] = useState<string | null>(null);
+  const [tabCategoria, setTabCategoria] = useState<"experiencias_decoraciones" | "alimentacion_adicionales">("experiencias_decoraciones");
 
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submitCotizacion = useServerFn(crearCotizacion);

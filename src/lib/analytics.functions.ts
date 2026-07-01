@@ -25,6 +25,8 @@ async function verifyToken(accessToken: string): Promise<{ userId: string; rol: 
 const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"] as const;
 type ChaletName = (typeof CHALETS)[number];
 
+export type CategoriaAd = "experiencias_decoraciones" | "alimentacion_adicionales" | "sin_categoria";
+
 export type AnalyticsPayload = {
   rango: { desde: string; hasta: string };
   chalet_filtro: ChaletName | "all";
@@ -36,6 +38,14 @@ export type AnalyticsPayload = {
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
   conversion: { cotizaciones_creadas: number; ahora_reservadas: number; canceladas: number; pct: number };
   adicionales_top: { nombre: string; cantidad: number; total_generado: number }[];
+  adicionales_por_categoria: {
+    categoria: CategoriaAd;
+    subtotal_cantidad: number;
+    subtotal_generado: number;
+    items: { nombre: string; cantidad: number; total_generado: number }[];
+  }[];
+  adicionales_total_cantidad: number;
+  adicionales_total_generado: number;
   tiempo_confirmacion_horas: { promedio: number | null; reservas_consideradas: number; soportado: boolean };
 };
 
@@ -218,12 +228,17 @@ export const getAnalytics = createServerFn({ method: "POST" })
       pct: denom > 0 ? Math.round((ahoraReservadas / denom) * 100) : 0,
     };
 
-    // ===== Adicionales más vendidos =====
+    // ===== Adicionales más vendidos + agrupado por categoría =====
     const { data: catalogo } = await supabaseExternalAdmin
       .from("servicios_adicionales")
-      .select("id, nombre");
+      .select("id, nombre, categoria");
+    type CatRow = { id: string; nombre: string; categoria: CategoriaAd | null };
     const nombreById = new Map<string, string>();
-    for (const c of catalogo ?? []) nombreById.set(c.id as string, c.nombre as string);
+    const categoriaById = new Map<string, CategoriaAd>();
+    for (const c of (catalogo ?? []) as CatRow[]) {
+      nombreById.set(c.id, c.nombre);
+      categoriaById.set(c.id, (c.categoria ?? "sin_categoria") as CategoriaAd);
+    }
     const adCount = new Map<string, number>();
     const adTotal = new Map<string, number>();
     for (const a of adsAll ?? []) {
@@ -231,18 +246,47 @@ export const getAnalytics = createServerFn({ method: "POST" })
       adCount.set(k, (adCount.get(k) ?? 0) + 1);
       adTotal.set(k, (adTotal.get(k) ?? 0) + Number(a.precio_cobrado || 0));
     }
-    // Asegurar que aparezcan todos los servicios aunque estén en 0
-    for (const c of catalogo ?? []) {
-      if (!adCount.has(c.id as string)) adCount.set(c.id as string, 0);
-      if (!adTotal.has(c.id as string)) adTotal.set(c.id as string, 0);
+    // Incluir servicios activos del catálogo aunque estén en 0
+    for (const c of (catalogo ?? []) as CatRow[]) {
+      if (!adCount.has(c.id)) adCount.set(c.id, 0);
+      if (!adTotal.has(c.id)) adTotal.set(c.id, 0);
     }
     const adicionales_top = Array.from(adCount.entries())
       .map(([id, cantidad]) => ({
-        nombre: nombreById.get(id) ?? "—",
+        nombre: nombreById.get(id) ?? "Servicio eliminado",
         cantidad,
         total_generado: adTotal.get(id) ?? 0,
       }))
       .sort((a, b) => b.total_generado - a.total_generado);
+
+    // Agrupar por categoría (los IDs sin catálogo caen en "sin_categoria")
+    const CAT_ORDER: CategoriaAd[] = [
+      "experiencias_decoraciones",
+      "alimentacion_adicionales",
+      "sin_categoria",
+    ];
+    const grupos = new Map<CategoriaAd, { nombre: string; cantidad: number; total_generado: number }[]>();
+    for (const cat of CAT_ORDER) grupos.set(cat, []);
+    for (const [id, cantidad] of adCount.entries()) {
+      const cat = categoriaById.get(id) ?? "sin_categoria";
+      grupos.get(cat)!.push({
+        nombre: nombreById.get(id) ?? "Servicio eliminado",
+        cantidad,
+        total_generado: adTotal.get(id) ?? 0,
+      });
+    }
+    const adicionales_por_categoria = CAT_ORDER
+      .map((categoria) => {
+        const items = (grupos.get(categoria) ?? [])
+          .sort((a, b) => b.total_generado - a.total_generado);
+        const subtotal_cantidad = items.reduce((s, i) => s + i.cantidad, 0);
+        const subtotal_generado = items.reduce((s, i) => s + i.total_generado, 0);
+        return { categoria, subtotal_cantidad, subtotal_generado, items };
+      })
+      // Ocultar "sin_categoria" cuando no aporta datos
+      .filter((g) => g.categoria !== "sin_categoria" || g.items.length > 0);
+    const adicionales_total_cantidad = adicionales_por_categoria.reduce((s, g) => s + g.subtotal_cantidad, 0);
+    const adicionales_total_generado = adicionales_por_categoria.reduce((s, g) => s + g.subtotal_generado, 0);
 
     // ===== Tiempo promedio de confirmación =====
     let tiempo: AnalyticsPayload["tiempo_confirmacion_horas"] = {
@@ -281,6 +325,9 @@ export const getAnalytics = createServerFn({ method: "POST" })
       ticket_promedio,
       conversion,
       adicionales_top,
+      adicionales_por_categoria,
+      adicionales_total_cantidad,
+      adicionales_total_generado,
       tiempo_confirmacion_horas: tiempo,
     };
   });

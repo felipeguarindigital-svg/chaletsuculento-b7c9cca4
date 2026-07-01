@@ -1,5 +1,5 @@
 // Vista de Analítica del Panel Interno.
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getAnalytics, type AnalyticsPayload } from "@/lib/analytics.functions";
 import { formatCOP } from "@/lib/precios";
@@ -90,7 +90,12 @@ export function AnalyticsView({ accessToken }: Props) {
   const sinDatosIngresos = data && data.ingresos_por_mes.length === 0;
   const sinDatosDia = data && data.reservas_por_dia_semana.every((d) => d.cantidad === 0);
   const sinDatosOrigen = data && data.origen_reservas.length === 0;
-  const sinDatosAdic = data && data.adicionales_top.every((a) => a.cantidad === 0);
+  const sinDatosAdic = data && (data.adicionales_total_cantidad ?? 0) === 0;
+  const CAT_LABEL: Record<string, string> = {
+    experiencias_decoraciones: "✨ Experiencias y Decoraciones",
+    alimentacion_adicionales: "🍽️ Alimentación y Adicionales",
+    sin_categoria: "Sin categoría",
+  };
 
   return (
     <div className="space-y-6">
@@ -283,23 +288,39 @@ export function AnalyticsView({ accessToken }: Props) {
                 </tr>
               </thead>
               <tbody>
-                {(data?.adicionales_top ?? []).map((a) => (
-                  <tr key={a.nombre} className="border-b last:border-0 hover:bg-stone-50">
-                    <td className="py-2 pr-4 text-stone-800">{a.nombre}</td>
-                    <td className="py-2 pr-4 text-right tabular-nums text-stone-700">{a.cantidad}</td>
-                    <td className="py-2 pl-4 text-right tabular-nums text-stone-700">{formatCOP(a.total_generado)}</td>
-                  </tr>
+                {(data?.adicionales_por_categoria ?? []).map((g) => (
+                  <Fragment key={g.categoria}>
+                    <tr className="bg-amber-50/60">
+                      <td colSpan={3} className="py-2 px-2 text-xs font-semibold uppercase tracking-wider text-amber-900">
+                        {CAT_LABEL[g.categoria] ?? g.categoria}
+                      </td>
+                    </tr>
+                    {g.items.length === 0 ? (
+                      <tr key={`e-${g.categoria}`} className="border-b">
+                        <td colSpan={3} className="py-2 px-2 text-xs text-stone-400 italic">Sin ventas en este periodo</td>
+                      </tr>
+                    ) : (
+                      g.items.map((a) => (
+                        <tr key={`${g.categoria}-${a.nombre}`} className="border-b last:border-0 hover:bg-stone-50">
+                          <td className="py-2 pr-4 pl-2 text-stone-800">{a.nombre}</td>
+                          <td className="py-2 pr-4 text-right tabular-nums text-stone-700">{a.cantidad}</td>
+                          <td className="py-2 pl-4 text-right tabular-nums text-stone-700">{formatCOP(a.total_generado)}</td>
+                        </tr>
+                      ))
+                    )}
+                    <tr key={`s-${g.categoria}`} className="border-b bg-stone-50/70 font-medium text-stone-800">
+                      <td className="py-1.5 pr-4 pl-2 text-xs uppercase tracking-wider">Subtotal</td>
+                      <td className="py-1.5 pr-4 text-right tabular-nums">{g.subtotal_cantidad}</td>
+                      <td className="py-1.5 pl-4 text-right tabular-nums">{formatCOP(g.subtotal_generado)}</td>
+                    </tr>
+                  </Fragment>
                 ))}
               </tbody>
               <tfoot>
                 <tr className="border-t-2 border-stone-300 bg-stone-50 font-semibold text-stone-900">
-                  <td className="py-2 pr-4 uppercase text-xs tracking-wider">Total general</td>
-                  <td className="py-2 pr-4 text-right tabular-nums">
-                    {(data?.adicionales_top ?? []).reduce((s, a) => s + a.cantidad, 0)}
-                  </td>
-                  <td className="py-2 pl-4 text-right tabular-nums">
-                    {formatCOP((data?.adicionales_top ?? []).reduce((s, a) => s + a.total_generado, 0))}
-                  </td>
+                  <td className="py-2 pr-4 pl-2 uppercase text-xs tracking-wider">Total general</td>
+                  <td className="py-2 pr-4 text-right tabular-nums">{data?.adicionales_total_cantidad ?? 0}</td>
+                  <td className="py-2 pl-4 text-right tabular-nums">{formatCOP(data?.adicionales_total_generado ?? 0)}</td>
                 </tr>
               </tfoot>
             </table>

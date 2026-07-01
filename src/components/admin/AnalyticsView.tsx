@@ -313,7 +313,7 @@ export function AnalyticsView({ accessToken }: Props) {
                       <td className="py-1.5 pr-4 text-right tabular-nums">{g.subtotal_cantidad}</td>
                       <td className="py-1.5 pl-4 text-right tabular-nums">{formatCOP(g.subtotal_generado)}</td>
                     </tr>
-                  </>
+                  </Fragment>
                 ))}
               </tbody>
               <tfoot>

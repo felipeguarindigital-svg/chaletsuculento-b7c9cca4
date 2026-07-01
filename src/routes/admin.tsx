@@ -100,6 +100,13 @@ function AdminPanelPage() {
       });
   }, [supabase, session]);
 
+  useEffect(() => {
+    if (panelUser?.rol === "lectura" && section === "analitica") {
+      setSection("reservas");
+      toast.error("No tienes permisos para ver esta sección");
+    }
+  }, [panelUser, section]);
+
   if (loading) {
     return <div className="min-h-screen grid place-items-center text-stone-500">Cargando…</div>;
   }

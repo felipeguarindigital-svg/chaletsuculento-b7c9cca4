@@ -15,6 +15,8 @@ export type TipoTarifa = "domingo_jueves" | "viernes" | "sabado" | "previa_festi
 
 export type NocheDesglose = { fecha: string; tipo: TipoTarifa; precio: number };
 
+export type DescuentoTipo = "porcentaje" | "valor_fijo";
+
 export type ReservaRow = {
   id: string;
   codigo: string;
@@ -31,7 +33,24 @@ export type ReservaRow = {
   origen: OrigenReserva;
   notas: string | null;
   created_at: string;
+  descuento_tipo: DescuentoTipo | null;
+  descuento_valor: number | null;
 };
+
+/** Calcula el monto de descuento en pesos a partir del subtotal (noches + adicionales). */
+export function computeDescuento(
+  subtotal: number,
+  tipo: DescuentoTipo | null | undefined,
+  valor: number | null | undefined,
+): number {
+  const v = Number(valor ?? 0);
+  if (!tipo || !v || v <= 0 || subtotal <= 0) return 0;
+  if (tipo === "porcentaje") {
+    const pct = Math.max(0, Math.min(100, v));
+    return Math.round((subtotal * pct) / 100);
+  }
+  return Math.min(Math.round(v), subtotal);
+}
 
 export type ReservaAdicional = {
   id: string;

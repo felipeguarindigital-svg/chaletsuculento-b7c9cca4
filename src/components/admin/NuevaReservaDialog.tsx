@@ -42,11 +42,27 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const [conflicto, setConflicto] = useState(false);
+  const [checkingDispo, setCheckingDispo] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     fetchServicios().then(setServicios).catch(() => {});
   }, [open, fetchServicios]);
+
+  useEffect(() => {
+    if (!open) { setConflicto(false); return; }
+    if (!chalet || !checkin || !checkout || checkin >= checkout) {
+      setConflicto(false); return;
+    }
+    let cancelled = false;
+    setCheckingDispo(true);
+    checkDispo({ data: { accessToken, chalet, checkin, checkout } })
+      .then(r => { if (!cancelled) setConflicto(r.conflicto); })
+      .catch(() => { if (!cancelled) setConflicto(false); })
+      .finally(() => { if (!cancelled) setCheckingDispo(false); });
+    return () => { cancelled = true; };
+  }, [open, chalet, checkin, checkout, accessToken, checkDispo]);
 
   const desglose = useMemo(() => {
     if (!checkin || !checkout || checkin >= checkout) return [];

@@ -1,5 +1,5 @@
 // Vista de Analítica del Panel Interno.
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getAnalytics, type AnalyticsPayload } from "@/lib/analytics.functions";
 import { formatCOP } from "@/lib/precios";

@@ -25,6 +25,8 @@ async function verifyToken(accessToken: string): Promise<{ userId: string; rol: 
 const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"] as const;
 type ChaletName = (typeof CHALETS)[number];
 
+export type CategoriaAd = "experiencias_decoraciones" | "alimentacion_adicionales" | "sin_categoria";
+
 export type AnalyticsPayload = {
   rango: { desde: string; hasta: string };
   chalet_filtro: ChaletName | "all";
@@ -36,6 +38,14 @@ export type AnalyticsPayload = {
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
   conversion: { cotizaciones_creadas: number; ahora_reservadas: number; canceladas: number; pct: number };
   adicionales_top: { nombre: string; cantidad: number; total_generado: number }[];
+  adicionales_por_categoria: {
+    categoria: CategoriaAd;
+    subtotal_cantidad: number;
+    subtotal_generado: number;
+    items: { nombre: string; cantidad: number; total_generado: number }[];
+  }[];
+  adicionales_total_cantidad: number;
+  adicionales_total_generado: number;
   tiempo_confirmacion_horas: { promedio: number | null; reservas_consideradas: number; soportado: boolean };
 };
 

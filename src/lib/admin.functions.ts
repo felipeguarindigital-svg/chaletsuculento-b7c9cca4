@@ -408,6 +408,8 @@ export type CrearManualInput = {
   estado: "cotizacion" | "reservado";
   notas?: string;
   adicionales: Array<{ adicional_id: string; precio_cobrado: number }>;
+  descuento_tipo?: DescuentoTipo | null;
+  descuento_valor?: number | null;
 };
 
 export const crearReservaManual = createServerFn({ method: "POST" })
@@ -436,6 +438,8 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       estado: data.estado,
       origen: "manual" as const,
       notas: data.notas ?? null,
+      descuento_tipo: data.descuento_tipo ?? null,
+      descuento_valor: data.descuento_valor ?? 0,
     };
     const { data: r, error } = await supabaseExternalAdmin
       .from("reservas").insert(insert).select("id, codigo").single();

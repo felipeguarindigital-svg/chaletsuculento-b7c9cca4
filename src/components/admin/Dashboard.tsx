@@ -39,11 +39,12 @@ export function Dashboard({ accessToken, rol }: Props) {
   const canCreate = rol === "administrador" || rol === "operador";
 
   useEffect(() => {
+    if (rol === "lectura") { setLoadingM(false); return; }
     setLoadingM(true);
     fetchMetrics({ data: { accessToken } })
       .then(setMetrics).catch(e => toast.error(e.message))
       .finally(() => setLoadingM(false));
-  }, [accessToken, tick, fetchMetrics]);
+  }, [accessToken, tick, fetchMetrics, rol]);
 
   useEffect(() => {
     fetchReservas({ data: { accessToken, filters } })

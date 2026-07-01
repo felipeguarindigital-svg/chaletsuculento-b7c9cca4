@@ -63,6 +63,8 @@ export type ReservaAdicional = {
 export type ReservaDetail = ReservaRow & {
   adicionales: ReservaAdicional[];
   total_adicionales: number;
+  subtotal: number;
+  descuento_monto: number;
   total: number;
 };
 

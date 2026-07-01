@@ -23,7 +23,6 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   let phone = (d.whatsapp || "").replace(/\D/g, "");
   if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
   const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
-  const total = d.total;
   const horarios = getHorarios(d.chalet);
   const checkInLine = `📅 Check-in: ${d.fecha}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
   const checkOutLine = d.fecha_checkout
@@ -39,8 +38,16 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     checkInLine,
     ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
-    `💰 Total: ${formatCOP(total)}`,
   ];
+  if (d.descuento_monto > 0) {
+    lines.push(
+      `💰 Subtotal: ${formatCOP(d.subtotal)}`,
+      `🎁 Descuento: -${formatCOP(d.descuento_monto)}`,
+      `✅ Total a pagar: ${formatCOP(d.total)}`,
+    );
+  } else {
+    lines.push(`💰 Total: ${formatCOP(d.total)}`);
+  }
   if (d.adicionales.length > 0) {
     lines.push("", "✨ Adicionales:");
     for (const a of d.adicionales) {

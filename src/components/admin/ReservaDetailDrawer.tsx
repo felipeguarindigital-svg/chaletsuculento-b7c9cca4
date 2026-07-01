@@ -133,7 +133,11 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
     ? servicios.filter(s => edit.selAdicionales.has(s.id))
     : [];
   const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0);
-  const totalEdit = subNochesEdit + subAdEdit;
+  const subtotalEdit = subNochesEdit + subAdEdit;
+  const descuentoMontoEdit = edit
+    ? computeDescuento(subtotalEdit, edit.descuentoTipo, edit.descuentoValor)
+    : 0;
+  const totalEdit = subtotalEdit - descuentoMontoEdit;
 
   function entrarEdicion() {
     if (!data) return;
@@ -145,9 +149,10 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       whatsapp: data.whatsapp,
       estado: data.estado,
       selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
+      descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
+      descuentoValor: Number(data.descuento_valor ?? 0),
     });
     setEditMode(true);
-
   }
 
   function cancelarEdicion() {

@@ -58,51 +58,77 @@ function buildWhatsAppUrl(d: ReservaDetail, modo: "reservado" | "cotizacion"): s
   if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
   const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
   const horarios = getHorarios(d.chalet);
-  const checkInLine = `📅 Check-in: ${d.fecha}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
+  const checkInLine = `📅 Check-in: ${d.fecha}${horarios ? ` · ${horarios.checkIn}` : ""}`;
   const checkOutLine = d.fecha_checkout
-    ? `📅 Check-out: ${d.fecha_checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`
+    ? `📅 Check-out: ${d.fecha_checkout}${horarios ? ` · ${horarios.checkOut}` : ""}`
     : null;
-  const ced = (d.cedula || "").trim();
-  const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;
   const lines: string[] = [];
-  if (modo === "reservado") {
-    lines.push(`¡Hola ${firstName}! 🎉`, ``, `Tu reserva en Chalet Suculento ha sido confirmada ✅`, ``);
-  } else {
-    lines.push(`¡Hola ${firstName}! 👋`, ``, `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``);
-  }
-  lines.push(
-    `📋 Código: ${d.codigo}`,
-    `🏡 Chalet: ${d.chalet}`,
-    checkInLine,
-    ...(checkOutLine ? [checkOutLine] : []),
-    `🌙 Noches: ${d.noches ?? "—"}`,
-    titularLine,
-  );
-  if ((d.acompanantes?.length ?? 0) > 0) {
-    lines.push(`👥 Acompañantes: ${d.acompanantes.length}`);
-  }
-  if (d.adicionales.length > 0) {
-    lines.push("", "✨ Adicionales:");
-    for (const a of d.adicionales) {
-      lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
+
+  if (modo === "cotizacion") {
+    lines.push(
+      `¡Hola ${firstName}! 👋`, ``,
+      `Aquí tienes el resumen de tu cotización en Chalet Suculento · Santa Elena 🌿`, ``,
+      `📋 Código: ${d.codigo}`,
+      `🏡 Chalet: ${d.chalet}`,
+      checkInLine,
+      ...(checkOutLine ? [checkOutLine] : []),
+      `🌙 Noches: ${d.noches ?? "—"}`,
+    );
+    if (d.adicionales.length > 0) {
+      lines.push("", "✨ Adicionales:");
+      for (const a of d.adicionales) {
+        lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
+      }
     }
-  }
-  const abono = Number(d.abono ?? 0);
-  const saldo = d.saldo_pendiente_calc;
-  lines.push("");
-  lines.push(`💰 Total: ${formatCOP(d.subtotal)}`);
-  if (d.descuento_monto > 0) {
-    lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
-  }
-  if (abono > 0) {
-    lines.push(`💳 Abono recibido: ${formatCOP(abono)}`);
-    lines.push(`⏳ Saldo pendiente: ${formatCOP(saldo)}`);
+    lines.push("");
+    lines.push(`💰 Total estimado: ${formatCOP(d.subtotal)}`);
+    if (d.descuento_monto > 0) {
+      lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
+    }
+    lines.push("", `Para confirmar tu reserva, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
   } else {
-    lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
-  }
-  if (modo === "reservado") {
+    const ced = (d.cedula || "").trim();
+    const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;
+    lines.push(
+      `¡Hola ${firstName}! 🎉`, ``,
+      `Tu reserva en Chalet Suculento está confirmada ✅`, ``,
+      `📋 Código: ${d.codigo}`,
+      `🏡 Chalet: ${d.chalet}`,
+      checkInLine,
+      ...(checkOutLine ? [checkOutLine] : []),
+      `🌙 Noches: ${d.noches ?? "—"}`,
+      titularLine,
+    );
+    const acomps = d.acompanantes ?? [];
+    if (acomps.length > 0) {
+      lines.push(`👥 Acompañantes:`);
+      for (const a of acomps) {
+        const c = (a.cedula || "").trim();
+        lines.push(`   • ${a.nombre}${c ? ` · CC ${c}` : ""}`);
+      }
+    }
+    if (d.adicionales.length > 0) {
+      lines.push("", "✨ Adicionales:");
+      for (const a of d.adicionales) {
+        lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
+      }
+    }
+    const abono = Number(d.abono ?? 0);
+    const saldo = d.saldo_pendiente_calc;
+    lines.push("");
+    lines.push(`💰 Total: ${formatCOP(d.subtotal)}`);
+    if (d.descuento_monto > 0) {
+      lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
+    }
+    if (abono > 0) {
+      lines.push(`💳 Abono recibido: ${formatCOP(abono)}`);
+      lines.push(`⏳ Saldo pendiente: ${formatCOP(saldo)}`);
+    } else {
+      lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
+    }
     lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
   }
+
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 

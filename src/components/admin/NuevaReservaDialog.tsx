@@ -132,55 +132,75 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
     if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
     const firstName = (nombre || "").trim().split(/\s+/)[0] || "";
     const horarios = getHorarios(chalet);
-    const checkInLine = `📅 Check-in: ${checkin}${horarios ? ` a las ${horarios.checkIn}` : ""}`;
-    const checkOutLine = `📅 Check-out: ${checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`;
+    const checkInLine = `📅 Check-in: ${checkin}${horarios ? ` · ${horarios.checkIn}` : ""}`;
+    const checkOutLine = `📅 Check-out: ${checkout}${horarios ? ` · ${horarios.checkOut}` : ""}`;
     const lines: string[] = [];
-    if (estado === "reservado") {
-      lines.push(
-        `¡Hola ${firstName}! 🎉`, ``,
-        `Tu reserva en Chalet Suculento ha sido confirmada ✅`, ``,
-      );
-    } else {
+
+    if (estado === "cotizacion") {
       lines.push(
         `¡Hola ${firstName}! 👋`, ``,
-        `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``,
+        `Aquí tienes el resumen de tu cotización en Chalet Suculento · Santa Elena 🌿`, ``,
+        `📋 Código: ${codigo}`,
+        `🏡 Chalet: ${chalet}`,
+        checkInLine,
+        checkOutLine,
+        `🌙 Noches: ${noches}`,
       );
-    }
-    const cedNorm = (cedula || "").trim();
-    const titularLine = `👤 Titular: ${nombre.trim()}${cedNorm ? ` · CC ${cedNorm}` : ""}`;
-    lines.push(
-      `📋 Código: ${codigo}`,
-      `🏡 Chalet: ${chalet}`,
-      checkInLine,
-      checkOutLine,
-      `🌙 Noches: ${noches}`,
-      titularLine,
-    );
-    if (acompanantesValidos.length > 0) {
-      lines.push(`👥 Acompañantes: ${acompanantesValidos.length}`);
-    }
-    if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
-      lines.push("", "✨ Adicionales:");
-      for (const a of adicionalesSel) {
-        lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
+      if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
+        lines.push("", "✨ Adicionales:");
+        for (const a of adicionalesSel) {
+          lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
+        }
+        for (const p of personalizadosValidos) {
+          lines.push(`• ${p.nombre.trim()} — ${formatCOP(p.precio)}`);
+        }
       }
-      for (const p of personalizadosValidos) {
-        lines.push(`• ${p.nombre.trim()} — ${formatCOP(p.precio)}`);
+      lines.push("");
+      lines.push(`💰 Total estimado: ${formatCOP(subtotal)}`);
+      if (descuentoMonto > 0) {
+        lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
       }
-    }
-
-    lines.push("");
-    lines.push(`💰 Total: ${formatCOP(subtotal)}`);
-    if (descuentoMonto > 0) {
-      lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
-    }
-    if (abonoNorm > 0) {
-      lines.push(`💳 Abono recibido: ${formatCOP(abonoNorm)}`);
-      lines.push(`⏳ Saldo pendiente: ${formatCOP(saldoPendiente)}`);
+      lines.push("", `Para confirmar tu reserva, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
     } else {
-      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
-    }
-    if (estado === "reservado") {
+      const cedNorm = (cedula || "").trim();
+      const titularLine = `👤 Titular: ${nombre.trim()}${cedNorm ? ` · CC ${cedNorm}` : ""}`;
+      lines.push(
+        `¡Hola ${firstName}! 🎉`, ``,
+        `Tu reserva en Chalet Suculento está confirmada ✅`, ``,
+        `📋 Código: ${codigo}`,
+        `🏡 Chalet: ${chalet}`,
+        checkInLine,
+        checkOutLine,
+        `🌙 Noches: ${noches}`,
+        titularLine,
+      );
+      if (acompanantesValidos.length > 0) {
+        lines.push(`👥 Acompañantes:`);
+        for (const a of acompanantesValidos) {
+          const c = (a.cedula || "").trim();
+          lines.push(`   • ${a.nombre.trim()}${c ? ` · CC ${c}` : ""}`);
+        }
+      }
+      if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
+        lines.push("", "✨ Adicionales:");
+        for (const a of adicionalesSel) {
+          lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
+        }
+        for (const p of personalizadosValidos) {
+          lines.push(`• ${p.nombre.trim()} — ${formatCOP(p.precio)}`);
+        }
+      }
+      lines.push("");
+      lines.push(`💰 Total: ${formatCOP(subtotal)}`);
+      if (descuentoMonto > 0) {
+        lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
+      }
+      if (abonoNorm > 0) {
+        lines.push(`💳 Abono recibido: ${formatCOP(abonoNorm)}`);
+        lines.push(`⏳ Saldo pendiente: ${formatCOP(saldoPendiente)}`);
+      } else {
+        lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
+      }
       lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
     }
     return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;

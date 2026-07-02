@@ -43,6 +43,7 @@ function AdminPanelPage() {
   const [loading, setLoading] = useState(true);
   const [roleError, setRoleError] = useState<string | null>(null);
   const [section, setSection] = useState<"reservas" | "analitica" | "usuarios">("reservas");
+  const [changePwOpen, setChangePwOpen] = useState(false);
 
   useEffect(() => {
     // Si Supabase cae aquí por fallback al Site URL trayendo un hash de

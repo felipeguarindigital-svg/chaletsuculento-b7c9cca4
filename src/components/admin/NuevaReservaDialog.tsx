@@ -196,7 +196,7 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           accessToken, chalet, fecha_checkin: checkin, fecha_checkout: checkout,
           noches, desglose, precio_noche_total: subNoches,
           tipo_tarifa_principal: tipoPrincipal,
-          nombre, whatsapp, estado, notas: notas || undefined,
+          nombre, cedula: cedula.trim() || null, whatsapp, estado, notas: notas || undefined,
           adicionales: [
             ...adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
             ...personalizadosValidos.map(p => ({
@@ -206,8 +206,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
               descripcion_personalizada: p.descripcion.trim() || null,
             })),
           ],
+          acompanantes: acompanantesValidos.map(a => ({
+            nombre: a.nombre.trim(),
+            cedula: a.cedula.trim() || null,
+          })),
           descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
           descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
+          abono: abonoNorm,
         },
       });
       toast.success(`Reserva creada: ${res.codigo}`);
@@ -217,8 +222,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onCreated();
       onOpenChange(false);
       // reset
-      setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
-      setPersonalizados([]);
+      setNombre(""); setCedula(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setPersonalizados([]); setAcompanantes([]); setAbono(0);
       setDescuentoTipo("porcentaje"); setDescuentoValor(0);
 
     } catch (e: any) {

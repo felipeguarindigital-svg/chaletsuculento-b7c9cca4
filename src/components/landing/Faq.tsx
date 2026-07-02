@@ -141,14 +141,34 @@ const blocks: FaqBlock[] = [
     accent: "text-gold",
     items: [
       {
-        q: "¿Ofrecen cenas?",
+        q: "¿Qué desayuno está incluido en mi reserva?",
         a: (
           <div className="space-y-3">
+            <p>Tu reserva incluye un <strong>Kit de Desayuno básico</strong> sin costo adicional:</p>
             <p>
-              Sí. Preparamos cena servida en tu chalet: ensalada fresca, acompañamiento
-              gourmet, postre y bebida.
+              🥚 Huevos frescos · 🫓 Arepas · 🍪 Galletas · 🧈 Aceite · ☕ Café ·
+              🌿 Aromáticas · 🥛 Crema · 🧂 Sal y azúcar
             </p>
-            <div className="overflow-hidden rounded-lg border border-gold/30">
+            <p>El chalet cuenta con cocina totalmente equipada para que lo prepares tú mismo.</p>
+            <p className="text-sm text-foreground/60">(No incluye shampoo, acondicionador ni jabón corporal)</p>
+            <div className="rounded-lg border border-gold/30 bg-background/60 p-4">
+              <p>
+                ¿Quieres algo más completo? Agrega el <strong>Complemento Desayuno Ranchero</strong> por{" "}
+                <Price>$37.000</Price>: tostadas, quesito, leche, salchicha ranchera y chocolate Milo.
+              </p>
+              <p className="mt-2 text-sm text-foreground/70">(Pide con mínimo 1 día de anticipación)</p>
+            </div>
+          </div>
+        ),
+      },
+      {
+        q: "¿Ofrecen cenas servidas en el chalet?",
+        a: (
+          <div className="space-y-3">
+            <p>Sí. Preparamos cena completa directamente en tu chalet. Elige tu plato principal (precio por pareja):</p>
+
+            {/* Tabla desktop */}
+            <div className="hidden md:block overflow-hidden rounded-lg border border-gold/30">
               <table className="w-full text-left text-sm">
                 <thead className="bg-forest-deep text-cream">
                   <tr>
@@ -157,49 +177,145 @@ const blocks: FaqBlock[] = [
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gold/20 bg-background/60">
-                  <tr><td className="px-4 py-2">🍗 Pollo o Pescado</td><td className="px-4 py-2"><Price>$75.000</Price></td></tr>
-                  <tr><td className="px-4 py-2">🥩 Res</td><td className="px-4 py-2"><Price>$82.000</Price></td></tr>
-                  <tr><td className="px-4 py-2">🐟 Salmón Especial</td><td className="px-4 py-2"><Price>$95.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🍗 Pollo a la plancha</td><td className="px-4 py-2"><Price>$75.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🐖 Cerdo en salsa de champiñones</td><td className="px-4 py-2"><Price>$75.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🥩 Res BBQ</td><td className="px-4 py-2"><Price>$82.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🐟 Salmón a la parrilla</td><td className="px-4 py-2"><Price>$95.000</Price></td></tr>
                 </tbody>
               </table>
             </div>
-            <p>✨ <strong>Toque Romántico</strong> (florero, velas, pétalos): <Price>+$20.000</Price></p>
+
+            {/* Tarjetas móvil */}
+            <ul className="md:hidden space-y-2">
+              {[
+                { n: "🍗 Pollo a la plancha", p: "$75.000" },
+                { n: "🐖 Cerdo en salsa de champiñones", p: "$75.000" },
+                { n: "🥩 Res BBQ", p: "$82.000" },
+                { n: "🐟 Salmón a la parrilla", p: "$95.000" },
+              ].map((it) => (
+                <li key={it.n} className="flex items-center justify-between gap-3 rounded-lg border border-gold/30 bg-background/60 px-4 py-3">
+                  <span>{it.n}</span>
+                  <Price>{it.p}</Price>
+                </li>
+              ))}
+            </ul>
+
+            <p>Todas incluyen: ensalada fresca, acompañamiento gourmet y postre casero.</p>
+            <p>🌹 <strong>Ambientación romántica</strong> (velas, pétalos): <Price>+$20.000</Price></p>
+            <p className="text-sm text-foreground/70">(Pide con mínimo 1 día de anticipación)</p>
           </div>
         ),
       },
       {
-        q: "¿Qué hay para aniversarios o celebraciones?",
+        q: "¿Tienen experiencias o decoraciones especiales para celebraciones?",
         a: (
           <div className="space-y-3">
-            <p>Tenemos varias opciones que se ven increíble en fotos:</p>
-            <div className="rounded-lg border border-gold/30 bg-background/60 p-4 space-y-2">
-              <p>🔥 <strong>Kit de Asado</strong> (¡favorito!) — todo listo para usar en el asador a gas.</p>
-              <ul className="ml-6 space-y-1">
-                <li>Cerdo: <Price>$50.000</Price></li>
-                <li>Res: <Price>$58.000</Price></li>
-              </ul>
+            <p>Sí, tenemos varias opciones diseñadas para hacer momentos únicos:</p>
+
+            {/* Tabla desktop */}
+            <div className="hidden md:block overflow-hidden rounded-lg border border-gold/30">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-forest-deep text-cream">
+                  <tr>
+                    <th className="px-4 py-2 font-display font-normal">Experiencia</th>
+                    <th className="px-4 py-2 font-display font-normal">Precio</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gold/20 bg-background/60">
+                  <tr><td className="px-4 py-2">💛 Latido · Ritual de Conexión en Pareja</td><td className="px-4 py-2"><Price>$245.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🌹 Decoración Romántica Premium (pétalos, neón, vino, foto)</td><td className="px-4 py-2"><Price>$165.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">💐 Ramo de Flores artesanal</td><td className="px-4 py-2"><Price>$135.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🎂 Decoración Cumpleaños (neón, globos, ponqué, foto)</td><td className="px-4 py-2"><Price>$120.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🎨 Record-arte · Experiencia Creativa en Pareja</td><td className="px-4 py-2"><Price>$100.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🌸 Decoración Romántica Esencial (pétalos, letrero, mesa)</td><td className="px-4 py-2"><Price>$95.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">💡 Decoración Luz y Mensaje (neón + velas LED)</td><td className="px-4 py-2"><Price>$70.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">📸 Sesión de Fotos Profesional (5 fotos + drone)</td><td className="px-4 py-2"><Price>$60.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🔐 Manilla en Clave Morse · Par</td><td className="px-4 py-2"><Price>$69.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🔐 Manilla en Clave Morse · Individual</td><td className="px-4 py-2"><Price>$39.000</Price></td></tr>
+                </tbody>
+              </table>
             </div>
-            <div className="rounded-lg border border-gold/30 bg-background/60 p-4 space-y-2">
-              <p>🧀 <strong>Tabla de Quesos & Sangría</strong> — selección premium + nuestra receta especial.</p>
-              <ul className="ml-6 space-y-1">
-                <li>Tabla: <Price>$95.000</Price></li>
-                <li>Sangría: <Price>$65.000</Price></li>
-              </ul>
-            </div>
+
+            {/* Tarjetas móvil */}
+            <ul className="md:hidden space-y-2">
+              {[
+                { n: "💛 Latido · Ritual de Conexión en Pareja", p: "$245.000" },
+                { n: "🌹 Decoración Romántica Premium (pétalos, neón, vino, foto)", p: "$165.000" },
+                { n: "💐 Ramo de Flores artesanal", p: "$135.000" },
+                { n: "🎂 Decoración Cumpleaños (neón, globos, ponqué, foto)", p: "$120.000" },
+                { n: "🎨 Record-arte · Experiencia Creativa en Pareja", p: "$100.000" },
+                { n: "🌸 Decoración Romántica Esencial (pétalos, letrero, mesa)", p: "$95.000" },
+                { n: "💡 Decoración Luz y Mensaje (neón + velas LED)", p: "$70.000" },
+                { n: "📸 Sesión de Fotos Profesional (5 fotos + drone)", p: "$60.000" },
+                { n: "🔐 Manilla en Clave Morse · Par", p: "$69.000" },
+                { n: "🔐 Manilla en Clave Morse · Individual", p: "$39.000" },
+              ].map((it) => (
+                <li key={it.n} className="flex items-start justify-between gap-3 rounded-lg border border-gold/30 bg-background/60 px-4 py-3">
+                  <span className="flex-1">{it.n}</span>
+                  <Price>{it.p}</Price>
+                </li>
+              ))}
+            </ul>
+
             <p className="text-sm text-foreground/70">
-              Además, cada chalet puede decorarse especialmente si lo solicitas con
-              anticipación.
+              Cada experiencia incluye detalles únicos — consúltanos para más información y personalización.
+              (Algunas requieren reserva con 2 días de anticipación)
             </p>
           </div>
         ),
       },
       {
-        q: "¿Puedo cocinar mis propios alimentos?",
+        q: "¿Qué opciones de alimentación adicional puedo agregar?",
+        a: (
+          <div className="space-y-3">
+            <p>Además del desayuno incluido y las cenas, puedes agregar:</p>
+
+            {/* Tabla desktop */}
+            <div className="hidden md:block overflow-hidden rounded-lg border border-gold/30">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-forest-deep text-cream">
+                  <tr>
+                    <th className="px-4 py-2 font-display font-normal">Opción</th>
+                    <th className="px-4 py-2 font-display font-normal">Precio</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gold/20 bg-background/60">
+                  <tr><td className="px-4 py-2">🧀 Tabla de Quesos Artesanal (frutas, embutidos, quesos, tostadas)</td><td className="px-4 py-2"><Price>$95.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🍷 Sangría Artesanal · Jarra 1.2L para 2</td><td className="px-4 py-2"><Price>$65.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🔥 Kit Asado de Res (carne, arepas, chorizo, BBQ)</td><td className="px-4 py-2"><Price>$58.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🔥 Kit Asado de Cerdo (carne, arepas, chorizo, condimentos)</td><td className="px-4 py-2"><Price>$50.000</Price></td></tr>
+                  <tr><td className="px-4 py-2">🍷 Botella de Vino Artesanal</td><td className="px-4 py-2"><Price>$40.000</Price></td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            {/* Tarjetas móvil */}
+            <ul className="md:hidden space-y-2">
+              {[
+                { n: "🧀 Tabla de Quesos Artesanal (frutas, embutidos, quesos, tostadas)", p: "$95.000" },
+                { n: "🍷 Sangría Artesanal · Jarra 1.2L para 2", p: "$65.000" },
+                { n: "🔥 Kit Asado de Res (carne, arepas, chorizo, BBQ)", p: "$58.000" },
+                { n: "🔥 Kit Asado de Cerdo (carne, arepas, chorizo, condimentos)", p: "$50.000" },
+                { n: "🍷 Botella de Vino Artesanal", p: "$40.000" },
+              ].map((it) => (
+                <li key={it.n} className="flex items-start justify-between gap-3 rounded-lg border border-gold/30 bg-background/60 px-4 py-3">
+                  <span className="flex-1">{it.n}</span>
+                  <Price>{it.p}</Price>
+                </li>
+              ))}
+            </ul>
+
+            <p className="text-sm text-foreground/70">(Kits de asado y Tabla de Quesos: pide con mínimo 2 días de anticipación)</p>
+          </div>
+        ),
+      },
+      {
+        q: "¿Puedo cocinar o pedir domicilios?",
         a: (
           <p>
-            Totalmente. La cocina viene completamente equipada (estufa, nevera,
-            utensilios, vajilla). También puedes pedir domicilios de restaurantes
-            cercanos; nosotros te ayudamos a coordinar.
+            Totalmente. Cada chalet tiene cocina completamente equipada: estufa, nevera, utensilios y
+            vajilla. Puedes traer tus propios alimentos o pedir domicilios de restaurantes cercanos —
+            nosotros te ayudamos a coordinar si lo necesitas.
           </p>
         ),
       },

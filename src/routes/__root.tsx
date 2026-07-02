@@ -132,13 +132,22 @@ function RootComponent() {
         : [],
     };
     console.log("[InviteDebug] Root guard ejecutado", debugPayload);
-    if (window.location.pathname === "/admin/invite") {
-      console.log("[InviteDebug] Root guard: ya estás en /admin/invite, no redirige");
+    if (window.location.pathname === "/admin/invite" || window.location.pathname === "/admin/reset-password") {
+      console.log("[InviteDebug] Root guard: ya estás en ruta destino, no redirige");
       return;
     }
-    if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
-      console.log("[InviteDebug] Root guard: token detectado, redirigiendo a /admin/invite");
-      window.location.replace(`/admin/invite${hash}`);
+    if (hash) {
+      const params = new URLSearchParams(hash.slice(1));
+      const type = params.get("type");
+      if (type === "recovery") {
+        console.log("[InviteDebug] Root guard: recovery detectado, redirigiendo a /admin/reset-password");
+        window.location.replace(`/admin/reset-password${hash}`);
+      } else if (type === "invite" || params.has("access_token")) {
+        console.log("[InviteDebug] Root guard: invite/token detectado, redirigiendo a /admin/invite");
+        window.location.replace(`/admin/invite${hash}`);
+      } else {
+        console.log("[InviteDebug] Root guard: hash sin tipo reconocido");
+      }
     } else {
       console.log("[InviteDebug] Root guard: no detectó token de invitación/recuperación");
     }

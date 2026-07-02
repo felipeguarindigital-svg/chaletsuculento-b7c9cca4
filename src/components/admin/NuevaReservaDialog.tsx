@@ -146,13 +146,19 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``,
       );
     }
+    const cedNorm = (cedula || "").trim();
+    const titularLine = `👤 Titular: ${nombre.trim()}${cedNorm ? ` · CC ${cedNorm}` : ""}`;
     lines.push(
       `📋 Código: ${codigo}`,
       `🏡 Chalet: ${chalet}`,
       checkInLine,
       checkOutLine,
       `🌙 Noches: ${noches}`,
+      titularLine,
     );
+    if (acompanantesValidos.length > 0) {
+      lines.push(`👥 Acompañantes: ${acompanantesValidos.length}`);
+    }
     if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
       lines.push("", "✨ Adicionales:");
       for (const a of adicionalesSel) {
@@ -163,12 +169,16 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       }
     }
 
+    lines.push("");
+    lines.push(`💰 Total: ${formatCOP(subtotal)}`);
     if (descuentoMonto > 0) {
-      lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
       lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
-      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
+    }
+    if (abonoNorm > 0) {
+      lines.push(`💳 Abono recibido: ${formatCOP(abonoNorm)}`);
+      lines.push(`⏳ Saldo pendiente: ${formatCOP(saldoPendiente)}`);
     } else {
-      lines.push("", `💰 Total: ${formatCOP(total)}`);
+      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
     }
     if (estado === "reservado") {
       lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");

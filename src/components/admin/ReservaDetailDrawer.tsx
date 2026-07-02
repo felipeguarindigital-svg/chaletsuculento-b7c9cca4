@@ -126,7 +126,20 @@ function buildWhatsAppUrl(d: ReservaDetail, modo: "reservado" | "cotizacion"): s
     } else {
       lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
     }
-    lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
+    lines.push(
+      "",
+      "¡Listo! Aquí tienes tu comprobante oficial de reserva. 💚✨",
+      "",
+      "Por favor, tómate un momento para revisar que todo esté perfecto: nombres, fechas, chalet elegido y servicios contratados. Si necesitas ajustar algún detalle, avísame por aquí mismo.",
+      "",
+      "📱 Tu Anfitrión en la estadía:",
+      "Para coordinar tu llegada y acompañarte durante toda la estadía, nuestro equipo de Atención a Huéspedes te contactará desde esta línea exclusiva:",
+      "👉 https://wa.me/573023845406",
+      "",
+      "Por allá coordinaremos tu check-in y estaremos atentos a cualquier necesidad hasta tu check-out.",
+      "",
+      "¡Nos hace muy felices que hayan elegido Chalets Suculento para su escapada! 🌲",
+    );
   }
 
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;

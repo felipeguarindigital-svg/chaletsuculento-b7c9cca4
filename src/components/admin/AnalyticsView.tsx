@@ -207,6 +207,34 @@ export function AnalyticsView({ accessToken }: Props) {
         />
       </div>
 
+      {/* Ingresos separados: reservas vs adicionales */}
+      <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NumberCard
+            label="💰 Ingresos por reservas"
+            value={data ? formatCOP(data.ingresos_reservas_total) : "…"}
+            sub="Suma de precios de las noches (estado reservado)"
+            Icon={Wallet}
+            tone="emerald"
+          />
+          <NumberCard
+            label="🎁 Ingresos por adicionales"
+            value={data ? formatCOP(data.ingresos_adicionales_total) : "…"}
+            sub="Suma de servicios adicionales cobrados"
+            Icon={Gift}
+            tone="amber"
+          />
+        </div>
+        {data && (
+          <p className="text-sm text-stone-600 px-1">
+            Total del periodo:{" "}
+            <span className="font-semibold text-stone-900 tabular-nums">
+              {formatCOP(data.ingresos_reservas_total + data.ingresos_adicionales_total)}
+            </span>
+          </p>
+        )}
+      </div>
+
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Ocupación por chalet (% noches reservadas)">

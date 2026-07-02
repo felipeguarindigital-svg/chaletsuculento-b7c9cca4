@@ -203,46 +203,117 @@ function AdminPanelPage() {
 }
 
 function LoginForm({ supabase }: { supabase: SupabaseClient | null }) {
+  const [mode, setMode] = useState<"login" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("reset=ok")) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+      return "Contraseña actualizada. Ya puedes iniciar sesión.";
+    }
+    return null;
+  });
   const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function onLogin(e: FormEvent) {
     e.preventDefault();
     if (!supabase) return;
-    setSubmitting(true);
-    setError(null);
+    setSubmitting(true); setError(null); setInfo(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) setError(error.message);
   }
 
+  async function onForgot(e: FormEvent) {
+    e.preventDefault();
+    if (!supabase) return;
+    setSubmitting(true); setError(null);
+    const redirectTo = `${window.location.origin}/admin/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    setSubmitting(false);
+    // Siempre mostramos el mismo mensaje para no filtrar si el correo existe.
+    setSent(true);
+    if (error) console.warn("[ResetPassword] error", error.message);
+  }
+
   return (
     <div className="min-h-screen grid place-items-center bg-stone-100 px-4">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 space-y-5 border"
-      >
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 space-y-5 border">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Panel administrativo</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {mode === "login" ? "Panel administrativo" : "Recuperar contraseña"}
+          </h1>
           <p className="text-sm text-stone-500 mt-1">Chalets Suculento</p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Correo</Label>
-          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+
+        {info && (
+          <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md p-2">{info}</p>
         )}
-        <Button type="submit" className="w-full" disabled={submitting || !supabase}>
-          {submitting ? "Entrando…" : "Entrar"}
-        </Button>
-      </form>
+
+        {mode === "login" ? (
+          <form onSubmit={onLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting || !supabase}>
+              {submitting ? "Entrando…" : "Entrar"}
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => { setMode("forgot"); setError(null); setInfo(null); setSent(false); }}
+                className="text-sm text-stone-500 hover:text-stone-800 underline underline-offset-2"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+          </form>
+        ) : sent ? (
+          <div className="space-y-4">
+            <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md p-3">
+              Si ese correo está registrado, recibirás un enlace en tu bandeja de entrada. Revisa también tu carpeta de spam.
+            </p>
+            <Button variant="outline" className="w-full" onClick={() => { setMode("login"); setSent(false); }}>
+              Volver al inicio de sesión
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={onForgot} className="space-y-4">
+            <p className="text-sm text-stone-600">
+              Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="femail">Correo electrónico</Label>
+              <Input id="femail" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting || !supabase}>
+              {submitting ? "Enviando…" : "Enviar enlace de recuperación"}
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => { setMode("login"); setError(null); }}
+                className="text-sm text-stone-500 hover:text-stone-800 underline underline-offset-2"
+              >
+                Volver al inicio de sesión
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

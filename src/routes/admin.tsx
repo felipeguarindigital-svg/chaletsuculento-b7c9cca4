@@ -29,7 +29,7 @@ function AdminPage() {
 
   // /admin también funciona como ruta padre de /admin/invite. En esa ruta hija
   // no debe ejecutarse el guard/login del panel, solo renderizar el formulario.
-  if (pathname === "/admin/invite") {
+  if (pathname === "/admin/invite" || pathname === "/admin/reset-password") {
     return <Outlet />;
   }
 

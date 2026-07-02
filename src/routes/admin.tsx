@@ -58,16 +58,23 @@ function AdminPanelPage() {
         hasHash: Boolean(hash),
         hashKeys: hash ? Array.from(new URLSearchParams(hash.slice(1)).keys()) : [],
       });
-      if (window.location.pathname === "/admin/invite") {
-        console.log("[InviteDebug] Admin guard: ruta /admin/invite detectada, no redirige");
+      if (window.location.pathname === "/admin/invite" || window.location.pathname === "/admin/reset-password") {
+        console.log("[InviteDebug] Admin guard: ruta ya destino, no redirige");
         return;
       }
-      if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
-        console.log("[InviteDebug] Admin guard: token detectado, redirigiendo a /admin/invite");
-        window.location.replace(`/admin/invite${hash}`);
-        return;
-      } else {
-        console.log("[InviteDebug] Admin guard: no detectó token de invitación/recuperación");
+      if (hash) {
+        const params = new URLSearchParams(hash.slice(1));
+        const type = params.get("type");
+        if (type === "recovery") {
+          console.log("[InviteDebug] Admin guard: recovery detectado, redirigiendo a /admin/reset-password");
+          window.location.replace(`/admin/reset-password${hash}`);
+          return;
+        }
+        if (type === "invite" || params.has("access_token")) {
+          console.log("[InviteDebug] Admin guard: invite/token detectado, redirigiendo a /admin/invite");
+          window.location.replace(`/admin/invite${hash}`);
+          return;
+        }
       }
     }
     let unsub: (() => void) | undefined;

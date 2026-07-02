@@ -415,22 +415,35 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                 ) : (
                   <div className="rounded-lg border divide-y text-sm">
                     {data.adicionales.map(a => {
-                      const catLabel = a.categoria === "experiencias_decoraciones"
-                        ? "✨ Experiencias y Decoraciones"
-                        : a.categoria === "alimentacion_adicionales"
-                          ? "🍽️ Alimentación y Adicionales"
-                          : "Sin categoría";
+                      const catLabel = a.es_personalizado
+                        ? "🛠️ Adicional personalizado"
+                        : a.categoria === "experiencias_decoraciones"
+                          ? "✨ Experiencias y Decoraciones"
+                          : a.categoria === "alimentacion_adicionales"
+                            ? "🍽️ Alimentación y Adicionales"
+                            : "Sin categoría";
                       return (
                         <div key={a.id} className="flex items-start justify-between px-3 py-1.5 gap-3">
                           <div className="min-w-0">
-                            <p className="truncate">{a.nombre ?? a.adicional_id}</p>
+                            <p className="truncate flex items-center gap-1.5">
+                              <span className="truncate">{a.nombre ?? a.adicional_id}</span>
+                              {a.es_personalizado && (
+                                <span className="shrink-0 inline-block px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-medium uppercase tracking-wide">
+                                  Personalizado
+                                </span>
+                              )}
+                            </p>
                             <p className="text-[11px] text-stone-500">{catLabel}</p>
+                            {a.es_personalizado && a.descripcion_personalizada && (
+                              <p className="text-[11px] text-stone-500 mt-0.5 whitespace-pre-line">{a.descripcion_personalizada}</p>
+                            )}
                           </div>
                           <span className="tabular-nums whitespace-nowrap">{formatCOP(a.precio_cobrado)}</span>
                         </div>
                       );
                     })}
                   </div>
+
                 )
               ) : (
                 servicios.length === 0 ? (

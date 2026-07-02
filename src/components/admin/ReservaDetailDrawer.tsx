@@ -141,12 +141,16 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
   const adicionalesSelEdit = edit
     ? servicios.filter(s => edit.selAdicionales.has(s.id))
     : [];
-  const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0);
+  const personalizadosEdit = edit?.personalizados ?? [];
+  const personalizadosValidos = personalizadosEdit.filter(p => p.nombre.trim() && p.precio > 0);
+  const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0)
+    + personalizadosValidos.reduce((s, p) => s + p.precio, 0);
   const subtotalEdit = subNochesEdit + subAdEdit;
   const descuentoMontoEdit = edit
     ? computeDescuento(subtotalEdit, edit.descuentoTipo, edit.descuentoValor)
     : 0;
   const totalEdit = subtotalEdit - descuentoMontoEdit;
+
 
   function entrarEdicion() {
     if (!data) return;

@@ -68,14 +68,17 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [checkin, setCheckin] = useState("");
   const [checkout, setCheckout] = useState("");
   const [nombre, setNombre] = useState("");
+  const [cedula, setCedula] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [estado, setEstado] = useState<"cotizacion" | "reservado">("reservado");
   const [notas, setNotas] = useState("");
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [personalizados, setPersonalizados] = useState<Array<{ key: string; nombre: string; descripcion: string; precio: number }>>([]);
+  const [acompanantes, setAcompanantes] = useState<Array<{ key: string; nombre: string; cedula: string }>>([]);
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
+  const [abono, setAbono] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [conflicto, setConflicto] = useState(false);
   const [checkingDispo, setCheckingDispo] = useState(false);

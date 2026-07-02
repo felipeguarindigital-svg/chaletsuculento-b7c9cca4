@@ -71,6 +71,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const [loading, setLoading] = useState(true);
   const [selectStart, setSelectStart] = useState<string | null>(null);
   const [selectEnd, setSelectEnd] = useState<string | null>(null);
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [error, setError] = useState("");

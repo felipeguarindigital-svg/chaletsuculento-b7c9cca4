@@ -491,41 +491,42 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                       if (items.length === 0) return null;
                       const selectedInCat = items.filter(s => edit!.selAdicionales.has(s.id)).length;
                       return (
-                        <div key={cat}>
-                          <p className="text-xs font-semibold text-amber-900 mb-1.5 flex items-center justify-between">
-                            <span>{label}</span>
-                            <span className="text-stone-500 font-normal">{selectedInCat} de {items.length}</span>
-                          </p>
-                          <div className="space-y-1.5">
-                            {items.map(s => {
-                              const checked = edit!.selAdicionales.has(s.id);
-                              return (
-                                <div key={s.id} className={`rounded-md border text-sm ${checked ? "bg-amber-50 border-amber-300" : "border-stone-200"}`}>
-                                  <label className="flex items-center gap-2 p-2 cursor-pointer">
-                                    <input type="checkbox" checked={checked} onChange={() => {
-                                      const n = new Set(edit!.selAdicionales);
-                                      if (checked) n.delete(s.id); else n.add(s.id);
-                                      setEdit({ ...edit!, selAdicionales: n });
-                                    }} />
-                                    <span className="flex-1">{s.nombre}</span>
-                                    <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
-                                  </label>
-                                  {s.descripcion_larga && (
-                                    <details className="px-2 pb-2 -mt-1">
-                                      <summary className="text-[11px] text-amber-700 hover:underline cursor-pointer select-none">Ver descripción</summary>
-                                      <p className="text-[12px] text-stone-600 whitespace-pre-line mt-1">{s.descripcion_larga}</p>
-                                      {s.notas_adicionales && (
-                                        <p className="text-[11px] text-amber-800 mt-1">⚠️ {s.notas_adicionales}</p>
-                                      )}
-                                    </details>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
+                        <CategoriaAccordion
+                          key={cat}
+                          label={label}
+                          count={items.length}
+                          selected={selectedInCat}
+                          defaultOpen={selectedInCat > 0}
+                        >
+                          {items.map(s => {
+                            const checked = edit!.selAdicionales.has(s.id);
+                            return (
+                              <div key={s.id} className={`rounded-md border text-sm ${checked ? "bg-amber-50 border-amber-300" : "border-stone-200"}`}>
+                                <label className="flex items-center gap-2 p-2 cursor-pointer">
+                                  <input type="checkbox" checked={checked} onChange={() => {
+                                    const n = new Set(edit!.selAdicionales);
+                                    if (checked) n.delete(s.id); else n.add(s.id);
+                                    setEdit({ ...edit!, selAdicionales: n });
+                                  }} />
+                                  <span className="flex-1">{s.nombre}</span>
+                                  <span className="tabular-nums text-xs text-stone-600">{formatCOP(Number(s.precio))}</span>
+                                </label>
+                                {s.descripcion_larga && (
+                                  <details className="px-2 pb-2 -mt-1">
+                                    <summary className="text-[11px] text-amber-700 hover:underline cursor-pointer select-none">ⓘ Ver descripción</summary>
+                                    <p className="text-[12px] text-stone-600 whitespace-pre-line mt-1">{s.descripcion_larga}</p>
+                                    {s.notas_adicionales && (
+                                      <p className="text-[11px] text-amber-800 mt-1">⚠️ {s.notas_adicionales}</p>
+                                    )}
+                                  </details>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </CategoriaAccordion>
                       );
                     })}
+
                     <div className="pt-2 border-t border-dashed border-stone-300">
                       <p className="text-xs font-semibold text-indigo-900 mb-1.5 flex items-center justify-between">
                         <span>🛠️ Adicionales personalizados</span>

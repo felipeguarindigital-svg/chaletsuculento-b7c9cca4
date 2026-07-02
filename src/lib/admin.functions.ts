@@ -91,10 +91,12 @@ export type AdicionalInput = {
 
 export type ReservaDetail = ReservaRow & {
   adicionales: ReservaAdicional[];
+  acompanantes: ReservaAcompanante[];
   total_adicionales: number;
   subtotal: number;
   descuento_monto: number;
   total: number;
+  saldo_pendiente_calc: number;
 };
 
 

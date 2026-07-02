@@ -416,6 +416,30 @@ export type CrearManualInput = {
   descuento_valor?: number | null;
 };
 
+/** Verifica si un chalet tiene una reserva "reservado" que se solape con el rango [checkin, checkout). */
+export const checkDisponibilidadChalet = createServerFn({ method: "POST" })
+  .inputValidator((d: { accessToken: string; chalet: ChaletName; checkin: string; checkout: string; excludeId?: string }) => d)
+  .handler(async ({ data }): Promise<{ conflicto: boolean }> => {
+    await verifyToken(data.accessToken);
+    if (!data.chalet || !data.checkin || !data.checkout || data.checkin >= data.checkout) {
+      return { conflicto: false };
+    }
+    const { supabaseExternalAdmin } = await import(
+      "@/integrations/supabase-external/client.server"
+    );
+    let q = supabaseExternalAdmin
+      .from("reservas")
+      .select("id")
+      .eq("chalet", data.chalet)
+      .eq("estado", "reservado")
+      .lt("fecha", data.checkout)
+      .gt("fecha_checkout", data.checkin);
+    if (data.excludeId) q = q.neq("id", data.excludeId);
+    const { data: rows, error } = await q.limit(1);
+    if (error) throw new Error(error.message);
+    return { conflicto: (rows ?? []).length > 0 };
+  });
+
 export const crearReservaManual = createServerFn({ method: "POST" })
   .inputValidator((d: CrearManualInput) => {
     if (!d.nombre?.trim()) throw new Error("Nombre requerido");
@@ -429,6 +453,20 @@ export const crearReservaManual = createServerFn({ method: "POST" })
     const { supabaseExternalAdmin } = await import(
       "@/integrations/supabase-external/client.server"
     );
+    if (data.estado === "reservado") {
+      const { data: otras, error: eOt } = await supabaseExternalAdmin
+        .from("reservas")
+        .select("id")
+        .eq("chalet", data.chalet)
+        .eq("estado", "reservado")
+        .lt("fecha", data.fecha_checkout)
+        .gt("fecha_checkout", data.fecha_checkin)
+        .limit(1);
+      if (eOt) throw new Error(eOt.message);
+      if ((otras ?? []).length > 0) {
+        throw new Error("Este chalet ya tiene una reserva confirmada en estas fechas");
+      }
+    }
     const insert = {
       chalet: data.chalet,
       fecha: data.fecha_checkin,

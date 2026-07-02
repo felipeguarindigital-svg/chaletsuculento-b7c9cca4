@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
   crearReservaManual, listServiciosAdicionales,
-  computeDescuento,
+  computeDescuento, checkDisponibilidadChalet,
   type ChaletName, type DescuentoTipo,
 } from "@/lib/admin.functions";
 import type { ServicioAdicional } from "@/lib/reservas-external.functions";
@@ -28,6 +28,7 @@ type Props = {
 export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated }: Props) {
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submit = useServerFn(crearReservaManual);
+  const checkDispo = useServerFn(checkDisponibilidadChalet);
 
   const [chalet, setChalet] = useState<ChaletName>("Suculento");
   const [checkin, setCheckin] = useState("");
@@ -41,11 +42,27 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
   const [saving, setSaving] = useState(false);
+  const [conflicto, setConflicto] = useState(false);
+  const [checkingDispo, setCheckingDispo] = useState(false);
 
   useEffect(() => {
     if (!open) return;
     fetchServicios().then(setServicios).catch(() => {});
   }, [open, fetchServicios]);
+
+  useEffect(() => {
+    if (!open) { setConflicto(false); return; }
+    if (!chalet || !checkin || !checkout || checkin >= checkout) {
+      setConflicto(false); return;
+    }
+    let cancelled = false;
+    setCheckingDispo(true);
+    checkDispo({ data: { accessToken, chalet, checkin, checkout } })
+      .then(r => { if (!cancelled) setConflicto(r.conflicto); })
+      .catch(() => { if (!cancelled) setConflicto(false); })
+      .finally(() => { if (!cancelled) setCheckingDispo(false); });
+    return () => { cancelled = true; };
+  }, [open, chalet, checkin, checkout, accessToken, checkDispo]);
 
   const desglose = useMemo(() => {
     if (!checkin || !checkout || checkin >= checkout) return [];
@@ -161,6 +178,14 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
             <Label>Check-out</Label>
             <Input type="date" value={checkout} onChange={e => setCheckout(e.target.value)} />
           </div>
+          {conflicto && (
+            <div className="col-span-2 rounded-md border border-red-300 bg-red-50 p-2.5 text-sm text-red-800">
+              ⚠️ Este chalet ya tiene una reserva confirmada en estas fechas. Elige otras fechas o cambia el chalet.
+            </div>
+          )}
+          {checkingDispo && !conflicto && chalet && checkin && checkout && checkin < checkout && (
+            <div className="col-span-2 text-xs text-stone-500">Verificando disponibilidad…</div>
+          )}
           <div className="col-span-2">
             <Label>Nombre</Label>
             <Input value={nombre} onChange={e => setNombre(e.target.value)} />
@@ -287,10 +312,10 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
 
         <div className="flex flex-wrap justify-end gap-2 mt-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={() => onSubmit(false)} disabled={saving}>{saving ? "Creando…" : "Crear reserva"}</Button>
+          <Button onClick={() => onSubmit(false)} disabled={saving || (conflicto && estado === "reservado")}>{saving ? "Creando…" : "Crear reserva"}</Button>
           <Button
             onClick={() => onSubmit(true)}
-            disabled={saving}
+            disabled={saving || (conflicto && estado === "reservado")}
             className="bg-[#25D366] hover:bg-[#1ebe5d] text-white"
           >
             Enviar cotización por WhatsApp

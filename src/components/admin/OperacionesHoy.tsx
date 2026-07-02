@@ -82,7 +82,7 @@ function Ficha({
           {ficha.adicionales.map((n, i) => (<li key={i}>{n}</li>))}
         </ul>
       )}
-      {bloque === "llegadas" && (
+      {(bloque === "llegadas" || bloque === "llegadas_manana") && (
         ficha.saldo_pendiente > 0 ? (
           <p className="text-xs font-medium text-orange-700">
             ⏳ Saldo pendiente: {formatCOP(ficha.saldo_pendiente)}

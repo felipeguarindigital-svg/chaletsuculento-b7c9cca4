@@ -32,7 +32,9 @@ export type AnalyticsPayload = {
   chalet_filtro: ChaletName | "all";
   total_reservas: number;
   ocupacion_por_chalet: { chalet: ChaletName; noches_ocupadas: number; noches_totales: number; pct: number }[];
-  ingresos_por_mes: { mes: string; ingresos: number }[];
+  ingresos_por_mes: { mes: string; reservas: number; adicionales: number; total: number }[];
+  ingresos_reservas_total: number;
+  ingresos_adicionales_total: number;
   reservas_por_dia_semana: { dia: string; cantidad: number }[];
   origen_reservas: { origen: string; cantidad: number }[];
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };

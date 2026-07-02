@@ -248,6 +248,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
     if (nochesEdit < 1) { toast.error("Selecciona check-in y check-out válidos"); return; }
     setSaving(true);
     try {
+      const abonoNormEdit = Math.max(0, Math.min(edit.abono || 0, totalEdit));
+      const saldoEdit = Math.max(0, totalEdit - abonoNormEdit);
       await saveReserva({
         data: {
           accessToken,
@@ -257,6 +259,7 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             fecha: edit.fecha,
             fecha_checkout: edit.fecha_checkout,
             nombre: edit.nombre.trim(),
+            cedula: edit.cedula.trim() || null,
             whatsapp: edit.whatsapp.trim(),
             noches: nochesEdit,
             desglose_noches: desgloseEdit,
@@ -265,6 +268,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             estado: edit.estado,
             descuento_tipo: edit.descuentoValor > 0 ? edit.descuentoTipo : null,
             descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
+            abono: abonoNormEdit,
+            saldo_pendiente: saldoEdit,
           },
 
           adicionales: [
@@ -279,6 +284,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               descripcion_personalizada: p.descripcion.trim() || null,
             })),
           ],
+          acompanantes: edit.acompanantes
+            .filter(a => a.nombre.trim())
+            .map(a => ({ nombre: a.nombre.trim(), cedula: a.cedula.trim() || null })),
         },
       });
 

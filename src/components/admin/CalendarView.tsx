@@ -26,7 +26,7 @@ export function CalendarView({
   const byDay = useMemo(() => {
     const m = new Map<string, Set<ChaletName>>();
     for (const r of reservas) {
-      if (r.estado === "cancelado") continue;
+      if (r.estado !== "reservado") continue;
       const ci = new Date(r.fecha + "T00:00:00");
       const co = r.fecha_checkout
         ? new Date(r.fecha_checkout + "T00:00:00")

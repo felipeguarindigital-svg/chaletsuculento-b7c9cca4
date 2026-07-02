@@ -812,17 +812,17 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
-            {canEdit && !editMode && data.estado === "reservado" && (
+            {canEdit && data.estado !== "cancelado" && (
               <div className="pt-3 border-t">
                 <Button
                   size="sm"
                   className="bg-[#25D366] hover:bg-[#1ebe5d] text-white w-full"
                   onClick={() => {
-                    const url = buildWhatsAppConfirmUrl(data);
+                    const url = buildWhatsAppUrl(data, data.estado === "reservado" ? "reservado" : "cotizacion");
                     window.open(url, "_blank", "noopener,noreferrer");
                   }}
                 >
-                  Enviar confirmación por WhatsApp
+                  {data.estado === "reservado" ? "Enviar confirmación por WhatsApp" : "Enviar cotización por WhatsApp"}
                 </Button>
               </div>
             )}

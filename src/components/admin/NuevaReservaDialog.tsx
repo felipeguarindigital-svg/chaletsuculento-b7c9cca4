@@ -76,10 +76,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const noches = desglose.length;
   const subNoches = desglose.reduce((s, n) => s + n.precio, 0);
   const adicionalesSel = servicios.filter(s => sel.has(s.id));
-  const subAd = adicionalesSel.reduce((s, a) => s + Number(a.precio), 0);
+  const personalizadosValidos = personalizados.filter(p => p.nombre.trim() && p.precio > 0);
+  const subAd = adicionalesSel.reduce((s, a) => s + Number(a.precio), 0)
+    + personalizadosValidos.reduce((s, p) => s + p.precio, 0);
   const subtotal = subNoches + subAd;
   const descuentoMonto = computeDescuento(subtotal, descuentoTipo, descuentoValor);
   const total = subtotal - descuentoMonto;
+
   const tipoPrincipal = desglose.length > 0
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
     : "domingo_jueves" as const;

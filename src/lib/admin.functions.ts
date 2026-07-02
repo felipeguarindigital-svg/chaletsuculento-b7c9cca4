@@ -467,6 +467,7 @@ export const deleteReserva = createServerFn({ method: "POST" })
       "@/integrations/supabase-external/client.server"
     );
     await supabaseExternalAdmin.from("reserva_adicionales").delete().eq("reserva_id", data.id);
+    await supabaseExternalAdmin.from("reserva_acompanantes").delete().eq("reserva_id", data.id);
     const { error } = await supabaseExternalAdmin
       .from("reservas").delete().eq("id", data.id);
     if (error) throw new Error(error.message);

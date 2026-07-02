@@ -141,6 +141,19 @@ export function Dashboard({ accessToken, rol }: Props) {
       <Sheet open={!!dayOpen} onOpenChange={(o) => !o && setDayOpen(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader><SheetTitle>Reservas del {dayOpen}</SheetTitle></SheetHeader>
+          {canCreate && dayOpen && (
+            <Button
+              size="sm"
+              className="mt-4 gap-1.5"
+              onClick={() => {
+                setNewInitialCheckin(dayOpen);
+                setDayOpen(null);
+                setNewOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" /> Nueva reserva manual
+            </Button>
+          )}
           <div className="mt-4 space-y-2">
             {reservasDelDia.length === 0 ? (
               <p className="text-sm text-stone-500">Sin reservas activas ese día.</p>

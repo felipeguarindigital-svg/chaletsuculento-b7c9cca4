@@ -350,16 +350,16 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                     {CHALETS.map(c => <option key={c} value={c}>{c}</option>)}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <Label className="text-xs">Check-in</Label>
-                    <Input type="date" value={edit!.fecha}
-                      onChange={e => setEdit({ ...edit!, fecha: e.target.value })} />
-                  </div>
-                  <div>
-                    <Label className="text-xs">Check-out</Label>
-                    <Input type="date" value={edit!.fecha_checkout}
-                      onChange={e => setEdit({ ...edit!, fecha_checkout: e.target.value })} />
+                <div>
+                  <Label className="text-xs">Fechas</Label>
+                  <div className="mt-1">
+                    <RangeDatePicker
+                      chalet={edit!.chalet}
+                      checkin={edit!.fecha}
+                      checkout={edit!.fecha_checkout}
+                      onChange={(ci, co) => setEdit({ ...edit!, fecha: ci, fecha_checkout: co })}
+                      excluirRango={{ checkin: data.fecha, checkout: data.fecha_checkout ?? "" }}
+                    />
                   </div>
                 </div>
                 <div className="flex justify-between text-xs text-stone-600 pt-1">

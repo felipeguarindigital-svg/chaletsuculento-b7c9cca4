@@ -134,6 +134,7 @@ export function Dashboard({ accessToken, rol }: Props) {
         onOpenChange={setNewOpen}
         accessToken={accessToken}
         onCreated={refresh}
+        initialCheckin={newInitialCheckin}
       />
 
       {/* Panel lateral con reservas del día (vista calendario) */}

@@ -48,6 +48,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RangeDatePicker } from "./RangeDatePicker";
 import { getHorarios } from "@/lib/horarios";
 import { CHALETS, CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { toast } from "sonner";

@@ -408,7 +408,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
         </p>
       </div>
 
-      </div>
+
 
       {/* Resumen y formulario */}
       {showForm && (

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getOperacionesHoy, type OperacionesHoy as Ops, type OperacionFicha, type RolPanel } from "@/lib/admin.functions";
 import { getHorarios } from "@/lib/horarios";
+import { formatCOP } from "@/lib/precios";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";
@@ -80,6 +81,17 @@ function Ficha({
         <ul className="text-xs text-stone-600 list-disc pl-4 space-y-0.5">
           {ficha.adicionales.map((n, i) => (<li key={i}>{n}</li>))}
         </ul>
+      )}
+      {bloque === "llegadas" && rol !== "lectura" && (
+        ficha.saldo_pendiente > 0 ? (
+          <p className="text-xs font-medium text-orange-700">
+            ⏳ Saldo pendiente: {formatCOP(ficha.saldo_pendiente)}
+          </p>
+        ) : (
+          <p className="text-xs font-medium text-emerald-700">
+            ✅ Pagado completo
+          </p>
+        )
       )}
       {bloque === "salidas" && hora && (
         <p className="text-[11px] text-stone-500 italic">

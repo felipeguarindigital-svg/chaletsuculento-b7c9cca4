@@ -612,6 +612,7 @@ export type OperacionFicha = {
   fecha_checkout: string | null;
   personas: number;
   adicionales: string[];
+  saldo_pendiente: number;
 };
 
 export type OperacionesHoy = {
@@ -650,7 +651,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
     // Traemos reservas "reservado" cuyo rango pueda tocar hoy o cuya llegada sea mañana.
     const { data: rows, error } = await supabaseExternalAdmin
       .from("reservas")
-      .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado")
+      .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado, saldo_pendiente")
       .eq("estado", "reservado")
       .or(`and(fecha.lte.${hoy},fecha_checkout.gte.${hoy}),fecha.eq.${manana}`);
     if (error) throw new Error(error.message);
@@ -659,6 +660,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
       id: string; codigo: string; chalet: ChaletName;
       fecha: string; fecha_checkout: string | null;
       nombre: string; whatsapp: string;
+      saldo_pendiente: number | null;
     }>;
     const ids = reservas.map(r => r.id);
 
@@ -695,6 +697,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
       fecha: r.fecha, fecha_checkout: r.fecha_checkout,
       personas: 1 + (acompByReserva.get(r.id) ?? 0),
       adicionales: adicByReserva.get(r.id) ?? [],
+      saldo_pendiente: Math.max(0, Number(r.saldo_pendiente ?? 0)),
     }));
 
     const llegadas = fichas.filter(f => f.fecha === hoy);

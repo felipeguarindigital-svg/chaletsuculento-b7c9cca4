@@ -697,6 +697,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
       fecha: r.fecha, fecha_checkout: r.fecha_checkout,
       personas: 1 + (acompByReserva.get(r.id) ?? 0),
       adicionales: adicByReserva.get(r.id) ?? [],
+      saldo_pendiente: Math.max(0, Number(r.saldo_pendiente ?? 0)),
     }));
 
     const llegadas = fichas.filter(f => f.fecha === hoy);

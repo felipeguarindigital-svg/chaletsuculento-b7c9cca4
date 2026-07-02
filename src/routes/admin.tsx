@@ -169,12 +169,16 @@ function AdminPanelPage() {
                 </button>
               )}
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setChangePwOpen(true)} className="gap-1.5">
+              <KeyRound className="h-4 w-4" /> Cambiar contraseña
+            </Button>
             <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
               Cerrar sesión
             </Button>
           </div>
         </div>
       </header>
+      <CambiarPasswordDialog open={changePwOpen} onOpenChange={setChangePwOpen} supabase={supabase} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {roleError ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">

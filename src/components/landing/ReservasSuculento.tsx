@@ -849,6 +849,8 @@ function getDayStyle(cls: string): React.CSSProperties {
       return { ...base, background: C.goldDark, color: "#fff", borderColor: C.goldDark, cursor: "pointer" };
     case "in-range":
       return { ...base, background: "rgba(197,164,109,0.18)", borderColor: "rgba(197,164,109,0.4)", color: C.text, cursor: "pointer" };
+    case "hover-end":
+      return { ...base, background: "rgba(197,164,109,0.35)", borderColor: C.gold, color: C.text, cursor: "pointer" };
     case "blocked":
       return { ...base, background: C.blockedBg, color: C.blockedText, cursor: "not-allowed", textDecoration: "line-through" };
     case "blocked-checkout":

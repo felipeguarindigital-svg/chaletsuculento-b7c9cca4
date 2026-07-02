@@ -155,9 +155,10 @@ export const getAnalytics = createServerFn({ method: "POST" })
     const { data: adsAll } = idsReservado.length
       ? await supabaseExternalAdmin
           .from("reserva_adicionales")
-          .select("reserva_id, precio_cobrado, adicional_id, servicios_adicionales(nombre)")
+          .select("reserva_id, precio_cobrado, adicional_id, nombre_personalizado, servicios_adicionales(nombre)")
           .in("reserva_id", idsReservado)
       : { data: [] as any[] };
+
 
     const adsPorReserva = new Map<string, number>();
     for (const a of adsAll ?? []) {

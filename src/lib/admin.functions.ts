@@ -651,7 +651,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
     // Traemos reservas "reservado" cuyo rango pueda tocar hoy o cuya llegada sea mañana.
     const { data: rows, error } = await supabaseExternalAdmin
       .from("reservas")
-      .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado")
+      .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado, saldo_pendiente")
       .eq("estado", "reservado")
       .or(`and(fecha.lte.${hoy},fecha_checkout.gte.${hoy}),fecha.eq.${manana}`);
     if (error) throw new Error(error.message);
@@ -660,6 +660,7 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
       id: string; codigo: string; chalet: ChaletName;
       fecha: string; fecha_checkout: string | null;
       nombre: string; whatsapp: string;
+      saldo_pendiente: number | null;
     }>;
     const ids = reservas.map(r => r.id);
 

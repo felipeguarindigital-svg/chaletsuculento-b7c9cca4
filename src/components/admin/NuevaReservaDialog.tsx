@@ -268,9 +268,62 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
             <Input value={nombre} onChange={e => setNombre(e.target.value)} />
           </div>
           <div className="col-span-2">
+            <Label>Cédula <span className="text-stone-400 font-normal">(opcional)</span></Label>
+            <Input
+              value={cedula}
+              inputMode="numeric"
+              onChange={e => setCedula(e.target.value.replace(/\D/g, ""))}
+              placeholder="Solo números"
+            />
+          </div>
+          <div className="col-span-2">
             <Label>WhatsApp</Label>
             <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+57 300 000 0000" />
           </div>
+
+          <div className="col-span-2 rounded-md border border-stone-200 bg-stone-50/60 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-700 uppercase tracking-wider">👥 Acompañantes</p>
+              <span className="text-[11px] text-stone-500">{acompanantesValidos.length} agregado{acompanantesValidos.length === 1 ? "" : "s"}</span>
+            </div>
+            {acompanantes.map((a, idx) => (
+              <div key={a.key} className="flex gap-2 items-start">
+                <Input
+                  value={a.nombre}
+                  placeholder="Nombre"
+                  onChange={e => {
+                    const arr = [...acompanantes]; arr[idx] = { ...a, nombre: e.target.value }; setAcompanantes(arr);
+                  }}
+                  className="text-sm h-8 flex-1"
+                />
+                <Input
+                  value={a.cedula}
+                  placeholder="Cédula (opcional)"
+                  inputMode="numeric"
+                  onChange={e => {
+                    const arr = [...acompanantes]; arr[idx] = { ...a, cedula: e.target.value.replace(/\D/g, "") }; setAcompanantes(arr);
+                  }}
+                  className="text-sm h-8 w-36"
+                />
+                <Button
+                  type="button" size="sm" variant="ghost"
+                  onClick={() => setAcompanantes(acompanantes.filter((_, i) => i !== idx))}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2"
+                  aria-label="Eliminar"
+                >×</Button>
+              </div>
+            ))}
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => setAcompanantes([
+                ...acompanantes,
+                { key: `a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, nombre: "", cedula: "" },
+              ])}
+            >
+              + Agregar acompañante
+            </Button>
+          </div>
+
           <div className="col-span-2">
             <Label>Estado inicial</Label>
             <div className="flex gap-2 mt-1">

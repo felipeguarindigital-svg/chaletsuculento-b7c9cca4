@@ -82,6 +82,17 @@ function Ficha({
           {ficha.adicionales.map((n, i) => (<li key={i}>{n}</li>))}
         </ul>
       )}
+      {bloque === "llegadas" && rol !== "lectura" && (
+        ficha.saldo_pendiente > 0 ? (
+          <p className="text-xs font-medium text-orange-700">
+            ⏳ Saldo pendiente: {formatCOP(ficha.saldo_pendiente)}
+          </p>
+        ) : (
+          <p className="text-xs font-medium text-emerald-700">
+            ✅ Pagado completo
+          </p>
+        )
+      )}
       {bloque === "salidas" && hora && (
         <p className="text-[11px] text-stone-500 italic">
           Chalet disponible para limpieza después de las {hora}

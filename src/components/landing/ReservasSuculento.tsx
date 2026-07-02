@@ -362,15 +362,29 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
             Cargando disponibilidad...
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}
+            onMouseLeave={() => setHoverKey(null)}
+            onTouchMove={(e) => {
+              const t = e.touches[0];
+              if (!t) return;
+              const el = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
+              const k = el?.getAttribute("data-day-key");
+              if (k) setHoverKey(k);
+            }}
+            onTouchEnd={() => setHoverKey(null)}
+          >
             {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
               const key = toKey(viewYear, viewMonth, d);
               const cls = getDayClass(key, viewYear, viewMonth, d);
+              const clickable = cls !== "past" && cls !== "blocked";
               return (
                 <div
                   key={key}
-                  onClick={() => { if (cls !== "past" && cls !== "blocked") handleDayClick(key); }}
+                  data-day-key={key}
+                  onClick={() => { if (clickable) handleDayClick(key); }}
+                  onMouseEnter={() => { if (clickable) setHoverKey(key); }}
                   title={cls === "blocked" ? "Noche no disponible" : cls === "blocked-checkout" ? "Solo disponible como salida" : undefined}
                   style={getDayStyle(cls)}
                 >
@@ -387,10 +401,13 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
           <LegendItem color="rgba(197,164,109,0.18)" border="rgba(197,164,109,0.4)" label="Rango" />
         </div>
 
-        <p style={{ marginTop: 12, fontSize: 12, color: C.textMuted, textAlign: "center" }}>
-          Selecciona <strong>llegada</strong> y luego <strong>salida</strong>.
-          Mínimo 1 noche.
+        <p style={{ marginTop: 12, fontSize: 13, color: selectStart && !selectEnd ? C.goldDark : C.textMuted, textAlign: "center", fontWeight: selectStart && !selectEnd ? 500 : 400 }}>
+          {!selectStart && "Selecciona tu fecha de llegada"}
+          {selectStart && !selectEnd && "Ahora selecciona tu fecha de salida"}
+          {selectStart && selectEnd && `${nights} noche${nights !== 1 ? "s" : ""} · toca cualquier fecha para cambiar`}
         </p>
+      </div>
+
       </div>
 
       {/* Resumen y formulario */}

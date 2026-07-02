@@ -150,6 +150,17 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
 
   function entrarEdicion() {
     if (!data) return;
+    const catalogoIds = data.adicionales
+      .filter(a => !a.es_personalizado && a.adicional_id)
+      .map(a => a.adicional_id as string);
+    const pers: PersonalizadoRow[] = data.adicionales
+      .filter(a => a.es_personalizado)
+      .map((a, i) => ({
+        key: `p-${i}-${a.id}`,
+        nombre: a.nombre_personalizado ?? a.nombre ?? "",
+        descripcion: a.descripcion_personalizada ?? "",
+        precio: Number(a.precio_cobrado || 0),
+      }));
     setEdit({
       chalet: data.chalet,
       fecha: data.fecha,
@@ -157,12 +168,14 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       nombre: data.nombre,
       whatsapp: data.whatsapp,
       estado: data.estado,
-      selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
+      selAdicionales: new Set(catalogoIds),
+      personalizados: pers,
       descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
       descuentoValor: Number(data.descuento_valor ?? 0),
     });
     setEditMode(true);
   }
+
 
   function cancelarEdicion() {
     setEditMode(false);

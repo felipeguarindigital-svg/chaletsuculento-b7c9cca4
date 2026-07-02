@@ -444,6 +444,17 @@ export const updateReserva = createServerFn({ method: "POST" })
       }
     }
 
+    if (data.acompanantes) {
+      await supabaseExternalAdmin.from("reserva_acompanantes").delete().eq("reserva_id", data.id);
+      const filas = data.acompanantes
+        .filter(a => a.nombre?.trim())
+        .map(a => ({ reserva_id: data.id, nombre: a.nombre.trim(), cedula: a.cedula?.trim() || null }));
+      if (filas.length > 0) {
+        const { error: e3 } = await supabaseExternalAdmin.from("reserva_acompanantes").insert(filas);
+        if (e3) throw new Error(e3.message);
+      }
+    }
+
     return { ok: true };
   });
 

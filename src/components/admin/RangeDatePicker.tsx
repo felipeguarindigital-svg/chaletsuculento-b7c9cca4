@@ -147,6 +147,19 @@ export function RangeDatePicker({ chalet, checkin, checkout, onChange, excluirRa
           defaultMonth={parseYmd(checkin) ?? new Date()}
           disabled={(day: Date) => {
             if (day < today) return true;
+            // Fase de selección de check-out: el usuario ya eligió check-in y aún no check-out.
+            // Una fecha bloqueada (noche ocupada) SÍ puede usarse como check-out siempre que
+            // ninguna de las noches del rango [from, day) esté bloqueada. El día de check-out
+            // no cuenta como noche.
+            const selectingCheckout = !!range?.from && !range?.to;
+            if (selectingCheckout) {
+              const from = range!.from!;
+              if (day <= from) return blockedSet.has(ymd(day));
+              for (let cur = new Date(from); cur < day; cur = addDays(cur, 1)) {
+                if (blockedSet.has(ymd(cur))) return true;
+              }
+              return false;
+            }
             return blockedSet.has(ymd(day));
           }}
           excludeDisabled

@@ -295,6 +295,16 @@ export const getReservaDetail = createServerFn({ method: "POST" })
       };
     });
 
+    const { data: acomp, error: errAc } = await supabaseExternalAdmin
+      .from("reserva_acompanantes")
+      .select("id, reserva_id, nombre, cedula")
+      .eq("reserva_id", data.id)
+      .order("creado_en", { ascending: true });
+    if (errAc) throw new Error(errAc.message);
+    const acompanantes: ReservaAcompanante[] = (acomp ?? []).map((a: any) => ({
+      id: a.id, reserva_id: a.reserva_id, nombre: a.nombre, cedula: a.cedula ?? null,
+    }));
+
     const totalAd = adicionales.reduce((s, a) => s + a.precio_cobrado, 0);
     const desglose = (r.desglose_noches as NocheDesglose[] | null) ?? null;
     const totalNoches = desglose && desglose.length > 0
@@ -304,13 +314,18 @@ export const getReservaDetail = createServerFn({ method: "POST" })
     const descTipo = (r as any).descuento_tipo as DescuentoTipo | null;
     const descValor = Number((r as any).descuento_valor ?? 0);
     const descuento_monto = computeDescuento(subtotal, descTipo, descValor);
+    const total = subtotal - descuento_monto;
+    const abono = Number((r as any).abono ?? 0);
+    const saldo_pendiente_calc = Math.max(0, total - abono);
     return {
       ...(r as ReservaRow),
       adicionales,
+      acompanantes,
       total_adicionales: totalAd,
       subtotal,
       descuento_monto,
-      total: subtotal - descuento_monto,
+      total,
+      saldo_pendiente_calc,
     };
   });
 

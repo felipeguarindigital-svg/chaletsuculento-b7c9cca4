@@ -213,12 +213,21 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
           },
 
-          adicionales: adicionalesSelEdit.map(a => ({
-            adicional_id: a.id,
-            precio_cobrado: Number(a.precio),
-          })),
+          adicionales: [
+            ...adicionalesSelEdit.map(a => ({
+              adicional_id: a.id,
+              precio_cobrado: Number(a.precio),
+            })),
+            ...personalizadosValidos.map(p => ({
+              adicional_id: null,
+              precio_cobrado: p.precio,
+              nombre_personalizado: p.nombre.trim(),
+              descripcion_personalizada: p.descripcion.trim() || null,
+            })),
+          ],
         },
       });
+
       toast.success("Cambios guardados");
       // refrescar detalle
       const fresh = await getDetail({ data: { accessToken, id: data.id } });

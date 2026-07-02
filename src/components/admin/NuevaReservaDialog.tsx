@@ -49,6 +49,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CHALETS } from "./chalet-styles";
 import { getHorarios } from "@/lib/horarios";
+import { RangeDatePicker } from "./RangeDatePicker";
 import { toast } from "sonner";
 
 type Props = {
@@ -222,13 +223,16 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
               {CHALETS.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
-          <div>
-            <Label>Check-in</Label>
-            <Input type="date" value={checkin} onChange={e => setCheckin(e.target.value)} />
-          </div>
-          <div>
-            <Label>Check-out</Label>
-            <Input type="date" value={checkout} onChange={e => setCheckout(e.target.value)} />
+          <div className="col-span-2">
+            <Label>Fechas</Label>
+            <div className="mt-1">
+              <RangeDatePicker
+                chalet={chalet}
+                checkin={checkin}
+                checkout={checkout}
+                onChange={(ci, co) => { setCheckin(ci); setCheckout(co); }}
+              />
+            </div>
           </div>
           {conflicto && (
             <div className="col-span-2 rounded-md border border-red-300 bg-red-50 p-2.5 text-sm text-red-800">

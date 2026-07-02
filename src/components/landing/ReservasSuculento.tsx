@@ -71,6 +71,7 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
   const [loading, setLoading] = useState(true);
   const [selectStart, setSelectStart] = useState<string | null>(null);
   const [selectEnd, setSelectEnd] = useState<string | null>(null);
+  const [hoverKey, setHoverKey] = useState<string | null>(null);
   const [nombre, setNombre] = useState("");
   const [telefono, setTelefono] = useState("");
   const [error, setError] = useState("");
@@ -200,6 +201,16 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     if (selectStart === key) return "selected";
     if (selectEnd && dateToKey(e!) === key) return "selected-end";
     if (s && e && dt > s && dt < e) return "in-range";
+    // Preview de rango con hover cuando solo hay check-in seleccionado.
+    if (selectStart && !selectEnd && hoverKey) {
+      const startDt = keyToDate(selectStart);
+      const hoverDt = keyToDate(hoverKey);
+      if (hoverDt > startDt && dt > startDt && dt <= hoverDt
+          && !rangoTieneNocheBloqueada(selectStart, key === hoverKey ? key : dateToKey(hoverDt))) {
+        if (key === hoverKey) return "hover-end";
+        return "in-range";
+      }
+    }
     if (isBlocked) {
       // Si ya hay un inicio válido anterior y el rango intermedio está libre,
       // este día bloqueado puede usarse como checkout.
@@ -351,15 +362,29 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
             Cargando disponibilidad...
           </div>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4 }}
+            onMouseLeave={() => setHoverKey(null)}
+            onTouchMove={(e) => {
+              const t = e.touches[0];
+              if (!t) return;
+              const el = document.elementFromPoint(t.clientX, t.clientY) as HTMLElement | null;
+              const k = el?.getAttribute("data-day-key");
+              if (k) setHoverKey(k);
+            }}
+            onTouchEnd={() => setHoverKey(null)}
+          >
             {Array.from({ length: firstDay }).map((_, i) => <div key={`e-${i}`} />)}
             {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((d) => {
               const key = toKey(viewYear, viewMonth, d);
               const cls = getDayClass(key, viewYear, viewMonth, d);
+              const clickable = cls !== "past" && cls !== "blocked";
               return (
                 <div
                   key={key}
-                  onClick={() => { if (cls !== "past" && cls !== "blocked") handleDayClick(key); }}
+                  data-day-key={key}
+                  onClick={() => { if (clickable) handleDayClick(key); }}
+                  onMouseEnter={() => { if (clickable) setHoverKey(key); }}
                   title={cls === "blocked" ? "Noche no disponible" : cls === "blocked-checkout" ? "Solo disponible como salida" : undefined}
                   style={getDayStyle(cls)}
                 >
@@ -376,11 +401,14 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
           <LegendItem color="rgba(197,164,109,0.18)" border="rgba(197,164,109,0.4)" label="Rango" />
         </div>
 
-        <p style={{ marginTop: 12, fontSize: 12, color: C.textMuted, textAlign: "center" }}>
-          Selecciona <strong>llegada</strong> y luego <strong>salida</strong>.
-          Mínimo 1 noche.
+        <p style={{ marginTop: 12, fontSize: 13, color: selectStart && !selectEnd ? C.goldDark : C.textMuted, textAlign: "center", fontWeight: selectStart && !selectEnd ? 500 : 400 }}>
+          {!selectStart && "Selecciona tu fecha de llegada"}
+          {selectStart && !selectEnd && "Ahora selecciona tu fecha de salida"}
+          {selectStart && selectEnd && `${nights} noche${nights !== 1 ? "s" : ""} · toca cualquier fecha para cambiar`}
         </p>
       </div>
+
+
 
       {/* Resumen y formulario */}
       {showForm && (
@@ -821,6 +849,8 @@ function getDayStyle(cls: string): React.CSSProperties {
       return { ...base, background: C.goldDark, color: "#fff", borderColor: C.goldDark, cursor: "pointer" };
     case "in-range":
       return { ...base, background: "rgba(197,164,109,0.18)", borderColor: "rgba(197,164,109,0.4)", color: C.text, cursor: "pointer" };
+    case "hover-end":
+      return { ...base, background: "rgba(197,164,109,0.35)", borderColor: C.gold, color: C.text, cursor: "pointer" };
     case "blocked":
       return { ...base, background: C.blockedBg, color: C.blockedText, cursor: "not-allowed", textDecoration: "line-through" };
     case "blocked-checkout":

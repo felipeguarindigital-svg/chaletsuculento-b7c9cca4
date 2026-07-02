@@ -91,6 +91,10 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated,
   }, [open, fetchServicios]);
 
   useEffect(() => {
+    if (open && initialCheckin) setCheckin(initialCheckin);
+  }, [open, initialCheckin]);
+
+  useEffect(() => {
     if (!open) { setConflicto(false); return; }
     if (!chalet || !checkin || !checkout || checkin >= checkout) {
       setConflicto(false); return;

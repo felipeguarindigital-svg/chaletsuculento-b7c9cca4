@@ -67,6 +67,13 @@ type Props = {
   onChanged: () => void;
 };
 
+type PersonalizadoRow = {
+  key: string; // key local para render
+  nombre: string;
+  descripcion: string;
+  precio: number;
+};
+
 type EditState = {
   chalet: ChaletName;
   fecha: string;
@@ -75,9 +82,11 @@ type EditState = {
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
+  personalizados: PersonalizadoRow[];
   descuentoTipo: DescuentoTipo;
   descuentoValor: number;
 };
+
 
 
 export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken, rol, onChanged }: Props) {

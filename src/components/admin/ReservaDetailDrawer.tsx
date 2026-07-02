@@ -1,5 +1,38 @@
 // Drawer de detalle de reserva con modo edición, cambios de estado y eliminación.
 import { useEffect, useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
+
+function CategoriaAccordion({
+  label, count, selected, defaultOpen, children,
+}: {
+  label: string; count: number; selected: number; defaultOpen: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className={`rounded-md border ${selected > 0 ? "border-amber-300 bg-amber-50/40" : "border-stone-200"}`}>
+      <button
+        type="button"
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between px-3 py-2 text-xs font-semibold text-amber-900 hover:bg-stone-50/60 rounded-md"
+        aria-expanded={open}
+      >
+        <span className="flex items-center gap-2">
+          <span>{label}</span>
+          <span className="text-stone-500 font-normal">· {count} servicios</span>
+          {selected > 0 && (
+            <span className="rounded-full bg-amber-200 text-amber-900 text-[10px] font-medium px-1.5 py-0.5">
+              {selected} seleccionado{selected === 1 ? "" : "s"}
+            </span>
+          )}
+        </span>
+        <ChevronDown className={`h-4 w-4 shrink-0 text-stone-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </button>
+      {open && <div className="p-2 border-t border-stone-200 space-y-1.5">{children}</div>}
+    </div>
+  );
+}
+
 import { useServerFn } from "@tanstack/react-start";
 import {
   getReservaDetail, updateEstadoReserva, updateNotasReserva, updateReserva,

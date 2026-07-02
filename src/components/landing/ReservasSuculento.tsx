@@ -201,6 +201,16 @@ export default function ReservasSuculento({ chaletName = "Suculento" }: Props) {
     if (selectStart === key) return "selected";
     if (selectEnd && dateToKey(e!) === key) return "selected-end";
     if (s && e && dt > s && dt < e) return "in-range";
+    // Preview de rango con hover cuando solo hay check-in seleccionado.
+    if (selectStart && !selectEnd && hoverKey) {
+      const startDt = keyToDate(selectStart);
+      const hoverDt = keyToDate(hoverKey);
+      if (hoverDt > startDt && dt > startDt && dt <= hoverDt
+          && !rangoTieneNocheBloqueada(selectStart, key === hoverKey ? key : dateToKey(hoverDt))) {
+        if (key === hoverKey) return "hover-end";
+        return "in-range";
+      }
+    }
     if (isBlocked) {
       // Si ya hay un inicio válido anterior y el rango intermedio está libre,
       // este día bloqueado puede usarse como checkout.

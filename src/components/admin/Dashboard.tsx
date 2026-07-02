@@ -56,12 +56,16 @@ export function Dashboard({ accessToken, rol }: Props) {
   const reservasDelDia = useMemo(() => {
     if (!dayOpen) return [];
     return reservas.filter(r => {
-      if (r.estado === "cancelado") return false;
       const ci = r.fecha;
       const co = r.fecha_checkout ?? r.fecha;
       return ci <= dayOpen && dayOpen < co;
     });
   }, [reservas, dayOpen]);
+
+  const reservadosDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "reservado"), [reservasDelDia]);
+  const cotizacionesDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "cotizacion"), [reservasDelDia]);
+  const canceladasDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "cancelado"), [reservasDelDia]);
+
 
   function refresh() { setTick(t => t + 1); }
 

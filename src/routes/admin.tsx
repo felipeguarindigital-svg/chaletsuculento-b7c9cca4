@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
 import { AnalyticsView } from "@/components/admin/AnalyticsView";
-import { CalendarDays, Users, BarChart3 } from "lucide-react";
+import { CambiarPasswordDialog } from "@/components/admin/CambiarPasswordDialog";
+import { CalendarDays, Users, BarChart3, KeyRound } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
 type PanelUser = {
@@ -28,7 +29,7 @@ function AdminPage() {
 
   // /admin también funciona como ruta padre de /admin/invite. En esa ruta hija
   // no debe ejecutarse el guard/login del panel, solo renderizar el formulario.
-  if (pathname === "/admin/invite") {
+  if (pathname === "/admin/invite" || pathname === "/admin/reset-password") {
     return <Outlet />;
   }
 
@@ -42,6 +43,7 @@ function AdminPanelPage() {
   const [loading, setLoading] = useState(true);
   const [roleError, setRoleError] = useState<string | null>(null);
   const [section, setSection] = useState<"reservas" | "analitica" | "usuarios">("reservas");
+  const [changePwOpen, setChangePwOpen] = useState(false);
 
   useEffect(() => {
     // Si Supabase cae aquí por fallback al Site URL trayendo un hash de
@@ -57,16 +59,23 @@ function AdminPanelPage() {
         hasHash: Boolean(hash),
         hashKeys: hash ? Array.from(new URLSearchParams(hash.slice(1)).keys()) : [],
       });
-      if (window.location.pathname === "/admin/invite") {
-        console.log("[InviteDebug] Admin guard: ruta /admin/invite detectada, no redirige");
+      if (window.location.pathname === "/admin/invite" || window.location.pathname === "/admin/reset-password") {
+        console.log("[InviteDebug] Admin guard: ruta ya destino, no redirige");
         return;
       }
-      if (hash && /[#&](type=(invite|recovery)|access_token=)/.test(hash)) {
-        console.log("[InviteDebug] Admin guard: token detectado, redirigiendo a /admin/invite");
-        window.location.replace(`/admin/invite${hash}`);
-        return;
-      } else {
-        console.log("[InviteDebug] Admin guard: no detectó token de invitación/recuperación");
+      if (hash) {
+        const params = new URLSearchParams(hash.slice(1));
+        const type = params.get("type");
+        if (type === "recovery") {
+          console.log("[InviteDebug] Admin guard: recovery detectado, redirigiendo a /admin/reset-password");
+          window.location.replace(`/admin/reset-password${hash}`);
+          return;
+        }
+        if (type === "invite" || params.has("access_token")) {
+          console.log("[InviteDebug] Admin guard: invite/token detectado, redirigiendo a /admin/invite");
+          window.location.replace(`/admin/invite${hash}`);
+          return;
+        }
       }
     }
     let unsub: (() => void) | undefined;
@@ -160,12 +169,16 @@ function AdminPanelPage() {
                 </button>
               )}
             </div>
+            <Button variant="ghost" size="sm" onClick={() => setChangePwOpen(true)} className="gap-1.5">
+              <KeyRound className="h-4 w-4" /> Cambiar contraseña
+            </Button>
             <Button variant="outline" size="sm" onClick={async () => { await supabase?.auth.signOut(); }}>
               Cerrar sesión
             </Button>
           </div>
         </div>
       </header>
+      <CambiarPasswordDialog open={changePwOpen} onOpenChange={setChangePwOpen} supabase={supabase} />
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {roleError ? (
           <div className="rounded-lg border border-red-200 bg-red-50 p-6 text-red-700">
@@ -190,46 +203,117 @@ function AdminPanelPage() {
 }
 
 function LoginForm({ supabase }: { supabase: SupabaseClient | null }) {
+  const [mode, setMode] = useState<"login" | "forgot">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [info, setInfo] = useState<string | null>(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("reset=ok")) {
+      window.history.replaceState(null, document.title, window.location.pathname);
+      return "Contraseña actualizada. Ya puedes iniciar sesión.";
+    }
+    return null;
+  });
   const [submitting, setSubmitting] = useState(false);
+  const [sent, setSent] = useState(false);
 
-  async function onSubmit(e: FormEvent) {
+  async function onLogin(e: FormEvent) {
     e.preventDefault();
     if (!supabase) return;
-    setSubmitting(true);
-    setError(null);
+    setSubmitting(true); setError(null); setInfo(null);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setSubmitting(false);
     if (error) setError(error.message);
   }
 
+  async function onForgot(e: FormEvent) {
+    e.preventDefault();
+    if (!supabase) return;
+    setSubmitting(true); setError(null);
+    const redirectTo = `${window.location.origin}/admin/reset-password`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
+    setSubmitting(false);
+    // Siempre mostramos el mismo mensaje para no filtrar si el correo existe.
+    setSent(true);
+    if (error) console.warn("[ResetPassword] error", error.message);
+  }
+
   return (
     <div className="min-h-screen grid place-items-center bg-stone-100 px-4">
-      <form
-        onSubmit={onSubmit}
-        className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 space-y-5 border"
-      >
+      <div className="w-full max-w-sm bg-white rounded-2xl shadow-lg p-8 space-y-5 border">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight">Panel administrativo</h1>
+          <h1 className="text-xl font-semibold tracking-tight">
+            {mode === "login" ? "Panel administrativo" : "Recuperar contraseña"}
+          </h1>
           <p className="text-sm text-stone-500 mt-1">Chalets Suculento</p>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="email">Correo</Label>
-          <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="password">Contraseña</Label>
-          <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        {error && (
-          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+
+        {info && (
+          <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md p-2">{info}</p>
         )}
-        <Button type="submit" className="w-full" disabled={submitting || !supabase}>
-          {submitting ? "Entrando…" : "Entrar"}
-        </Button>
-      </form>
+
+        {mode === "login" ? (
+          <form onSubmit={onLogin} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="email">Correo</Label>
+              <Input id="email" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Contraseña</Label>
+              <Input id="password" type="password" autoComplete="current-password" required value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting || !supabase}>
+              {submitting ? "Entrando…" : "Entrar"}
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => { setMode("forgot"); setError(null); setInfo(null); setSent(false); }}
+                className="text-sm text-stone-500 hover:text-stone-800 underline underline-offset-2"
+              >
+                ¿Olvidaste tu contraseña?
+              </button>
+            </div>
+          </form>
+        ) : sent ? (
+          <div className="space-y-4">
+            <p className="text-sm text-emerald-700 bg-emerald-50 border border-emerald-200 rounded-md p-3">
+              Si ese correo está registrado, recibirás un enlace en tu bandeja de entrada. Revisa también tu carpeta de spam.
+            </p>
+            <Button variant="outline" className="w-full" onClick={() => { setMode("login"); setSent(false); }}>
+              Volver al inicio de sesión
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={onForgot} className="space-y-4">
+            <p className="text-sm text-stone-600">
+              Ingresa tu correo y te enviaremos un enlace para restablecer tu contraseña.
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="femail">Correo electrónico</Label>
+              <Input id="femail" type="email" autoComplete="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
+            </div>
+            {error && (
+              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md p-2">{error}</p>
+            )}
+            <Button type="submit" className="w-full" disabled={submitting || !supabase}>
+              {submitting ? "Enviando…" : "Enviar enlace de recuperación"}
+            </Button>
+            <div className="text-center">
+              <button
+                type="button"
+                onClick={() => { setMode("login"); setError(null); }}
+                className="text-sm text-stone-500 hover:text-stone-800 underline underline-offset-2"
+              >
+                Volver al inicio de sesión
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }

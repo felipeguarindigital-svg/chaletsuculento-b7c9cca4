@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminResetPasswordRouteImport } from './routes/admin.reset-password'
 import { Route as AdminInviteRouteImport } from './routes/admin.invite'
 import { Route as ApiAdminConfigRouteImport } from './routes/api/admin/config'
 
@@ -23,6 +24,11 @@ const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
+} as any)
+const AdminResetPasswordRoute = AdminResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => AdminRoute,
 } as any)
 const AdminInviteRoute = AdminInviteRouteImport.update({
   id: '/invite',
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/invite': typeof AdminInviteRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/invite': typeof AdminInviteRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRoutesById {
@@ -52,14 +60,31 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/invite': typeof AdminInviteRoute
+  '/admin/reset-password': typeof AdminResetPasswordRoute
   '/api/admin/config': typeof ApiAdminConfigRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/admin/invite' | '/api/admin/config'
+  fullPaths:
+    | '/'
+    | '/admin'
+    | '/admin/invite'
+    | '/admin/reset-password'
+    | '/api/admin/config'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/admin/invite' | '/api/admin/config'
-  id: '__root__' | '/' | '/admin' | '/admin/invite' | '/api/admin/config'
+  to:
+    | '/'
+    | '/admin'
+    | '/admin/invite'
+    | '/admin/reset-password'
+    | '/api/admin/config'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin'
+    | '/admin/invite'
+    | '/admin/reset-password'
+    | '/api/admin/config'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -84,6 +109,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/reset-password': {
+      id: '/admin/reset-password'
+      path: '/reset-password'
+      fullPath: '/admin/reset-password'
+      preLoaderRoute: typeof AdminResetPasswordRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/invite': {
       id: '/admin/invite'
       path: '/invite'
@@ -103,10 +135,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminInviteRoute: typeof AdminInviteRoute
+  AdminResetPasswordRoute: typeof AdminResetPasswordRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminInviteRoute: AdminInviteRoute,
+  AdminResetPasswordRoute: AdminResetPasswordRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)

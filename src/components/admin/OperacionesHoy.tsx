@@ -63,7 +63,7 @@ function Ficha({
   const meta = BLOQUE_META[bloque];
   const horarios = getHorarios(ficha.chalet);
   const hora = meta.horaTipo === "checkOut" ? horarios?.checkOut : horarios?.checkIn;
-  const canWA = rol !== "lectura";
+  const canWA = rol !== "lectura" || bloque === "llegadas";
 
   return (
     <div className={`rounded-xl border ${meta.ring} ${meta.bg} p-3 space-y-2`}>
@@ -82,7 +82,7 @@ function Ficha({
           {ficha.adicionales.map((n, i) => (<li key={i}>{n}</li>))}
         </ul>
       )}
-      {bloque === "llegadas" && rol !== "lectura" && (
+      {bloque === "llegadas" && (
         ficha.saldo_pendiente > 0 ? (
           <p className="text-xs font-medium text-orange-700">
             ⏳ Saldo pendiente: {formatCOP(ficha.saldo_pendiente)}

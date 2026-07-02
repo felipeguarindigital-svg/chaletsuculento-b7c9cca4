@@ -26,6 +26,7 @@ export type ReservaRow = {
   noches: number | null;
   desglose_noches: NocheDesglose[] | null;
   nombre: string;
+  cedula: string | null;
   whatsapp: string;
   tipo_tarifa: TipoTarifa;
   precio_noche: number;
@@ -35,6 +36,20 @@ export type ReservaRow = {
   created_at: string;
   descuento_tipo: DescuentoTipo | null;
   descuento_valor: number | null;
+  abono: number | null;
+  saldo_pendiente: number | null;
+};
+
+export type ReservaAcompanante = {
+  id: string;
+  reserva_id: string;
+  nombre: string;
+  cedula: string | null;
+};
+
+export type AcompananteInput = {
+  nombre: string;
+  cedula?: string | null;
 };
 
 /** Calcula el monto de descuento en pesos a partir del subtotal (noches + adicionales). */

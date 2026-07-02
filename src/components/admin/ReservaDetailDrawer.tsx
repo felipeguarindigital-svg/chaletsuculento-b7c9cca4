@@ -67,6 +67,13 @@ type Props = {
   onChanged: () => void;
 };
 
+type PersonalizadoRow = {
+  key: string; // key local para render
+  nombre: string;
+  descripcion: string;
+  precio: number;
+};
+
 type EditState = {
   chalet: ChaletName;
   fecha: string;
@@ -75,9 +82,11 @@ type EditState = {
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
+  personalizados: PersonalizadoRow[];
   descuentoTipo: DescuentoTipo;
   descuentoValor: number;
 };
+
 
 
 export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken, rol, onChanged }: Props) {
@@ -132,15 +141,30 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
   const adicionalesSelEdit = edit
     ? servicios.filter(s => edit.selAdicionales.has(s.id))
     : [];
-  const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0);
+  const personalizadosEdit = edit?.personalizados ?? [];
+  const personalizadosValidos = personalizadosEdit.filter(p => p.nombre.trim() && p.precio > 0);
+  const subAdEdit = adicionalesSelEdit.reduce((s, a) => s + Number(a.precio), 0)
+    + personalizadosValidos.reduce((s, p) => s + p.precio, 0);
   const subtotalEdit = subNochesEdit + subAdEdit;
   const descuentoMontoEdit = edit
     ? computeDescuento(subtotalEdit, edit.descuentoTipo, edit.descuentoValor)
     : 0;
   const totalEdit = subtotalEdit - descuentoMontoEdit;
 
+
   function entrarEdicion() {
     if (!data) return;
+    const catalogoIds = data.adicionales
+      .filter(a => !a.es_personalizado && a.adicional_id)
+      .map(a => a.adicional_id as string);
+    const pers: PersonalizadoRow[] = data.adicionales
+      .filter(a => a.es_personalizado)
+      .map((a, i) => ({
+        key: `p-${i}-${a.id}`,
+        nombre: a.nombre_personalizado ?? a.nombre ?? "",
+        descripcion: a.descripcion_personalizada ?? "",
+        precio: Number(a.precio_cobrado || 0),
+      }));
     setEdit({
       chalet: data.chalet,
       fecha: data.fecha,
@@ -148,12 +172,14 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       nombre: data.nombre,
       whatsapp: data.whatsapp,
       estado: data.estado,
-      selAdicionales: new Set(data.adicionales.map(a => a.adicional_id)),
+      selAdicionales: new Set(catalogoIds),
+      personalizados: pers,
       descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
       descuentoValor: Number(data.descuento_valor ?? 0),
     });
     setEditMode(true);
   }
+
 
   function cancelarEdicion() {
     setEditMode(false);
@@ -187,12 +213,21 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
           },
 
-          adicionales: adicionalesSelEdit.map(a => ({
-            adicional_id: a.id,
-            precio_cobrado: Number(a.precio),
-          })),
+          adicionales: [
+            ...adicionalesSelEdit.map(a => ({
+              adicional_id: a.id,
+              precio_cobrado: Number(a.precio),
+            })),
+            ...personalizadosValidos.map(p => ({
+              adicional_id: null,
+              precio_cobrado: p.precio,
+              nombre_personalizado: p.nombre.trim(),
+              descripcion_personalizada: p.descripcion.trim() || null,
+            })),
+          ],
         },
       });
+
       toast.success("Cambios guardados");
       // refrescar detalle
       const fresh = await getDetail({ data: { accessToken, id: data.id } });
@@ -380,22 +415,35 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                 ) : (
                   <div className="rounded-lg border divide-y text-sm">
                     {data.adicionales.map(a => {
-                      const catLabel = a.categoria === "experiencias_decoraciones"
-                        ? "✨ Experiencias y Decoraciones"
-                        : a.categoria === "alimentacion_adicionales"
-                          ? "🍽️ Alimentación y Adicionales"
-                          : "Sin categoría";
+                      const catLabel = a.es_personalizado
+                        ? "🛠️ Adicional personalizado"
+                        : a.categoria === "experiencias_decoraciones"
+                          ? "✨ Experiencias y Decoraciones"
+                          : a.categoria === "alimentacion_adicionales"
+                            ? "🍽️ Alimentación y Adicionales"
+                            : "Sin categoría";
                       return (
                         <div key={a.id} className="flex items-start justify-between px-3 py-1.5 gap-3">
                           <div className="min-w-0">
-                            <p className="truncate">{a.nombre ?? a.adicional_id}</p>
+                            <p className="truncate flex items-center gap-1.5">
+                              <span className="truncate">{a.nombre ?? a.adicional_id}</span>
+                              {a.es_personalizado && (
+                                <span className="shrink-0 inline-block px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-700 text-[10px] font-medium uppercase tracking-wide">
+                                  Personalizado
+                                </span>
+                              )}
+                            </p>
                             <p className="text-[11px] text-stone-500">{catLabel}</p>
+                            {a.es_personalizado && a.descripcion_personalizada && (
+                              <p className="text-[11px] text-stone-500 mt-0.5 whitespace-pre-line">{a.descripcion_personalizada}</p>
+                            )}
                           </div>
                           <span className="tabular-nums whitespace-nowrap">{formatCOP(a.precio_cobrado)}</span>
                         </div>
                       );
                     })}
                   </div>
+
                 )
               ) : (
                 servicios.length === 0 ? (
@@ -445,10 +493,82 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                         </div>
                       );
                     })}
+                    <div className="pt-2 border-t border-dashed border-stone-300">
+                      <p className="text-xs font-semibold text-indigo-900 mb-1.5 flex items-center justify-between">
+                        <span>🛠️ Adicionales personalizados</span>
+                        <span className="text-stone-500 font-normal">Solo panel interno</span>
+                      </p>
+                      <div className="space-y-2">
+                        {personalizadosEdit.map((p, idx) => (
+                          <div key={p.key} className="rounded-md border border-indigo-200 bg-indigo-50/40 p-2 space-y-1.5">
+                            <div className="flex gap-2 items-start">
+                              <Input
+                                value={p.nombre}
+                                placeholder="Nombre (ej: Torta de cumpleaños)"
+                                onChange={e => {
+                                  const arr = [...personalizadosEdit];
+                                  arr[idx] = { ...p, nombre: e.target.value };
+                                  setEdit({ ...edit!, personalizados: arr });
+                                }}
+                                className="text-sm h-8"
+                              />
+                              <Button
+                                type="button" size="sm" variant="ghost"
+                                onClick={() => {
+                                  const arr = personalizadosEdit.filter((_, i) => i !== idx);
+                                  setEdit({ ...edit!, personalizados: arr });
+                                }}
+                                className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2"
+                                aria-label="Eliminar"
+                              >
+                                ×
+                              </Button>
+                            </div>
+                            <Input
+                              value={p.descripcion}
+                              placeholder="Descripción (opcional)"
+                              onChange={e => {
+                                const arr = [...personalizadosEdit];
+                                arr[idx] = { ...p, descripcion: e.target.value };
+                                setEdit({ ...edit!, personalizados: arr });
+                              }}
+                              className="text-sm h-8"
+                            />
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs text-stone-500">Precio:</span>
+                              <Input
+                                type="number" min={0} value={p.precio}
+                                onChange={e => {
+                                  const arr = [...personalizadosEdit];
+                                  arr[idx] = { ...p, precio: Math.max(0, Number(e.target.value) || 0) };
+                                  setEdit({ ...edit!, personalizados: arr });
+                                }}
+                                className="text-sm h-8 w-32"
+                              />
+                              <span className="text-xs text-stone-600 tabular-nums ml-auto">{formatCOP(p.precio)}</span>
+                            </div>
+                          </div>
+                        ))}
+                        <Button
+                          type="button" size="sm" variant="outline"
+                          onClick={() => {
+                            const arr = [...personalizadosEdit, {
+                              key: `p-new-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                              nombre: "", descripcion: "", precio: 0,
+                            }];
+                            setEdit({ ...edit!, personalizados: arr });
+                          }}
+                          className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+                        >
+                          + Agregar otro
+                        </Button>
+                      </div>
+                    </div>
                     <p className="text-[11px] text-stone-500 mt-1">
                       Los adicionales nuevos se guardan al precio actual del catálogo.
                     </p>
                   </div>
+
                 )
               )}
             </div>

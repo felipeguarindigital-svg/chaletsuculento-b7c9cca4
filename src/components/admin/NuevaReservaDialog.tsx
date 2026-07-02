@@ -39,11 +39,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [notas, setNotas] = useState("");
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [personalizados, setPersonalizados] = useState<Array<{ key: string; nombre: string; descripcion: string; precio: number }>>([]);
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [conflicto, setConflicto] = useState(false);
   const [checkingDispo, setCheckingDispo] = useState(false);
+
 
   useEffect(() => {
     if (!open) return;
@@ -74,10 +76,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const noches = desglose.length;
   const subNoches = desglose.reduce((s, n) => s + n.precio, 0);
   const adicionalesSel = servicios.filter(s => sel.has(s.id));
-  const subAd = adicionalesSel.reduce((s, a) => s + Number(a.precio), 0);
+  const personalizadosValidos = personalizados.filter(p => p.nombre.trim() && p.precio > 0);
+  const subAd = adicionalesSel.reduce((s, a) => s + Number(a.precio), 0)
+    + personalizadosValidos.reduce((s, p) => s + p.precio, 0);
   const subtotal = subNoches + subAd;
   const descuentoMonto = computeDescuento(subtotal, descuentoTipo, descuentoValor);
   const total = subtotal - descuentoMonto;
+
   const tipoPrincipal = desglose.length > 0
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
     : "domingo_jueves" as const;
@@ -108,12 +113,16 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       checkOutLine,
       `🌙 Noches: ${noches}`,
     );
-    if (adicionalesSel.length > 0) {
+    if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
       lines.push("", "✨ Adicionales:");
       for (const a of adicionalesSel) {
         lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
       }
+      for (const p of personalizadosValidos) {
+        lines.push(`• ${p.nombre.trim()} — ${formatCOP(p.precio)}`);
+      }
     }
+
     if (descuentoMonto > 0) {
       lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
       lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
@@ -138,7 +147,15 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           noches, desglose, precio_noche_total: subNoches,
           tipo_tarifa_principal: tipoPrincipal,
           nombre, whatsapp, estado, notas: notas || undefined,
-          adicionales: adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+          adicionales: [
+            ...adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+            ...personalizadosValidos.map(p => ({
+              adicional_id: null,
+              precio_cobrado: p.precio,
+              nombre_personalizado: p.nombre.trim(),
+              descripcion_personalizada: p.descripcion.trim() || null,
+            })),
+          ],
           descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
           descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
         },
@@ -151,7 +168,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onOpenChange(false);
       // reset
       setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setPersonalizados([]);
       setDescuentoTipo("porcentaje"); setDescuentoValor(0);
+
     } catch (e: any) {
       toast.error(e.message);
     } finally { setSaving(false); }
@@ -269,6 +288,73 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
             </div>
           </div>
         )}
+
+        <div className="mt-2 pt-3 border-t border-dashed border-stone-300">
+          <p className="text-xs font-semibold text-indigo-900 mb-2 flex items-center justify-between">
+            <span>🛠️ Adicionales personalizados</span>
+            <span className="text-stone-500 font-normal">Solo panel interno</span>
+          </p>
+          <div className="space-y-2">
+            {personalizados.map((p, idx) => (
+              <div key={p.key} className="rounded-md border border-indigo-200 bg-indigo-50/40 p-2 space-y-1.5">
+                <div className="flex gap-2 items-start">
+                  <Input
+                    value={p.nombre}
+                    placeholder="Nombre (ej: Torta de cumpleaños)"
+                    onChange={e => {
+                      const arr = [...personalizados];
+                      arr[idx] = { ...p, nombre: e.target.value };
+                      setPersonalizados(arr);
+                    }}
+                    className="text-sm h-8"
+                  />
+                  <Button
+                    type="button" size="sm" variant="ghost"
+                    onClick={() => setPersonalizados(personalizados.filter((_, i) => i !== idx))}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2"
+                    aria-label="Eliminar"
+                  >
+                    ×
+                  </Button>
+                </div>
+                <Input
+                  value={p.descripcion}
+                  placeholder="Descripción (opcional)"
+                  onChange={e => {
+                    const arr = [...personalizados];
+                    arr[idx] = { ...p, descripcion: e.target.value };
+                    setPersonalizados(arr);
+                  }}
+                  className="text-sm h-8"
+                />
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-stone-500">Precio:</span>
+                  <Input
+                    type="number" min={0} value={p.precio}
+                    onChange={e => {
+                      const arr = [...personalizados];
+                      arr[idx] = { ...p, precio: Math.max(0, Number(e.target.value) || 0) };
+                      setPersonalizados(arr);
+                    }}
+                    className="text-sm h-8 w-32"
+                  />
+                  <span className="text-xs text-stone-600 tabular-nums ml-auto">{formatCOP(p.precio)}</span>
+                </div>
+              </div>
+            ))}
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => setPersonalizados([
+                ...personalizados,
+                { key: `p-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, nombre: "", descripcion: "", precio: 0 },
+              ])}
+              className="border-indigo-300 text-indigo-700 hover:bg-indigo-50"
+            >
+              + Agregar otro
+            </Button>
+          </div>
+        </div>
+
 
         <div className="mt-2">
           <Label>Notas internas (opcional)</Label>

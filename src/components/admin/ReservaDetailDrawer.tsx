@@ -62,6 +62,8 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   const checkOutLine = d.fecha_checkout
     ? `📅 Check-out: ${d.fecha_checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`
     : null;
+  const ced = (d.cedula || "").trim();
+  const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;
   const lines: string[] = [
     `¡Hola ${firstName}! 🎉`,
     ``,
@@ -72,21 +74,29 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     checkInLine,
     ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
+    titularLine,
   ];
-  if (d.descuento_monto > 0) {
-    lines.push(
-      `💰 Subtotal: ${formatCOP(d.subtotal)}`,
-      `🎁 Descuento: -${formatCOP(d.descuento_monto)}`,
-      `✅ Total a pagar: ${formatCOP(d.total)}`,
-    );
-  } else {
-    lines.push(`💰 Total: ${formatCOP(d.total)}`);
+  if ((d.acompanantes?.length ?? 0) > 0) {
+    lines.push(`👥 Acompañantes: ${d.acompanantes.length}`);
   }
   if (d.adicionales.length > 0) {
     lines.push("", "✨ Adicionales:");
     for (const a of d.adicionales) {
       lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
     }
+  }
+  const abono = Number(d.abono ?? 0);
+  const saldo = d.saldo_pendiente_calc;
+  lines.push("");
+  lines.push(`💰 Total: ${formatCOP(d.subtotal)}`);
+  if (d.descuento_monto > 0) {
+    lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
+  }
+  if (abono > 0) {
+    lines.push(`💳 Abono recibido: ${formatCOP(abono)}`);
+    lines.push(`⏳ Saldo pendiente: ${formatCOP(saldo)}`);
+  } else {
+    lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
   }
   lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;

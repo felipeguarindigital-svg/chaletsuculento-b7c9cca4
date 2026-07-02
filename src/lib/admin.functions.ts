@@ -57,10 +57,21 @@ export type ServicioCategoriaLite = "experiencias_decoraciones" | "alimentacion_
 export type ReservaAdicional = {
   id: string;
   reserva_id: string;
-  adicional_id: string;
+  adicional_id: string | null;
   precio_cobrado: number;
   nombre?: string;
   categoria?: ServicioCategoriaLite;
+  nombre_personalizado?: string | null;
+  descripcion_personalizada?: string | null;
+  es_personalizado: boolean;
+};
+
+/** Entrada para persistir un adicional (del catálogo o personalizado). */
+export type AdicionalInput = {
+  adicional_id: string | null;
+  precio_cobrado: number;
+  nombre_personalizado?: string | null;
+  descripcion_personalizada?: string | null;
 };
 
 export type ReservaDetail = ReservaRow & {
@@ -70,6 +81,7 @@ export type ReservaDetail = ReservaRow & {
   descuento_monto: number;
   total: number;
 };
+
 
 type AuthCtx = { userId: string; rol: RolPanel; nombre: string };
 

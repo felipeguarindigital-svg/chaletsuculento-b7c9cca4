@@ -147,7 +147,15 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           noches, desglose, precio_noche_total: subNoches,
           tipo_tarifa_principal: tipoPrincipal,
           nombre, whatsapp, estado, notas: notas || undefined,
-          adicionales: adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+          adicionales: [
+            ...adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
+            ...personalizadosValidos.map(p => ({
+              adicional_id: null,
+              precio_cobrado: p.precio,
+              nombre_personalizado: p.nombre.trim(),
+              descripcion_personalizada: p.descripcion.trim() || null,
+            })),
+          ],
           descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
           descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
         },
@@ -160,7 +168,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onOpenChange(false);
       // reset
       setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setPersonalizados([]);
       setDescuentoTipo("porcentaje"); setDescuentoValor(0);
+
     } catch (e: any) {
       toast.error(e.message);
     } finally { setSaving(false); }

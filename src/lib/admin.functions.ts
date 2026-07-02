@@ -484,12 +484,15 @@ export type CrearManualInput = {
   precio_noche_total: number;
   tipo_tarifa_principal: TipoTarifa;
   nombre: string;
+  cedula?: string | null;
   whatsapp: string;
   estado: "cotizacion" | "reservado";
   notas?: string;
   adicionales: AdicionalInput[];
+  acompanantes?: AcompananteInput[];
   descuento_tipo?: DescuentoTipo | null;
   descuento_valor?: number | null;
+  abono?: number;
 };
 
 /** Verifica si un chalet tiene una reserva "reservado" que se solape con el rango [checkin, checkout). */

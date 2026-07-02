@@ -113,12 +113,16 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       checkOutLine,
       `🌙 Noches: ${noches}`,
     );
-    if (adicionalesSel.length > 0) {
+    if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
       lines.push("", "✨ Adicionales:");
       for (const a of adicionalesSel) {
         lines.push(`• ${a.nombre} — ${formatCOP(Number(a.precio))}`);
       }
+      for (const p of personalizadosValidos) {
+        lines.push(`• ${p.nombre.trim()} — ${formatCOP(p.precio)}`);
+      }
     }
+
     if (descuentoMonto > 0) {
       lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
       lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);

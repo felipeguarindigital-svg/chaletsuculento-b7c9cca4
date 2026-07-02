@@ -39,11 +39,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [notas, setNotas] = useState("");
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
+  const [personalizados, setPersonalizados] = useState<Array<{ key: string; nombre: string; descripcion: string; precio: number }>>([]);
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [conflicto, setConflicto] = useState(false);
   const [checkingDispo, setCheckingDispo] = useState(false);
+
 
   useEffect(() => {
     if (!open) return;

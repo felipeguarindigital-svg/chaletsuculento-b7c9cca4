@@ -26,6 +26,7 @@ export type ReservaRow = {
   noches: number | null;
   desglose_noches: NocheDesglose[] | null;
   nombre: string;
+  cedula: string | null;
   whatsapp: string;
   tipo_tarifa: TipoTarifa;
   precio_noche: number;
@@ -35,6 +36,20 @@ export type ReservaRow = {
   created_at: string;
   descuento_tipo: DescuentoTipo | null;
   descuento_valor: number | null;
+  abono: number | null;
+  saldo_pendiente: number | null;
+};
+
+export type ReservaAcompanante = {
+  id: string;
+  reserva_id: string;
+  nombre: string;
+  cedula: string | null;
+};
+
+export type AcompananteInput = {
+  nombre: string;
+  cedula?: string | null;
 };
 
 /** Calcula el monto de descuento en pesos a partir del subtotal (noches + adicionales). */
@@ -76,10 +91,12 @@ export type AdicionalInput = {
 
 export type ReservaDetail = ReservaRow & {
   adicionales: ReservaAdicional[];
+  acompanantes: ReservaAcompanante[];
   total_adicionales: number;
   subtotal: number;
   descuento_monto: number;
   total: number;
+  saldo_pendiente_calc: number;
 };
 
 
@@ -278,6 +295,16 @@ export const getReservaDetail = createServerFn({ method: "POST" })
       };
     });
 
+    const { data: acomp, error: errAc } = await supabaseExternalAdmin
+      .from("reserva_acompanantes")
+      .select("id, reserva_id, nombre, cedula")
+      .eq("reserva_id", data.id)
+      .order("creado_en", { ascending: true });
+    if (errAc) throw new Error(errAc.message);
+    const acompanantes: ReservaAcompanante[] = (acomp ?? []).map((a: any) => ({
+      id: a.id, reserva_id: a.reserva_id, nombre: a.nombre, cedula: a.cedula ?? null,
+    }));
+
     const totalAd = adicionales.reduce((s, a) => s + a.precio_cobrado, 0);
     const desglose = (r.desglose_noches as NocheDesglose[] | null) ?? null;
     const totalNoches = desglose && desglose.length > 0
@@ -287,13 +314,18 @@ export const getReservaDetail = createServerFn({ method: "POST" })
     const descTipo = (r as any).descuento_tipo as DescuentoTipo | null;
     const descValor = Number((r as any).descuento_valor ?? 0);
     const descuento_monto = computeDescuento(subtotal, descTipo, descValor);
+    const total = subtotal - descuento_monto;
+    const abono = Number((r as any).abono ?? 0);
+    const saldo_pendiente_calc = Math.max(0, total - abono);
     return {
       ...(r as ReservaRow),
       adicionales,
+      acompanantes,
       total_adicionales: totalAd,
       subtotal,
       descuento_monto,
-      total: subtotal - descuento_monto,
+      total,
+      saldo_pendiente_calc,
     };
   });
 
@@ -329,6 +361,7 @@ export const updateNotasReserva = createServerFn({ method: "POST" })
 
 export type ReservaPatch = Partial<{
   nombre: string;
+  cedula: string | null;
   whatsapp: string;
   chalet: ChaletName;
   fecha: string;
@@ -340,6 +373,8 @@ export type ReservaPatch = Partial<{
   estado: EstadoReserva;
   descuento_tipo: DescuentoTipo | null;
   descuento_valor: number | null;
+  abono: number;
+  saldo_pendiente: number;
 }>;
 
 
@@ -349,6 +384,7 @@ export const updateReserva = createServerFn({ method: "POST" })
     id: string;
     patch: ReservaPatch;
     adicionales?: AdicionalInput[];
+    acompanantes?: AcompananteInput[];
   }) => d)
   .handler(async ({ data }) => {
 
@@ -408,6 +444,17 @@ export const updateReserva = createServerFn({ method: "POST" })
       }
     }
 
+    if (data.acompanantes) {
+      await supabaseExternalAdmin.from("reserva_acompanantes").delete().eq("reserva_id", data.id);
+      const filas = data.acompanantes
+        .filter(a => a.nombre?.trim())
+        .map(a => ({ reserva_id: data.id, nombre: a.nombre.trim(), cedula: a.cedula?.trim() || null }));
+      if (filas.length > 0) {
+        const { error: e3 } = await supabaseExternalAdmin.from("reserva_acompanantes").insert(filas);
+        if (e3) throw new Error(e3.message);
+      }
+    }
+
     return { ok: true };
   });
 
@@ -420,6 +467,7 @@ export const deleteReserva = createServerFn({ method: "POST" })
       "@/integrations/supabase-external/client.server"
     );
     await supabaseExternalAdmin.from("reserva_adicionales").delete().eq("reserva_id", data.id);
+    await supabaseExternalAdmin.from("reserva_acompanantes").delete().eq("reserva_id", data.id);
     const { error } = await supabaseExternalAdmin
       .from("reservas").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -436,12 +484,15 @@ export type CrearManualInput = {
   precio_noche_total: number;
   tipo_tarifa_principal: TipoTarifa;
   nombre: string;
+  cedula?: string | null;
   whatsapp: string;
   estado: "cotizacion" | "reservado";
   notas?: string;
   adicionales: AdicionalInput[];
+  acompanantes?: AcompananteInput[];
   descuento_tipo?: DescuentoTipo | null;
   descuento_valor?: number | null;
+  abono?: number;
 };
 
 /** Verifica si un chalet tiene una reserva "reservado" que se solape con el rango [checkin, checkout). */
@@ -495,6 +546,15 @@ export const crearReservaManual = createServerFn({ method: "POST" })
         throw new Error("Este chalet ya tiene una reserva confirmada en estas fechas");
       }
     }
+    // Cálculo del saldo pendiente (para persistir referencia)
+    const subNoches = data.desglose.reduce((s, n) => s + Number(n.precio || 0), 0);
+    const subAd = data.adicionales.reduce((s, a) => s + Number(a.precio_cobrado || 0), 0);
+    const subtotalCalc = subNoches + subAd;
+    const descuentoCalc = computeDescuento(subtotalCalc, data.descuento_tipo ?? null, data.descuento_valor ?? 0);
+    const totalCalc = subtotalCalc - descuentoCalc;
+    const abono = Math.max(0, Number(data.abono ?? 0));
+    const saldoPendiente = Math.max(0, totalCalc - abono);
+
     const insert = {
       chalet: data.chalet,
       fecha: data.fecha_checkin,
@@ -502,6 +562,7 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       noches: data.noches,
       desglose_noches: data.desglose,
       nombre: data.nombre.trim(),
+      cedula: data.cedula?.trim() || null,
       whatsapp: data.whatsapp.trim(),
       tipo_tarifa: data.tipo_tarifa_principal,
       precio_noche: data.precio_noche_total,
@@ -510,6 +571,8 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       notas: data.notas ?? null,
       descuento_tipo: data.descuento_tipo ?? null,
       descuento_valor: data.descuento_valor ?? 0,
+      abono,
+      saldo_pendiente: saldoPendiente,
     };
     const { data: r, error } = await supabaseExternalAdmin
       .from("reservas").insert(insert).select("id, codigo").single();
@@ -523,8 +586,16 @@ export const crearReservaManual = createServerFn({ method: "POST" })
         descripcion_personalizada: a.descripcion_personalizada ?? null,
       }));
       const { error: e2 } = await supabaseExternalAdmin.from("reserva_adicionales").insert(rows);
-
       if (e2) throw new Error(e2.message);
+    }
+    if (data.acompanantes && data.acompanantes.length > 0) {
+      const filas = data.acompanantes
+        .filter(a => a.nombre?.trim())
+        .map(a => ({ reserva_id: r.id, nombre: a.nombre.trim(), cedula: a.cedula?.trim() || null }));
+      if (filas.length > 0) {
+        const { error: e3 } = await supabaseExternalAdmin.from("reserva_acompanantes").insert(filas);
+        if (e3) throw new Error(e3.message);
+      }
     }
     return { id: r.id as string, codigo: r.codigo as string };
   });

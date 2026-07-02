@@ -68,14 +68,17 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const [checkin, setCheckin] = useState("");
   const [checkout, setCheckout] = useState("");
   const [nombre, setNombre] = useState("");
+  const [cedula, setCedula] = useState("");
   const [whatsapp, setWhatsapp] = useState("");
   const [estado, setEstado] = useState<"cotizacion" | "reservado">("reservado");
   const [notas, setNotas] = useState("");
   const [servicios, setServicios] = useState<ServicioAdicional[]>([]);
   const [sel, setSel] = useState<Set<string>>(new Set());
   const [personalizados, setPersonalizados] = useState<Array<{ key: string; nombre: string; descripcion: string; precio: number }>>([]);
+  const [acompanantes, setAcompanantes] = useState<Array<{ key: string; nombre: string; cedula: string }>>([]);
   const [descuentoTipo, setDescuentoTipo] = useState<DescuentoTipo>("porcentaje");
   const [descuentoValor, setDescuentoValor] = useState<number>(0);
+  const [abono, setAbono] = useState<number>(0);
   const [saving, setSaving] = useState(false);
   const [conflicto, setConflicto] = useState(false);
   const [checkingDispo, setCheckingDispo] = useState(false);
@@ -116,6 +119,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const subtotal = subNoches + subAd;
   const descuentoMonto = computeDescuento(subtotal, descuentoTipo, descuentoValor);
   const total = subtotal - descuentoMonto;
+  const abonoNorm = Math.max(0, Math.min(abono || 0, total));
+  const saldoPendiente = Math.max(0, total - abonoNorm);
+  const acompanantesValidos = acompanantes.filter(a => a.nombre.trim());
 
   const tipoPrincipal = desglose.length > 0
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo
@@ -140,13 +146,19 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
         `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``,
       );
     }
+    const cedNorm = (cedula || "").trim();
+    const titularLine = `👤 Titular: ${nombre.trim()}${cedNorm ? ` · CC ${cedNorm}` : ""}`;
     lines.push(
       `📋 Código: ${codigo}`,
       `🏡 Chalet: ${chalet}`,
       checkInLine,
       checkOutLine,
       `🌙 Noches: ${noches}`,
+      titularLine,
     );
+    if (acompanantesValidos.length > 0) {
+      lines.push(`👥 Acompañantes: ${acompanantesValidos.length}`);
+    }
     if (adicionalesSel.length > 0 || personalizadosValidos.length > 0) {
       lines.push("", "✨ Adicionales:");
       for (const a of adicionalesSel) {
@@ -157,12 +169,16 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       }
     }
 
+    lines.push("");
+    lines.push(`💰 Total: ${formatCOP(subtotal)}`);
     if (descuentoMonto > 0) {
-      lines.push("", `💰 Subtotal: ${formatCOP(subtotal)}`);
       lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
-      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
+    }
+    if (abonoNorm > 0) {
+      lines.push(`💳 Abono recibido: ${formatCOP(abonoNorm)}`);
+      lines.push(`⏳ Saldo pendiente: ${formatCOP(saldoPendiente)}`);
     } else {
-      lines.push("", `💰 Total: ${formatCOP(total)}`);
+      lines.push(`✅ Total a pagar: ${formatCOP(total)}`);
     }
     if (estado === "reservado") {
       lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
@@ -180,7 +196,7 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           accessToken, chalet, fecha_checkin: checkin, fecha_checkout: checkout,
           noches, desglose, precio_noche_total: subNoches,
           tipo_tarifa_principal: tipoPrincipal,
-          nombre, whatsapp, estado, notas: notas || undefined,
+          nombre, cedula: cedula.trim() || null, whatsapp, estado, notas: notas || undefined,
           adicionales: [
             ...adicionalesSel.map(a => ({ adicional_id: a.id, precio_cobrado: Number(a.precio) })),
             ...personalizadosValidos.map(p => ({
@@ -190,8 +206,13 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
               descripcion_personalizada: p.descripcion.trim() || null,
             })),
           ],
+          acompanantes: acompanantesValidos.map(a => ({
+            nombre: a.nombre.trim(),
+            cedula: a.cedula.trim() || null,
+          })),
           descuento_tipo: descuentoValor > 0 ? descuentoTipo : null,
           descuento_valor: descuentoValor > 0 ? descuentoValor : 0,
+          abono: abonoNorm,
         },
       });
       toast.success(`Reserva creada: ${res.codigo}`);
@@ -201,8 +222,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
       onCreated();
       onOpenChange(false);
       // reset
-      setNombre(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
-      setPersonalizados([]);
+      setNombre(""); setCedula(""); setWhatsapp(""); setCheckin(""); setCheckout(""); setNotas(""); setSel(new Set());
+      setPersonalizados([]); setAcompanantes([]); setAbono(0);
       setDescuentoTipo("porcentaje"); setDescuentoValor(0);
 
     } catch (e: any) {
@@ -247,9 +268,62 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
             <Input value={nombre} onChange={e => setNombre(e.target.value)} />
           </div>
           <div className="col-span-2">
+            <Label>Cédula <span className="text-stone-400 font-normal">(opcional)</span></Label>
+            <Input
+              value={cedula}
+              inputMode="numeric"
+              onChange={e => setCedula(e.target.value.replace(/\D/g, ""))}
+              placeholder="Solo números"
+            />
+          </div>
+          <div className="col-span-2">
             <Label>WhatsApp</Label>
             <Input value={whatsapp} onChange={e => setWhatsapp(e.target.value)} placeholder="+57 300 000 0000" />
           </div>
+
+          <div className="col-span-2 rounded-md border border-stone-200 bg-stone-50/60 p-3 space-y-2">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold text-stone-700 uppercase tracking-wider">👥 Acompañantes</p>
+              <span className="text-[11px] text-stone-500">{acompanantesValidos.length} agregado{acompanantesValidos.length === 1 ? "" : "s"}</span>
+            </div>
+            {acompanantes.map((a, idx) => (
+              <div key={a.key} className="flex gap-2 items-start">
+                <Input
+                  value={a.nombre}
+                  placeholder="Nombre"
+                  onChange={e => {
+                    const arr = [...acompanantes]; arr[idx] = { ...a, nombre: e.target.value }; setAcompanantes(arr);
+                  }}
+                  className="text-sm h-8 flex-1"
+                />
+                <Input
+                  value={a.cedula}
+                  placeholder="Cédula (opcional)"
+                  inputMode="numeric"
+                  onChange={e => {
+                    const arr = [...acompanantes]; arr[idx] = { ...a, cedula: e.target.value.replace(/\D/g, "") }; setAcompanantes(arr);
+                  }}
+                  className="text-sm h-8 w-36"
+                />
+                <Button
+                  type="button" size="sm" variant="ghost"
+                  onClick={() => setAcompanantes(acompanantes.filter((_, i) => i !== idx))}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2"
+                  aria-label="Eliminar"
+                >×</Button>
+              </div>
+            ))}
+            <Button
+              type="button" size="sm" variant="outline"
+              onClick={() => setAcompanantes([
+                ...acompanantes,
+                { key: `a-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`, nombre: "", cedula: "" },
+              ])}
+            >
+              + Agregar acompañante
+            </Button>
+          </div>
+
           <div className="col-span-2">
             <Label>Estado inicial</Label>
             <div className="flex gap-2 mt-1">
@@ -427,6 +501,27 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
               <span>Descuento: -{formatCOP(descuentoMonto)}</span>
             </div>
           )}
+        </div>
+
+        <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
+          <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs shrink-0 w-32">Abono recibido</Label>
+            <Input
+              type="number" min={0}
+              value={abono}
+              onChange={e => setAbono(Math.max(0, Number(e.target.value) || 0))}
+              className="text-sm h-8 w-40"
+            />
+            <span className="text-xs text-stone-600 tabular-nums ml-auto">{formatCOP(abonoNorm)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-stone-600">Saldo pendiente</span>
+            <span className={`tabular-nums font-medium ${saldoPendiente === 0 && abonoNorm > 0 ? "text-emerald-700" : "text-stone-900"}`}>
+              {formatCOP(saldoPendiente)}
+              {saldoPendiente === 0 && abonoNorm > 0 && <span className="ml-2 text-[10px] uppercase">✓ Pagado</span>}
+            </span>
+          </div>
         </div>
 
         <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">

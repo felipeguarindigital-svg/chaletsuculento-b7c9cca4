@@ -62,6 +62,8 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   const checkOutLine = d.fecha_checkout
     ? `📅 Check-out: ${d.fecha_checkout}${horarios ? ` a las ${horarios.checkOut}` : ""}`
     : null;
+  const ced = (d.cedula || "").trim();
+  const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;
   const lines: string[] = [
     `¡Hola ${firstName}! 🎉`,
     ``,
@@ -72,21 +74,29 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     checkInLine,
     ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
+    titularLine,
   ];
-  if (d.descuento_monto > 0) {
-    lines.push(
-      `💰 Subtotal: ${formatCOP(d.subtotal)}`,
-      `🎁 Descuento: -${formatCOP(d.descuento_monto)}`,
-      `✅ Total a pagar: ${formatCOP(d.total)}`,
-    );
-  } else {
-    lines.push(`💰 Total: ${formatCOP(d.total)}`);
+  if ((d.acompanantes?.length ?? 0) > 0) {
+    lines.push(`👥 Acompañantes: ${d.acompanantes.length}`);
   }
   if (d.adicionales.length > 0) {
     lines.push("", "✨ Adicionales:");
     for (const a of d.adicionales) {
       lines.push(`• ${a.nombre ?? a.adicional_id} — ${formatCOP(a.precio_cobrado)}`);
     }
+  }
+  const abono = Number(d.abono ?? 0);
+  const saldo = d.saldo_pendiente_calc;
+  lines.push("");
+  lines.push(`💰 Total: ${formatCOP(d.subtotal)}`);
+  if (d.descuento_monto > 0) {
+    lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
+  }
+  if (abono > 0) {
+    lines.push(`💳 Abono recibido: ${formatCOP(abono)}`);
+    lines.push(`⏳ Saldo pendiente: ${formatCOP(saldo)}`);
+  } else {
+    lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
   }
   lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
@@ -108,17 +118,22 @@ type PersonalizadoRow = {
   precio: number;
 };
 
+type AcompananteRow = { key: string; nombre: string; cedula: string };
+
 type EditState = {
   chalet: ChaletName;
   fecha: string;
   fecha_checkout: string;
   nombre: string;
+  cedula: string;
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
   personalizados: PersonalizadoRow[];
+  acompanantes: AcompananteRow[];
   descuentoTipo: DescuentoTipo;
   descuentoValor: number;
+  abono: number;
 };
 
 
@@ -204,12 +219,17 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       fecha: data.fecha,
       fecha_checkout: data.fecha_checkout ?? "",
       nombre: data.nombre,
+      cedula: data.cedula ?? "",
       whatsapp: data.whatsapp,
       estado: data.estado,
       selAdicionales: new Set(catalogoIds),
       personalizados: pers,
+      acompanantes: (data.acompanantes ?? []).map((a, i) => ({
+        key: `ac-${i}-${a.id}`, nombre: a.nombre, cedula: a.cedula ?? "",
+      })),
       descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
       descuentoValor: Number(data.descuento_valor ?? 0),
+      abono: Number(data.abono ?? 0),
     });
     setEditMode(true);
   }
@@ -228,6 +248,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
     if (nochesEdit < 1) { toast.error("Selecciona check-in y check-out válidos"); return; }
     setSaving(true);
     try {
+      const abonoNormEdit = Math.max(0, Math.min(edit.abono || 0, totalEdit));
+      const saldoEdit = Math.max(0, totalEdit - abonoNormEdit);
       await saveReserva({
         data: {
           accessToken,
@@ -237,6 +259,7 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             fecha: edit.fecha,
             fecha_checkout: edit.fecha_checkout,
             nombre: edit.nombre.trim(),
+            cedula: edit.cedula.trim() || null,
             whatsapp: edit.whatsapp.trim(),
             noches: nochesEdit,
             desglose_noches: desgloseEdit,
@@ -245,6 +268,8 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             estado: edit.estado,
             descuento_tipo: edit.descuentoValor > 0 ? edit.descuentoTipo : null,
             descuento_valor: edit.descuentoValor > 0 ? edit.descuentoValor : 0,
+            abono: abonoNormEdit,
+            saldo_pendiente: saldoEdit,
           },
 
           adicionales: [
@@ -259,6 +284,9 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               descripcion_personalizada: p.descripcion.trim() || null,
             })),
           ],
+          acompanantes: edit.acompanantes
+            .filter(a => a.nombre.trim())
+            .map(a => ({ nombre: a.nombre.trim(), cedula: a.cedula.trim() || null })),
         },
       });
 
@@ -392,8 +420,21 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             {!editMode ? (
               <div>
                 <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Huésped</p>
-                <p className="font-medium">{data.nombre}</p>
+                <p className="font-medium">{data.nombre}{data.cedula ? <span className="text-stone-500 font-normal"> · CC {data.cedula}</span> : null}</p>
                 <p className="font-mono text-xs text-stone-600">{data.whatsapp}</p>
+                {data.acompanantes && data.acompanantes.length > 0 && (
+                  <div className="mt-2 rounded-md border border-stone-200 bg-stone-50 p-2 text-sm">
+                    <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">👥 Acompañantes ({data.acompanantes.length})</p>
+                    <ul className="space-y-0.5">
+                      {data.acompanantes.map(a => (
+                        <li key={a.id} className="flex justify-between text-xs">
+                          <span>{a.nombre}</span>
+                          {a.cedula && <span className="text-stone-500 font-mono">CC {a.cedula}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -403,12 +444,46 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                     onChange={e => setEdit({ ...edit!, nombre: e.target.value })} />
                 </div>
                 <div>
+                  <Label className="text-xs">Cédula <span className="text-stone-400 font-normal">(opcional)</span></Label>
+                  <Input value={edit!.cedula}
+                    inputMode="numeric"
+                    onChange={e => setEdit({ ...edit!, cedula: e.target.value.replace(/\D/g, "") })}
+                    placeholder="Solo números" />
+                </div>
+                <div>
                   <Label className="text-xs">WhatsApp</Label>
                   <Input value={edit!.whatsapp}
                     onChange={e => setEdit({ ...edit!, whatsapp: e.target.value })} />
                 </div>
+                <div className="rounded-md border border-stone-200 bg-stone-50/60 p-2 space-y-1.5">
+                  <p className="text-xs font-semibold text-stone-700 uppercase tracking-wider">👥 Acompañantes</p>
+                  {edit!.acompanantes.map((a, idx) => (
+                    <div key={a.key} className="flex gap-2 items-start">
+                      <Input value={a.nombre} placeholder="Nombre"
+                        onChange={e => {
+                          const arr = [...edit!.acompanantes]; arr[idx] = { ...a, nombre: e.target.value };
+                          setEdit({ ...edit!, acompanantes: arr });
+                        }} className="text-sm h-8 flex-1" />
+                      <Input value={a.cedula} placeholder="Cédula" inputMode="numeric"
+                        onChange={e => {
+                          const arr = [...edit!.acompanantes]; arr[idx] = { ...a, cedula: e.target.value.replace(/\D/g, "") };
+                          setEdit({ ...edit!, acompanantes: arr });
+                        }} className="text-sm h-8 w-32" />
+                      <Button type="button" size="sm" variant="ghost"
+                        onClick={() => setEdit({ ...edit!, acompanantes: edit!.acompanantes.filter((_, i) => i !== idx) })}
+                        className="text-red-600 hover:bg-red-50 h-8 px-2" aria-label="Eliminar">×</Button>
+                    </div>
+                  ))}
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setEdit({
+                      ...edit!,
+                      acompanantes: [...edit!.acompanantes, { key: `ac-new-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, nombre: "", cedula: "" }],
+                    })}
+                  >+ Agregar acompañante</Button>
+                </div>
               </div>
             )}
+
 
             {!editMode && data.desglose_noches && data.desglose_noches.length > 0 && (
               <div>
@@ -661,6 +736,31 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                     <span>Descuento: -{formatCOP(descuentoMontoEdit)}</span>
                   </div>
                 )}
+              </div>
+            )}
+
+            {!editMode ? (
+              (Number(data.abono ?? 0) > 0) && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-sm space-y-1">
+                  <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+                  <div className="flex justify-between"><span className="text-stone-600">Abono recibido</span><span className="tabular-nums">{formatCOP(Number(data.abono))}</span></div>
+                  <div className="flex justify-between"><span className="text-stone-600">Saldo pendiente</span><span className={`tabular-nums font-medium ${data.saldo_pendiente_calc === 0 ? "text-emerald-700" : ""}`}>{formatCOP(data.saldo_pendiente_calc)}{data.saldo_pendiente_calc === 0 ? " ✓" : ""}</span></div>
+                </div>
+              )
+            ) : (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
+                <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs shrink-0 w-32">Abono recibido</Label>
+                  <Input type="number" min={0}
+                    value={edit!.abono}
+                    onChange={e => setEdit({ ...edit!, abono: Math.max(0, Number(e.target.value) || 0) })}
+                    className="text-sm h-8 w-40" />
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-stone-600">Saldo pendiente</span>
+                  <span className="tabular-nums font-medium">{formatCOP(Math.max(0, totalEdit - Math.max(0, Math.min(edit!.abono || 0, totalEdit))))}</span>
+                </div>
               </div>
             )}
 

@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getOperacionesHoy, type OperacionesHoy as Ops, type OperacionFicha, type RolPanel } from "@/lib/admin.functions";
 import { getHorarios } from "@/lib/horarios";
+import { formatCOP } from "@/lib/precios";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
 import { ChevronDown } from "lucide-react";

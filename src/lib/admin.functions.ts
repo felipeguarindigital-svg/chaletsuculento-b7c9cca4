@@ -546,6 +546,15 @@ export const crearReservaManual = createServerFn({ method: "POST" })
         throw new Error("Este chalet ya tiene una reserva confirmada en estas fechas");
       }
     }
+    // Cálculo del saldo pendiente (para persistir referencia)
+    const subNoches = data.desglose.reduce((s, n) => s + Number(n.precio || 0), 0);
+    const subAd = data.adicionales.reduce((s, a) => s + Number(a.precio_cobrado || 0), 0);
+    const subtotalCalc = subNoches + subAd;
+    const descuentoCalc = computeDescuento(subtotalCalc, data.descuento_tipo ?? null, data.descuento_valor ?? 0);
+    const totalCalc = subtotalCalc - descuentoCalc;
+    const abono = Math.max(0, Number(data.abono ?? 0));
+    const saldoPendiente = Math.max(0, totalCalc - abono);
+
     const insert = {
       chalet: data.chalet,
       fecha: data.fecha_checkin,
@@ -553,6 +562,7 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       noches: data.noches,
       desglose_noches: data.desglose,
       nombre: data.nombre.trim(),
+      cedula: data.cedula?.trim() || null,
       whatsapp: data.whatsapp.trim(),
       tipo_tarifa: data.tipo_tarifa_principal,
       precio_noche: data.precio_noche_total,
@@ -561,6 +571,8 @@ export const crearReservaManual = createServerFn({ method: "POST" })
       notas: data.notas ?? null,
       descuento_tipo: data.descuento_tipo ?? null,
       descuento_valor: data.descuento_valor ?? 0,
+      abono,
+      saldo_pendiente: saldoPendiente,
     };
     const { data: r, error } = await supabaseExternalAdmin
       .from("reservas").insert(insert).select("id, codigo").single();
@@ -574,8 +586,16 @@ export const crearReservaManual = createServerFn({ method: "POST" })
         descripcion_personalizada: a.descripcion_personalizada ?? null,
       }));
       const { error: e2 } = await supabaseExternalAdmin.from("reserva_adicionales").insert(rows);
-
       if (e2) throw new Error(e2.message);
+    }
+    if (data.acompanantes && data.acompanantes.length > 0) {
+      const filas = data.acompanantes
+        .filter(a => a.nombre?.trim())
+        .map(a => ({ reserva_id: r.id, nombre: a.nombre.trim(), cedula: a.cedula?.trim() || null }));
+      if (filas.length > 0) {
+        const { error: e3 } = await supabaseExternalAdmin.from("reserva_acompanantes").insert(filas);
+        if (e3) throw new Error(e3.message);
+      }
     }
     return { id: r.id as string, codigo: r.codigo as string };
   });

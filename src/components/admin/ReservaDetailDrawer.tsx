@@ -739,6 +739,31 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
               </div>
             )}
 
+            {!editMode ? (
+              (Number(data.abono ?? 0) > 0) && (
+                <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 text-sm space-y-1">
+                  <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+                  <div className="flex justify-between"><span className="text-stone-600">Abono recibido</span><span className="tabular-nums">{formatCOP(Number(data.abono))}</span></div>
+                  <div className="flex justify-between"><span className="text-stone-600">Saldo pendiente</span><span className={`tabular-nums font-medium ${data.saldo_pendiente_calc === 0 ? "text-emerald-700" : ""}`}>{formatCOP(data.saldo_pendiente_calc)}{data.saldo_pendiente_calc === 0 ? " ✓" : ""}</span></div>
+                </div>
+              )
+            ) : (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
+                <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+                <div className="flex items-center gap-2">
+                  <Label className="text-xs shrink-0 w-32">Abono recibido</Label>
+                  <Input type="number" min={0}
+                    value={edit!.abono}
+                    onChange={e => setEdit({ ...edit!, abono: Math.max(0, Number(e.target.value) || 0) })}
+                    className="text-sm h-8 w-40" />
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-stone-600">Saldo pendiente</span>
+                  <span className="tabular-nums font-medium">{formatCOP(Math.max(0, totalEdit - Math.max(0, Math.min(edit!.abono || 0, totalEdit))))}</span>
+                </div>
+              </div>
+            )}
+
             <div className="rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
               <span className="text-sm font-medium">Total</span>
               <span className="text-lg font-semibold tabular-nums">

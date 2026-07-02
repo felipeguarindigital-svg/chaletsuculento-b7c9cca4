@@ -35,6 +35,7 @@ export function Dashboard({ accessToken, rol }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dayOpen, setDayOpen] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [newInitialCheckin, setNewInitialCheckin] = useState<string | undefined>(undefined);
   const [tick, setTick] = useState(0);
 
   const canCreate = rol === "administrador" || rol === "operador";

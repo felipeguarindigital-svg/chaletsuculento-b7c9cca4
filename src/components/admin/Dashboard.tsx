@@ -14,6 +14,7 @@ import { NuevaReservaDialog } from "./NuevaReservaDialog";
 import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Plus, CalendarDays, Table2 } from "lucide-react";
 import { formatCOP } from "@/lib/precios";
 import { toast } from "sonner";

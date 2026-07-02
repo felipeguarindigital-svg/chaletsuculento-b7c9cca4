@@ -420,8 +420,21 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
             {!editMode ? (
               <div>
                 <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">Huésped</p>
-                <p className="font-medium">{data.nombre}</p>
+                <p className="font-medium">{data.nombre}{data.cedula ? <span className="text-stone-500 font-normal"> · CC {data.cedula}</span> : null}</p>
                 <p className="font-mono text-xs text-stone-600">{data.whatsapp}</p>
+                {data.acompanantes && data.acompanantes.length > 0 && (
+                  <div className="mt-2 rounded-md border border-stone-200 bg-stone-50 p-2 text-sm">
+                    <p className="text-xs text-stone-500 uppercase tracking-wider mb-1">👥 Acompañantes ({data.acompanantes.length})</p>
+                    <ul className="space-y-0.5">
+                      {data.acompanantes.map(a => (
+                        <li key={a.id} className="flex justify-between text-xs">
+                          <span>{a.nombre}</span>
+                          {a.cedula && <span className="text-stone-500 font-mono">CC {a.cedula}</span>}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="space-y-2">
@@ -431,12 +444,46 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
                     onChange={e => setEdit({ ...edit!, nombre: e.target.value })} />
                 </div>
                 <div>
+                  <Label className="text-xs">Cédula <span className="text-stone-400 font-normal">(opcional)</span></Label>
+                  <Input value={edit!.cedula}
+                    inputMode="numeric"
+                    onChange={e => setEdit({ ...edit!, cedula: e.target.value.replace(/\D/g, "") })}
+                    placeholder="Solo números" />
+                </div>
+                <div>
                   <Label className="text-xs">WhatsApp</Label>
                   <Input value={edit!.whatsapp}
                     onChange={e => setEdit({ ...edit!, whatsapp: e.target.value })} />
                 </div>
+                <div className="rounded-md border border-stone-200 bg-stone-50/60 p-2 space-y-1.5">
+                  <p className="text-xs font-semibold text-stone-700 uppercase tracking-wider">👥 Acompañantes</p>
+                  {edit!.acompanantes.map((a, idx) => (
+                    <div key={a.key} className="flex gap-2 items-start">
+                      <Input value={a.nombre} placeholder="Nombre"
+                        onChange={e => {
+                          const arr = [...edit!.acompanantes]; arr[idx] = { ...a, nombre: e.target.value };
+                          setEdit({ ...edit!, acompanantes: arr });
+                        }} className="text-sm h-8 flex-1" />
+                      <Input value={a.cedula} placeholder="Cédula" inputMode="numeric"
+                        onChange={e => {
+                          const arr = [...edit!.acompanantes]; arr[idx] = { ...a, cedula: e.target.value.replace(/\D/g, "") };
+                          setEdit({ ...edit!, acompanantes: arr });
+                        }} className="text-sm h-8 w-32" />
+                      <Button type="button" size="sm" variant="ghost"
+                        onClick={() => setEdit({ ...edit!, acompanantes: edit!.acompanantes.filter((_, i) => i !== idx) })}
+                        className="text-red-600 hover:bg-red-50 h-8 px-2" aria-label="Eliminar">×</Button>
+                    </div>
+                  ))}
+                  <Button type="button" size="sm" variant="outline"
+                    onClick={() => setEdit({
+                      ...edit!,
+                      acompanantes: [...edit!.acompanantes, { key: `ac-new-${Date.now()}-${Math.random().toString(36).slice(2,6)}`, nombre: "", cedula: "" }],
+                    })}
+                  >+ Agregar acompañante</Button>
+                </div>
               </div>
             )}
+
 
             {!editMode && data.desglose_noches && data.desglose_noches.length > 0 && (
               <div>

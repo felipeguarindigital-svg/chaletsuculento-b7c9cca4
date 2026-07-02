@@ -600,5 +600,105 @@ export const crearReservaManual = createServerFn({ method: "POST" })
     return { id: r.id as string, codigo: r.codigo as string };
   });
 
+// ------------------ OPERACIONES DEL DÍA ------------------
+
+export type OperacionFicha = {
+  id: string;
+  codigo: string;
+  chalet: ChaletName;
+  nombre: string;
+  whatsapp: string;
+  fecha: string;
+  fecha_checkout: string | null;
+  personas: number;
+  adicionales: string[];
+};
+
+export type OperacionesHoy = {
+  hoy: string; // YYYY-MM-DD (America/Bogota)
+  llegadas: OperacionFicha[];
+  salidas: OperacionFicha[];
+  en_casa: OperacionFicha[];
+};
+
+function hoyBogota(): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric", month: "2-digit", day: "2-digit",
+  }).formatToParts(new Date());
+  const y = parts.find(p => p.type === "year")!.value;
+  const m = parts.find(p => p.type === "month")!.value;
+  const d = parts.find(p => p.type === "day")!.value;
+  return `${y}-${m}-${d}`;
+}
+
+export const getOperacionesHoy = createServerFn({ method: "POST" })
+  .inputValidator((d: { accessToken: string }) => d)
+  .handler(async ({ data }): Promise<OperacionesHoy> => {
+    await verifyToken(data.accessToken);
+    const { supabaseExternalAdmin } = await import(
+      "@/integrations/supabase-external/client.server"
+    );
+    const hoy = hoyBogota();
+
+    // Traemos reservas "reservado" cuyo rango pueda tocar hoy:
+    // fecha <= hoy AND (fecha_checkout >= hoy OR fecha_checkout IS NULL AND fecha = hoy)
+    const { data: rows, error } = await supabaseExternalAdmin
+      .from("reservas")
+      .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado")
+      .eq("estado", "reservado")
+      .lte("fecha", hoy)
+      .gte("fecha_checkout", hoy);
+    if (error) throw new Error(error.message);
+
+    const reservas = (rows ?? []) as Array<{
+      id: string; codigo: string; chalet: ChaletName;
+      fecha: string; fecha_checkout: string | null;
+      nombre: string; whatsapp: string;
+    }>;
+    const ids = reservas.map(r => r.id);
+
+    // Acompañantes (conteo) y adicionales (nombres) en lote.
+    const acompByReserva = new Map<string, number>();
+    const adicByReserva = new Map<string, string[]>();
+    if (ids.length > 0) {
+      const { data: acomp, error: eAc } = await supabaseExternalAdmin
+        .from("reserva_acompanantes")
+        .select("reserva_id")
+        .in("reserva_id", ids);
+      if (eAc) throw new Error(eAc.message);
+      for (const a of (acomp ?? []) as Array<{ reserva_id: string }>) {
+        acompByReserva.set(a.reserva_id, (acompByReserva.get(a.reserva_id) ?? 0) + 1);
+      }
+      const { data: ads, error: eAd } = await supabaseExternalAdmin
+        .from("reserva_adicionales")
+        .select("reserva_id, adicional_id, nombre_personalizado, servicios_adicionales(nombre)")
+        .in("reserva_id", ids);
+      if (eAd) throw new Error(eAd.message);
+      for (const a of (ads ?? []) as any[]) {
+        const nombre = a.adicional_id
+          ? (a.servicios_adicionales?.nombre ?? "Servicio")
+          : (a.nombre_personalizado ?? "Adicional personalizado");
+        const arr = adicByReserva.get(a.reserva_id) ?? [];
+        arr.push(nombre);
+        adicByReserva.set(a.reserva_id, arr);
+      }
+    }
+
+    const fichas: OperacionFicha[] = reservas.map(r => ({
+      id: r.id, codigo: r.codigo, chalet: r.chalet,
+      nombre: r.nombre, whatsapp: r.whatsapp,
+      fecha: r.fecha, fecha_checkout: r.fecha_checkout,
+      personas: 1 + (acompByReserva.get(r.id) ?? 0),
+      adicionales: adicByReserva.get(r.id) ?? [],
+    }));
+
+    const llegadas = fichas.filter(f => f.fecha === hoy);
+    const salidas = fichas.filter(f => f.fecha_checkout === hoy);
+    const en_casa = fichas.filter(f => f.fecha < hoy && (f.fecha_checkout ?? "") > hoy);
+
+    return { hoy, llegadas, salidas, en_casa };
+  });
+
 // Re-export del catálogo (lo usa el formulario manual también).
 export { listServiciosAdicionales } from "@/lib/reservas-external.functions";

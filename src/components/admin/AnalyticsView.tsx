@@ -11,7 +11,7 @@ import {
   Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Gauge, TrendingUp, Timer, CalendarCheck2 } from "lucide-react";
+import { Gauge, TrendingUp, Timer, CalendarCheck2, Wallet, Gift } from "lucide-react";
 
 type Props = { accessToken: string };
 type ChaletFiltro = "all" | "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";

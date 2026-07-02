@@ -25,7 +25,7 @@ async function verifyToken(accessToken: string): Promise<{ userId: string; rol: 
 const CHALETS = ["Suculento", "Del Bosque", "Cattleya", "Ukiyo", "Satori"] as const;
 type ChaletName = (typeof CHALETS)[number];
 
-export type CategoriaAd = "experiencias_decoraciones" | "alimentacion_adicionales" | "sin_categoria";
+export type CategoriaAd = "experiencias_decoraciones" | "alimentacion_adicionales" | "adicionales_personalizados" | "sin_categoria";
 
 export type AnalyticsPayload = {
   rango: { desde: string; hasta: string };

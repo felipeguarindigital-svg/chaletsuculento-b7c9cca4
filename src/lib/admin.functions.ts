@@ -612,6 +612,7 @@ export type OperacionFicha = {
   fecha_checkout: string | null;
   personas: number;
   adicionales: string[];
+  saldo_pendiente: number;
 };
 
 export type OperacionesHoy = {

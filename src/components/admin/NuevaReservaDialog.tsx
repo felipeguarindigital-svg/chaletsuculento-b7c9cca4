@@ -503,6 +503,27 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
           )}
         </div>
 
+        <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50/50 p-3 space-y-2">
+          <p className="text-xs text-emerald-800 uppercase tracking-wider font-semibold">💳 Pagos</p>
+          <div className="flex items-center gap-2">
+            <Label className="text-xs shrink-0 w-32">Abono recibido</Label>
+            <Input
+              type="number" min={0}
+              value={abono}
+              onChange={e => setAbono(Math.max(0, Number(e.target.value) || 0))}
+              className="text-sm h-8 w-40"
+            />
+            <span className="text-xs text-stone-600 tabular-nums ml-auto">{formatCOP(abonoNorm)}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-stone-600">Saldo pendiente</span>
+            <span className={`tabular-nums font-medium ${saldoPendiente === 0 && abonoNorm > 0 ? "text-emerald-700" : "text-stone-900"}`}>
+              {formatCOP(saldoPendiente)}
+              {saldoPendiente === 0 && abonoNorm > 0 && <span className="ml-2 text-[10px] uppercase">✓ Pagado</span>}
+            </span>
+          </div>
+        </div>
+
         <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 p-3 flex items-center justify-between">
           <span className="text-sm font-medium">Total</span>
           <span className="text-lg font-semibold tabular-nums">{formatCOP(total)}</span>

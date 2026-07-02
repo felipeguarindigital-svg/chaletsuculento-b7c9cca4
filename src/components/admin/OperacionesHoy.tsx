@@ -159,7 +159,7 @@ export function OperacionesHoy({ accessToken, rol, refreshTick, onSelectReserva 
         <p className="text-sm text-stone-500">Cargando operaciones del día…</p>
       ) : !ops ? null : (
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <BloqueAccordion bloque="llegadas" fichas={ops.llegadas} rol={rol} onSelect={onSelectReserva} defaultOpen />
+          <BloqueAccordion bloque="llegadas" fichas={ops.llegadas} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
           <BloqueAccordion bloque="salidas" fichas={ops.salidas} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
           <BloqueAccordion bloque="en_casa" fichas={ops.en_casa} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
           <BloqueAccordion bloque="llegadas_manana" fichas={ops.llegadas_manana} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />

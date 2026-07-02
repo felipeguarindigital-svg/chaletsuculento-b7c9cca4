@@ -439,7 +439,7 @@ export type CrearManualInput = {
   whatsapp: string;
   estado: "cotizacion" | "reservado";
   notas?: string;
-  adicionales: Array<{ adicional_id: string; precio_cobrado: number }>;
+  adicionales: AdicionalInput[];
   descuento_tipo?: DescuentoTipo | null;
   descuento_valor?: number | null;
 };

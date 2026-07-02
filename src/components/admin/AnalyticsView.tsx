@@ -8,10 +8,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import {
-  Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart,
+  Bar, BarChart, CartesianGrid, Cell, Legend, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Gauge, TrendingUp, Timer, CalendarCheck2 } from "lucide-react";
+import { Gauge, TrendingUp, Timer, CalendarCheck2, Wallet, Gift } from "lucide-react";
 
 type Props = { accessToken: string };
 type ChaletFiltro = "all" | "Suculento" | "Del Bosque" | "Cattleya" | "Ukiyo" | "Satori";
@@ -207,6 +207,34 @@ export function AnalyticsView({ accessToken }: Props) {
         />
       </div>
 
+      {/* Ingresos separados: reservas vs adicionales */}
+      <div className="space-y-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <NumberCard
+            label="💰 Ingresos por reservas"
+            value={data ? formatCOP(data.ingresos_reservas_total) : "…"}
+            sub="Suma de precios de las noches (estado reservado)"
+            Icon={Wallet}
+            tone="emerald"
+          />
+          <NumberCard
+            label="🎁 Ingresos por adicionales"
+            value={data ? formatCOP(data.ingresos_adicionales_total) : "…"}
+            sub="Suma de servicios adicionales cobrados"
+            Icon={Gift}
+            tone="amber"
+          />
+        </div>
+        {data && (
+          <p className="text-sm text-stone-600 px-1">
+            Total del periodo:{" "}
+            <span className="font-semibold text-stone-900 tabular-nums">
+              {formatCOP(data.ingresos_reservas_total + data.ingresos_adicionales_total)}
+            </span>
+          </p>
+        )}
+      </div>
+
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <ChartCard title="Ocupación por chalet (% noches reservadas)">
@@ -230,13 +258,28 @@ export function AnalyticsView({ accessToken }: Props) {
         <ChartCard title="Ingresos por mes">
           {sinDatosIngresos ? <EmptyMsg /> : (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={ingresosMesFmt}>
+              <BarChart data={ingresosMesFmt}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                 <XAxis dataKey="mesLabel" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-                <Tooltip formatter={(v: any) => [formatCOP(Number(v)), "Ingresos"]} />
-                <Line type="monotone" dataKey="ingresos" stroke="#d97706" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
+                <Tooltip
+                  content={({ active, payload, label }: any) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const row = payload[0].payload as { reservas: number; adicionales: number; total: number };
+                    return (
+                      <div className="rounded-md border bg-white p-2 shadow-sm text-xs">
+                        <p className="font-medium text-stone-800 mb-1">{label}</p>
+                        <p className="text-stone-600">Reservas: <span className="tabular-nums font-medium text-stone-900">{formatCOP(row.reservas)}</span></p>
+                        <p className="text-stone-600">Adicionales: <span className="tabular-nums font-medium text-stone-900">{formatCOP(row.adicionales)}</span></p>
+                        <p className="text-stone-800 border-t mt-1 pt-1">Total: <span className="tabular-nums font-semibold">{formatCOP(row.total)}</span></p>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="reservas" name="Reservas" stackId="ing" fill="#15803d" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="adicionales" name="Adicionales" stackId="ing" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>

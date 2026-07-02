@@ -32,7 +32,9 @@ export type AnalyticsPayload = {
   chalet_filtro: ChaletName | "all";
   total_reservas: number;
   ocupacion_por_chalet: { chalet: ChaletName; noches_ocupadas: number; noches_totales: number; pct: number }[];
-  ingresos_por_mes: { mes: string; ingresos: number }[];
+  ingresos_por_mes: { mes: string; reservas: number; adicionales: number; total: number }[];
+  ingresos_reservas_total: number;
+  ingresos_adicionales_total: number;
   reservas_por_dia_semana: { dia: string; cantidad: number }[];
   origen_reservas: { origen: string; cantidad: number }[];
   ticket_promedio: { con_adicionales: number; sin_adicionales: number; reservas_consideradas: number };
@@ -172,16 +174,24 @@ export const getAnalytics = createServerFn({ method: "POST" })
       return Number(r.precio_noche || 0) * Number(r.noches || 1);
     }
 
-    // ===== Ingresos por mes =====
-    const ingresosMap = new Map<string, number>();
+    // ===== Ingresos por mes (separando reservas y adicionales) =====
+    const ingresosMap = new Map<string, { reservas: number; adicionales: number }>();
+    let ingresos_reservas_total = 0;
+    let ingresos_adicionales_total = 0;
     for (const r of resReservado) {
       const mes = (r.fecha as string).slice(0, 7); // YYYY-MM
-      const ingreso = totalNochesDe(r) + (adsPorReserva.get(r.id as string) ?? 0);
-      ingresosMap.set(mes, (ingresosMap.get(mes) ?? 0) + ingreso);
+      const noches = totalNochesDe(r);
+      const ads = adsPorReserva.get(r.id as string) ?? 0;
+      const cur = ingresosMap.get(mes) ?? { reservas: 0, adicionales: 0 };
+      cur.reservas += noches;
+      cur.adicionales += ads;
+      ingresosMap.set(mes, cur);
+      ingresos_reservas_total += noches;
+      ingresos_adicionales_total += ads;
     }
     const ingresos_por_mes = Array.from(ingresosMap.entries())
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([mes, ingresos]) => ({ mes, ingresos }));
+      .map(([mes, v]) => ({ mes, reservas: v.reservas, adicionales: v.adicionales, total: v.reservas + v.adicionales }));
 
     // ===== Día semana más reservado (por check-in) =====
     const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
@@ -335,6 +345,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
       total_reservas: resReservado.length,
       ocupacion_por_chalet,
       ingresos_por_mes,
+      ingresos_reservas_total,
+      ingresos_adicionales_total,
       reservas_por_dia_semana,
       origen_reservas,
       ticket_promedio,

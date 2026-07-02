@@ -14,6 +14,7 @@ import { NuevaReservaDialog } from "./NuevaReservaDialog";
 import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
 import { Plus, CalendarDays, Table2 } from "lucide-react";
 import { formatCOP } from "@/lib/precios";
 import { toast } from "sonner";
@@ -56,12 +57,16 @@ export function Dashboard({ accessToken, rol }: Props) {
   const reservasDelDia = useMemo(() => {
     if (!dayOpen) return [];
     return reservas.filter(r => {
-      if (r.estado === "cancelado") return false;
       const ci = r.fecha;
       const co = r.fecha_checkout ?? r.fecha;
       return ci <= dayOpen && dayOpen < co;
     });
   }, [reservas, dayOpen]);
+
+  const reservadosDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "reservado"), [reservasDelDia]);
+  const cotizacionesDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "cotizacion"), [reservasDelDia]);
+  const canceladasDelDia = useMemo(() => reservasDelDia.filter(r => r.estado === "cancelado"), [reservasDelDia]);
+
 
   function refresh() { setTick(t => t + 1); }
 
@@ -154,10 +159,8 @@ export function Dashboard({ accessToken, rol }: Props) {
               <Plus className="h-4 w-4" /> Nueva reserva manual
             </Button>
           )}
-          <div className="mt-4 space-y-2">
-            {reservasDelDia.length === 0 ? (
-              <p className="text-sm text-stone-500">Sin reservas activas ese día.</p>
-            ) : reservasDelDia.map(r => {
+          {(() => {
+            const renderCard = (r: ReservaRow) => {
               const totalNoches = r.desglose_noches && r.desglose_noches.length > 0
                 ? r.desglose_noches.reduce((s, n) => s + Number(n.precio || 0), 0)
                 : Number(r.precio_noche || 0) * Number(r.noches || 1);
@@ -179,8 +182,36 @@ export function Dashboard({ accessToken, rol }: Props) {
                   </div>
                 </button>
               );
-            })}
-          </div>
+            };
+            return (
+              <Accordion type="multiple" className="mt-4 w-full">
+                <AccordionItem value="reservados">
+                  <AccordionTrigger>✅ RESERVADOS ({reservadosDelDia.length})</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {reservadosDelDia.length === 0
+                        ? <p className="text-sm text-stone-500">Sin reservas.</p>
+                        : reservadosDelDia.map(renderCard)}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+                <AccordionItem value="cotizaciones">
+                  <AccordionTrigger>🟡 COTIZACIONES ({cotizacionesDelDia.length})</AccordionTrigger>
+                  <AccordionContent>
+                    <div className="space-y-2">
+                      {cotizacionesDelDia.length === 0
+                        ? <p className="text-sm text-stone-500">Sin cotizaciones.</p>
+                        : cotizacionesDelDia.map(renderCard)}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            );
+          })()}
+          {canceladasDelDia.length > 0 && (
+            <p className="mt-3 text-xs text-stone-400">{canceladasDelDia.length} cancelada{canceladasDelDia.length === 1 ? "" : "s"}</p>
+          )}
+
         </SheetContent>
       </Sheet>
     </div>

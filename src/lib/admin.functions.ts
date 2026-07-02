@@ -348,9 +348,10 @@ export const updateReserva = createServerFn({ method: "POST" })
     accessToken: string;
     id: string;
     patch: ReservaPatch;
-    adicionales?: Array<{ adicional_id: string; precio_cobrado: number }>;
+    adicionales?: AdicionalInput[];
   }) => d)
   .handler(async ({ data }) => {
+
     const ctx = await verifyToken(data.accessToken);
     requireRol(ctx, ["administrador", "operador"]);
     const { supabaseExternalAdmin } = await import(

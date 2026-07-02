@@ -94,7 +94,9 @@ export function AnalyticsView({ accessToken }: Props) {
   const CAT_LABEL: Record<string, string> = {
     experiencias_decoraciones: "✨ Experiencias y Decoraciones",
     alimentacion_adicionales: "🍽️ Alimentación y Adicionales",
+    adicionales_personalizados: "🛠️ Adicionales personalizados",
     sin_categoria: "Sin categoría",
+
   };
 
   return (

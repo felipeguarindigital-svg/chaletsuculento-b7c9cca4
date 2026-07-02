@@ -361,6 +361,7 @@ export const updateNotasReserva = createServerFn({ method: "POST" })
 
 export type ReservaPatch = Partial<{
   nombre: string;
+  cedula: string | null;
   whatsapp: string;
   chalet: ChaletName;
   fecha: string;
@@ -372,6 +373,8 @@ export type ReservaPatch = Partial<{
   estado: EstadoReserva;
   descuento_tipo: DescuentoTipo | null;
   descuento_valor: number | null;
+  abono: number;
+  saldo_pendiente: number;
 }>;
 
 

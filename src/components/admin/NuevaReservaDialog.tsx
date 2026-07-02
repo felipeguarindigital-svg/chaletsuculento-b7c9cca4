@@ -49,6 +49,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { CHALETS } from "./chalet-styles";
 import { getHorarios } from "@/lib/horarios";
+import { RangeDatePicker } from "./RangeDatePicker";
 import { toast } from "sonner";
 
 type Props = {

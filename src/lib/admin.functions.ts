@@ -616,9 +616,11 @@ export type OperacionFicha = {
 
 export type OperacionesHoy = {
   hoy: string; // YYYY-MM-DD (America/Bogota)
+  manana: string; // YYYY-MM-DD (America/Bogota)
   llegadas: OperacionFicha[];
   salidas: OperacionFicha[];
   en_casa: OperacionFicha[];
+  llegadas_manana: OperacionFicha[];
 };
 
 function hoyBogota(): string {
@@ -640,15 +642,17 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
       "@/integrations/supabase-external/client.server"
     );
     const hoy = hoyBogota();
+    // manana = hoy + 1 día (calculado sin TZ shift)
+    const [yy, mm, dd] = hoy.split("-").map(Number);
+    const mananaDate = new Date(Date.UTC(yy, mm - 1, dd + 1));
+    const manana = `${mananaDate.getUTCFullYear()}-${String(mananaDate.getUTCMonth() + 1).padStart(2, "0")}-${String(mananaDate.getUTCDate()).padStart(2, "0")}`;
 
-    // Traemos reservas "reservado" cuyo rango pueda tocar hoy:
-    // fecha <= hoy AND (fecha_checkout >= hoy OR fecha_checkout IS NULL AND fecha = hoy)
+    // Traemos reservas "reservado" cuyo rango pueda tocar hoy o cuya llegada sea mañana.
     const { data: rows, error } = await supabaseExternalAdmin
       .from("reservas")
       .select("id, codigo, chalet, fecha, fecha_checkout, nombre, whatsapp, estado")
       .eq("estado", "reservado")
-      .lte("fecha", hoy)
-      .gte("fecha_checkout", hoy);
+      .or(`and(fecha.lte.${hoy},fecha_checkout.gte.${hoy}),fecha.eq.${manana}`);
     if (error) throw new Error(error.message);
 
     const reservas = (rows ?? []) as Array<{
@@ -696,8 +700,9 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
     const llegadas = fichas.filter(f => f.fecha === hoy);
     const salidas = fichas.filter(f => f.fecha_checkout === hoy);
     const en_casa = fichas.filter(f => f.fecha < hoy && (f.fecha_checkout ?? "") > hoy);
+    const llegadas_manana = fichas.filter(f => f.fecha === manana);
 
-    return { hoy, llegadas, salidas, en_casa };
+    return { hoy, manana, llegadas, salidas, en_casa, llegadas_manana };
   });
 
 // Re-export del catálogo (lo usa el formulario manual también).

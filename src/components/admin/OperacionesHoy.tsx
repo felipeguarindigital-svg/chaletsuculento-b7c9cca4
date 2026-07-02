@@ -1,9 +1,11 @@
-// Vista de operaciones del día: llegadas, salidas y huéspedes en casa hoy.
+// Vista de operaciones del día: llegadas, salidas, en casa y llegadas de mañana.
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { getOperacionesHoy, type OperacionesHoy as Ops, type OperacionFicha, type RolPanel } from "@/lib/admin.functions";
 import { getHorarios } from "@/lib/horarios";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleTrigger, CollapsibleContent } from "@/components/ui/collapsible";
+import { ChevronDown } from "lucide-react";
 import { toast } from "sonner";
 
 type Props = {
@@ -13,25 +15,32 @@ type Props = {
   onSelectReserva: (id: string) => void;
 };
 
-type Bloque = "llegadas" | "salidas" | "en_casa";
+type Bloque = "llegadas" | "salidas" | "en_casa" | "llegadas_manana";
 
-const BLOQUE_META: Record<Bloque, { emoji: string; titulo: string; vacio: string; chaletText: string; ring: string; bg: string }> = {
+const BLOQUE_META: Record<Bloque, { emoji: string; titulo: string; vacio: string; chaletText: string; ring: string; bg: string; horaTipo: "checkIn" | "checkOut" }> = {
   llegadas: {
     emoji: "🟢", titulo: "LLEGADAS HOY", vacio: "Sin llegadas hoy",
     chaletText: "text-emerald-700", ring: "border-emerald-200", bg: "bg-emerald-50/60",
+    horaTipo: "checkIn",
   },
   salidas: {
     emoji: "🔴", titulo: "SALIDAS HOY", vacio: "Sin salidas hoy",
     chaletText: "text-rose-700", ring: "border-rose-200", bg: "bg-rose-50/60",
+    horaTipo: "checkOut",
   },
   en_casa: {
     emoji: "🟡", titulo: "EN CASA HOY", vacio: "Sin huéspedes en casa",
     chaletText: "text-amber-700", ring: "border-amber-200", bg: "bg-amber-50/60",
+    horaTipo: "checkIn",
+  },
+  llegadas_manana: {
+    emoji: "🔵", titulo: "LLEGADAS MAÑANA", vacio: "Sin llegadas mañana",
+    chaletText: "text-blue-700", ring: "border-blue-200", bg: "bg-blue-50/60",
+    horaTipo: "checkIn",
   },
 };
 
-function tituloHoy(iso: string): string {
-  // iso viene en YYYY-MM-DD calculado con TZ Bogotá; construimos Date estable
+function tituloFecha(iso: string): string {
   const [y, m, d] = iso.split("-").map(Number);
   const local = new Date(y, m - 1, d);
   const s = new Intl.DateTimeFormat("es-CO", {
@@ -52,7 +61,7 @@ function Ficha({
 }: { ficha: OperacionFicha; bloque: Bloque; rol: RolPanel; onSelect: (id: string) => void }) {
   const meta = BLOQUE_META[bloque];
   const horarios = getHorarios(ficha.chalet);
-  const hora = bloque === "salidas" ? horarios?.checkOut : horarios?.checkIn;
+  const hora = meta.horaTipo === "checkOut" ? horarios?.checkOut : horarios?.checkIn;
   const canWA = rol !== "lectura";
 
   return (
@@ -61,7 +70,7 @@ function Ficha({
         <p className={`font-semibold text-sm ${meta.chaletText}`}>{ficha.chalet}</p>
         {hora && (
           <span className="text-xs text-stone-600 tabular-nums whitespace-nowrap">
-            {bloque === "salidas" ? "Check-out" : "Check-in"} {hora}
+            {meta.horaTipo === "checkOut" ? "Check-out" : "Check-in"} {hora}
           </span>
         )}
       </div>
@@ -95,28 +104,31 @@ function Ficha({
   );
 }
 
-function Bloque({
-  bloque, fichas, rol, onSelect,
-}: { bloque: Bloque; fichas: OperacionFicha[]; rol: RolPanel; onSelect: (id: string) => void }) {
+function BloqueAccordion({
+  bloque, fichas, rol, onSelect, defaultOpen,
+}: { bloque: Bloque; fichas: OperacionFicha[]; rol: RolPanel; onSelect: (id: string) => void; defaultOpen: boolean }) {
   const meta = BLOQUE_META[bloque];
+  const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="rounded-2xl border border-stone-200 bg-white/70 p-3 sm:p-4">
-      <div className="flex items-center justify-between mb-3">
+    <Collapsible open={open} onOpenChange={setOpen} className="rounded-2xl border border-stone-200 bg-white/70">
+      <CollapsibleTrigger className="w-full flex items-center justify-between gap-2 p-3 sm:p-4 text-left hover:bg-stone-50/70 transition-colors rounded-2xl">
         <h3 className="text-sm font-semibold tracking-wide text-stone-800">
-          {meta.emoji} {meta.titulo}
+          {meta.emoji} {meta.titulo} <span className="text-stone-500 font-normal">({fichas.length})</span>
         </h3>
-        <span className="text-xs text-stone-500 tabular-nums">{fichas.length}</span>
-      </div>
-      {fichas.length === 0 ? (
-        <p className="text-sm text-stone-500 italic">{meta.vacio}</p>
-      ) : (
-        <div className="space-y-2">
-          {fichas.map(f => (
-            <Ficha key={f.id} ficha={f} bloque={bloque} rol={rol} onSelect={onSelect} />
-          ))}
-        </div>
-      )}
-    </div>
+        <ChevronDown className={`h-4 w-4 text-stone-500 transition-transform ${open ? "rotate-180" : ""}`} />
+      </CollapsibleTrigger>
+      <CollapsibleContent className="px-3 sm:px-4 pb-3 sm:pb-4">
+        {fichas.length === 0 ? (
+          <p className="text-sm text-stone-500 italic">{meta.vacio}</p>
+        ) : (
+          <div className="space-y-2">
+            {fichas.map(f => (
+              <Ficha key={f.id} ficha={f} bloque={bloque} rol={rol} onSelect={onSelect} />
+            ))}
+          </div>
+        )}
+      </CollapsibleContent>
+    </Collapsible>
   );
 }
 
@@ -133,8 +145,7 @@ export function OperacionesHoy({ accessToken, rol, refreshTick, onSelectReserva 
       .finally(() => setLoading(false));
   }, [accessToken, refreshTick, fetchOps]);
 
-  const hoyStr = ops ? tituloHoy(ops.hoy) : "";
-  const total = ops ? ops.llegadas.length + ops.salidas.length + ops.en_casa.length : 0;
+  const hoyStr = ops ? tituloFecha(ops.hoy) : "";
 
   return (
     <section className="rounded-2xl border border-amber-200/70 bg-gradient-to-br from-amber-50/70 to-white p-4 sm:p-5">
@@ -146,15 +157,12 @@ export function OperacionesHoy({ accessToken, rol, refreshTick, onSelectReserva 
 
       {loading ? (
         <p className="text-sm text-stone-500">Cargando operaciones del día…</p>
-      ) : !ops ? null : total === 0 ? (
-        <p className="text-sm text-stone-600 py-4 text-center">
-          ✨ Sin actividad hoy — disfruta la calma
-        </p>
-      ) : (
-        <div className="grid gap-3 md:grid-cols-3">
-          <Bloque bloque="llegadas" fichas={ops.llegadas} rol={rol} onSelect={onSelectReserva} />
-          <Bloque bloque="salidas" fichas={ops.salidas} rol={rol} onSelect={onSelectReserva} />
-          <Bloque bloque="en_casa" fichas={ops.en_casa} rol={rol} onSelect={onSelectReserva} />
+      ) : !ops ? null : (
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          <BloqueAccordion bloque="llegadas" fichas={ops.llegadas} rol={rol} onSelect={onSelectReserva} defaultOpen />
+          <BloqueAccordion bloque="salidas" fichas={ops.salidas} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
+          <BloqueAccordion bloque="en_casa" fichas={ops.en_casa} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
+          <BloqueAccordion bloque="llegadas_manana" fichas={ops.llegadas_manana} rol={rol} onSelect={onSelectReserva} defaultOpen={false} />
         </div>
       )}
     </section>

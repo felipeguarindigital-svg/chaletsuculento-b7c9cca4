@@ -178,6 +178,14 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
             <Label>Check-out</Label>
             <Input type="date" value={checkout} onChange={e => setCheckout(e.target.value)} />
           </div>
+          {conflicto && (
+            <div className="col-span-2 rounded-md border border-red-300 bg-red-50 p-2.5 text-sm text-red-800">
+              ⚠️ Este chalet ya tiene una reserva confirmada en estas fechas. Elige otras fechas o cambia el chalet.
+            </div>
+          )}
+          {checkingDispo && !conflicto && chalet && checkin && checkout && checkin < checkout && (
+            <div className="col-span-2 text-xs text-stone-500">Verificando disponibilidad…</div>
+          )}
           <div className="col-span-2">
             <Label>Nombre</Label>
             <Input value={nombre} onChange={e => setNombre(e.target.value)} />

@@ -103,7 +103,7 @@ export function Dashboard({ accessToken, rol }: Props) {
         </div>
 
         {canCreate && (
-          <Button onClick={() => setNewOpen(true)} className="gap-1.5">
+          <Button onClick={() => { setNewInitialCheckin(undefined); setNewOpen(true); }} className="gap-1.5">
             <Plus className="h-4 w-4" /> Nueva reserva manual
           </Button>
         )}

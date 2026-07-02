@@ -240,10 +240,11 @@ export const getAnalytics = createServerFn({ method: "POST" })
       nombreById.set(c.id, c.nombre);
       categoriaById.set(c.id, (c.categoria ?? "sin_categoria") as CategoriaAd);
     }
+    const PERS_KEY = "__personalizado__";
     const adCount = new Map<string, number>();
     const adTotal = new Map<string, number>();
     for (const a of adsAll ?? []) {
-      const k = a.adicional_id as string;
+      const k = a.adicional_id ? (a.adicional_id as string) : PERS_KEY;
       adCount.set(k, (adCount.get(k) ?? 0) + 1);
       adTotal.set(k, (adTotal.get(k) ?? 0) + Number(a.precio_cobrado || 0));
     }
@@ -254,21 +255,33 @@ export const getAnalytics = createServerFn({ method: "POST" })
     }
     const adicionales_top = Array.from(adCount.entries())
       .map(([id, cantidad]) => ({
-        nombre: nombreById.get(id) ?? "Servicio eliminado",
+        nombre: id === PERS_KEY
+          ? "Adicionales personalizados"
+          : (nombreById.get(id) ?? "Servicio eliminado"),
         cantidad,
         total_generado: adTotal.get(id) ?? 0,
       }))
       .sort((a, b) => b.total_generado - a.total_generado);
 
-    // Agrupar por categoría (los IDs sin catálogo caen en "sin_categoria")
+    // Agrupar por categoría (los IDs sin catálogo caen en "sin_categoria",
+    // los personalizados en "adicionales_personalizados" agrupados en 1 fila)
     const CAT_ORDER: CategoriaAd[] = [
       "experiencias_decoraciones",
       "alimentacion_adicionales",
+      "adicionales_personalizados",
       "sin_categoria",
     ];
     const grupos = new Map<CategoriaAd, { nombre: string; cantidad: number; total_generado: number }[]>();
     for (const cat of CAT_ORDER) grupos.set(cat, []);
     for (const [id, cantidad] of adCount.entries()) {
+      if (id === PERS_KEY) {
+        grupos.get("adicionales_personalizados")!.push({
+          nombre: "Adicionales personalizados",
+          cantidad,
+          total_generado: adTotal.get(id) ?? 0,
+        });
+        continue;
+      }
       const cat = categoriaById.get(id) ?? "sin_categoria";
       grupos.get(cat)!.push({
         nombre: nombreById.get(id) ?? "Servicio eliminado",
@@ -284,10 +297,11 @@ export const getAnalytics = createServerFn({ method: "POST" })
         const subtotal_generado = items.reduce((s, i) => s + i.total_generado, 0);
         return { categoria, subtotal_cantidad, subtotal_generado, items };
       })
-      // Ocultar "sin_categoria" cuando no aporta datos
-      .filter((g) => g.categoria !== "sin_categoria" || g.items.length > 0);
+      // Ocultar "sin_categoria" y "adicionales_personalizados" cuando no aportan datos
+      .filter((g) => (g.categoria !== "sin_categoria" && g.categoria !== "adicionales_personalizados") || g.items.length > 0);
     const adicionales_total_cantidad = adicionales_por_categoria.reduce((s, g) => s + g.subtotal_cantidad, 0);
     const adicionales_total_generado = adicionales_por_categoria.reduce((s, g) => s + g.subtotal_generado, 0);
+
 
     // ===== Tiempo promedio de confirmación =====
     let tiempo: AnalyticsPayload["tiempo_confirmacion_horas"] = {

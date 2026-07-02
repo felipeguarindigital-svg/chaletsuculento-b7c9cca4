@@ -85,7 +85,8 @@ function buildWhatsAppUrl(d: ReservaDetail, modo: "reservado" | "cotizacion"): s
     if (d.descuento_monto > 0) {
       lines.push(`🎁 Descuento: -${formatCOP(d.descuento_monto)}`);
     }
-    lines.push("", `Para confirmar tu reserva, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
+    lines.push(`✅ Total a pagar: ${formatCOP(Math.max(0, d.subtotal - d.descuento_monto))}`);
+    lines.push("", `Para confirmar tu reserva debes abonar el 50%, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
   } else {
     const ced = (d.cedula || "").trim();
     const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;

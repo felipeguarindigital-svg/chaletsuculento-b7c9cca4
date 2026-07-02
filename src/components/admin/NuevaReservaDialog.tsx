@@ -165,7 +165,8 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated,
       if (descuentoMonto > 0) {
         lines.push(`🎁 Descuento: -${formatCOP(descuentoMonto)}`);
       }
-      lines.push("", `Para confirmar tu reserva, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
+      lines.push(`✅ Total a pagar: ${formatCOP(Math.max(0, subtotal - descuentoMonto))}`);
+      lines.push("", `Para confirmar tu reserva debes abonar el 50%, por favor envíanos el soporte del pago. ¿Tienes alguna duda? Estamos aquí para ayudarte 🤍`);
     } else {
       const cedNorm = (cedula || "").trim();
       const titularLine = `👤 Titular: ${nombre.trim()}${cedNorm ? ` · CC ${cedNorm}` : ""}`;

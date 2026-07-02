@@ -616,9 +616,11 @@ export type OperacionFicha = {
 
 export type OperacionesHoy = {
   hoy: string; // YYYY-MM-DD (America/Bogota)
+  manana: string; // YYYY-MM-DD (America/Bogota)
   llegadas: OperacionFicha[];
   salidas: OperacionFicha[];
   en_casa: OperacionFicha[];
+  llegadas_manana: OperacionFicha[];
 };
 
 function hoyBogota(): string {

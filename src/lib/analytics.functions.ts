@@ -345,6 +345,8 @@ export const getAnalytics = createServerFn({ method: "POST" })
       total_reservas: resReservado.length,
       ocupacion_por_chalet,
       ingresos_por_mes,
+      ingresos_reservas_total,
+      ingresos_adicionales_total,
       reservas_por_dia_semana,
       origen_reservas,
       ticket_promedio,

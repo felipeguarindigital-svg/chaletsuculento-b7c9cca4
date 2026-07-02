@@ -312,10 +312,10 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
 
         <div className="flex flex-wrap justify-end gap-2 mt-3">
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={() => onSubmit(false)} disabled={saving}>{saving ? "Creando…" : "Crear reserva"}</Button>
+          <Button onClick={() => onSubmit(false)} disabled={saving || (conflicto && estado === "reservado")}>{saving ? "Creando…" : "Crear reserva"}</Button>
           <Button
             onClick={() => onSubmit(true)}
-            disabled={saving}
+            disabled={saving || (conflicto && estado === "reservado")}
             className="bg-[#25D366] hover:bg-[#1ebe5d] text-white"
           >
             Enviar cotización por WhatsApp

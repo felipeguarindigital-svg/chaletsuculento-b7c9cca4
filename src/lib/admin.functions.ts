@@ -700,8 +700,9 @@ export const getOperacionesHoy = createServerFn({ method: "POST" })
     const llegadas = fichas.filter(f => f.fecha === hoy);
     const salidas = fichas.filter(f => f.fecha_checkout === hoy);
     const en_casa = fichas.filter(f => f.fecha < hoy && (f.fecha_checkout ?? "") > hoy);
+    const llegadas_manana = fichas.filter(f => f.fecha === manana);
 
-    return { hoy, llegadas, salidas, en_casa };
+    return { hoy, manana, llegadas, salidas, en_casa, llegadas_manana };
   });
 
 // Re-export del catálogo (lo usa el formulario manual también).

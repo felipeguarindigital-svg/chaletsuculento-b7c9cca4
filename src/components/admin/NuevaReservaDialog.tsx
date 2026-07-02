@@ -57,9 +57,10 @@ type Props = {
   onOpenChange: (o: boolean) => void;
   accessToken: string;
   onCreated: () => void;
+  initialCheckin?: string;
 };
 
-export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated }: Props) {
+export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated, initialCheckin }: Props) {
   const fetchServicios = useServerFn(listServiciosAdicionales);
   const submit = useServerFn(crearReservaManual);
   const checkDispo = useServerFn(checkDisponibilidadChalet);

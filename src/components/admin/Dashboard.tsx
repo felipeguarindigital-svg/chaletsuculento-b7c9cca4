@@ -8,6 +8,7 @@ import {
 import { SummaryCards } from "./SummaryCards";
 import { CalendarView } from "./CalendarView";
 import { ListView } from "./ListView";
+import { OperacionesHoy } from "./OperacionesHoy";
 import { ReservaDetailDrawer } from "./ReservaDetailDrawer";
 import { NuevaReservaDialog } from "./NuevaReservaDialog";
 import { CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
@@ -65,6 +66,13 @@ export function Dashboard({ accessToken, rol }: Props) {
 
   return (
     <div className="space-y-6">
+      <OperacionesHoy
+        accessToken={accessToken}
+        rol={rol}
+        refreshTick={tick}
+        onSelectReserva={(id) => { setSelectedId(id); setDrawerOpen(true); }}
+      />
+
       {rol === "lectura" ? (
         <div className="rounded-lg border border-dashed border-stone-300 bg-white/60 p-4 text-sm text-stone-500">
           Acceso restringido a tu rol

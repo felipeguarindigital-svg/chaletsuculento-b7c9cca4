@@ -384,6 +384,7 @@ export const updateReserva = createServerFn({ method: "POST" })
     id: string;
     patch: ReservaPatch;
     adicionales?: AdicionalInput[];
+    acompanantes?: AcompananteInput[];
   }) => d)
   .handler(async ({ data }) => {
 

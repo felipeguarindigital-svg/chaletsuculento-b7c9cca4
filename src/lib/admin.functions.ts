@@ -396,12 +396,18 @@ export const updateReserva = createServerFn({ method: "POST" })
     if (data.adicionales) {
       await supabaseExternalAdmin.from("reserva_adicionales").delete().eq("reserva_id", data.id);
       if (data.adicionales.length > 0) {
-        const { error: e2 } = await supabaseExternalAdmin
-          .from("reserva_adicionales")
-          .insert(data.adicionales.map((a) => ({ ...a, reserva_id: data.id })));
+        const rows = data.adicionales.map((a) => ({
+          reserva_id: data.id,
+          adicional_id: a.adicional_id ?? null,
+          precio_cobrado: a.precio_cobrado,
+          nombre_personalizado: a.nombre_personalizado ?? null,
+          descripcion_personalizada: a.descripcion_personalizada ?? null,
+        }));
+        const { error: e2 } = await supabaseExternalAdmin.from("reserva_adicionales").insert(rows);
         if (e2) throw new Error(e2.message);
       }
     }
+
     return { ok: true };
   });
 

@@ -219,12 +219,17 @@ export function ReservaDetailDrawer({ open, onOpenChange, reservaId, accessToken
       fecha: data.fecha,
       fecha_checkout: data.fecha_checkout ?? "",
       nombre: data.nombre,
+      cedula: data.cedula ?? "",
       whatsapp: data.whatsapp,
       estado: data.estado,
       selAdicionales: new Set(catalogoIds),
       personalizados: pers,
+      acompanantes: (data.acompanantes ?? []).map((a, i) => ({
+        key: `ac-${i}-${a.id}`, nombre: a.nombre, cedula: a.cedula ?? "",
+      })),
       descuentoTipo: (data.descuento_tipo ?? "porcentaje") as DescuentoTipo,
       descuentoValor: Number(data.descuento_valor ?? 0),
+      abono: Number(data.abono ?? 0),
     });
     setEditMode(true);
   }

@@ -35,6 +35,7 @@ export function Dashboard({ accessToken, rol }: Props) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [dayOpen, setDayOpen] = useState<string | null>(null);
   const [newOpen, setNewOpen] = useState(false);
+  const [newInitialCheckin, setNewInitialCheckin] = useState<string | undefined>(undefined);
   const [tick, setTick] = useState(0);
 
   const canCreate = rol === "administrador" || rol === "operador";
@@ -102,7 +103,7 @@ export function Dashboard({ accessToken, rol }: Props) {
         </div>
 
         {canCreate && (
-          <Button onClick={() => setNewOpen(true)} className="gap-1.5">
+          <Button onClick={() => { setNewInitialCheckin(undefined); setNewOpen(true); }} className="gap-1.5">
             <Plus className="h-4 w-4" /> Nueva reserva manual
           </Button>
         )}
@@ -133,12 +134,26 @@ export function Dashboard({ accessToken, rol }: Props) {
         onOpenChange={setNewOpen}
         accessToken={accessToken}
         onCreated={refresh}
+        initialCheckin={newInitialCheckin}
       />
 
       {/* Panel lateral con reservas del día (vista calendario) */}
       <Sheet open={!!dayOpen} onOpenChange={(o) => !o && setDayOpen(null)}>
         <SheetContent className="w-full sm:max-w-md overflow-y-auto">
           <SheetHeader><SheetTitle>Reservas del {dayOpen}</SheetTitle></SheetHeader>
+          {canCreate && dayOpen && (
+            <Button
+              size="sm"
+              className="mt-4 gap-1.5"
+              onClick={() => {
+                setNewInitialCheckin(dayOpen);
+                setDayOpen(null);
+                setNewOpen(true);
+              }}
+            >
+              <Plus className="h-4 w-4" /> Nueva reserva manual
+            </Button>
+          )}
           <div className="mt-4 space-y-2">
             {reservasDelDia.length === 0 ? (
               <p className="text-sm text-stone-500">Sin reservas activas ese día.</p>

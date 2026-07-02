@@ -258,13 +258,28 @@ export function AnalyticsView({ accessToken }: Props) {
         <ChartCard title="Ingresos por mes">
           {sinDatosIngresos ? <EmptyMsg /> : (
             <ResponsiveContainer width="100%" height={260}>
-              <LineChart data={ingresosMesFmt}>
+              <BarChart data={ingresosMesFmt}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#e7e5e4" />
                 <XAxis dataKey="mesLabel" tick={{ fontSize: 12 }} />
                 <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
-                <Tooltip formatter={(v: any) => [formatCOP(Number(v)), "Ingresos"]} />
-                <Line type="monotone" dataKey="ingresos" stroke="#d97706" strokeWidth={2} dot={{ r: 4 }} />
-              </LineChart>
+                <Tooltip
+                  content={({ active, payload, label }: any) => {
+                    if (!active || !payload || !payload.length) return null;
+                    const row = payload[0].payload as { reservas: number; adicionales: number; total: number };
+                    return (
+                      <div className="rounded-md border bg-white p-2 shadow-sm text-xs">
+                        <p className="font-medium text-stone-800 mb-1">{label}</p>
+                        <p className="text-stone-600">Reservas: <span className="tabular-nums font-medium text-stone-900">{formatCOP(row.reservas)}</span></p>
+                        <p className="text-stone-600">Adicionales: <span className="tabular-nums font-medium text-stone-900">{formatCOP(row.adicionales)}</span></p>
+                        <p className="text-stone-800 border-t mt-1 pt-1">Total: <span className="tabular-nums font-semibold">{formatCOP(row.total)}</span></p>
+                      </div>
+                    );
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="reservas" name="Reservas" stackId="ing" fill="#15803d" radius={[0, 0, 0, 0]} />
+                <Bar dataKey="adicionales" name="Adicionales" stackId="ing" fill="#f59e0b" radius={[6, 6, 0, 0]} />
+              </BarChart>
             </ResponsiveContainer>
           )}
         </ChartCard>

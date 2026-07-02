@@ -118,17 +118,22 @@ type PersonalizadoRow = {
   precio: number;
 };
 
+type AcompananteRow = { key: string; nombre: string; cedula: string };
+
 type EditState = {
   chalet: ChaletName;
   fecha: string;
   fecha_checkout: string;
   nombre: string;
+  cedula: string;
   whatsapp: string;
   estado: EstadoReserva;
   selAdicionales: Set<string>;
   personalizados: PersonalizadoRow[];
+  acompanantes: AcompananteRow[];
   descuentoTipo: DescuentoTipo;
   descuentoValor: number;
+  abono: number;
 };
 
 

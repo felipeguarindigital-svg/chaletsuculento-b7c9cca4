@@ -119,6 +119,9 @@ export function NuevaReservaDialog({ open, onOpenChange, accessToken, onCreated 
   const subtotal = subNoches + subAd;
   const descuentoMonto = computeDescuento(subtotal, descuentoTipo, descuentoValor);
   const total = subtotal - descuentoMonto;
+  const abonoNorm = Math.max(0, Math.min(abono || 0, total));
+  const saldoPendiente = Math.max(0, total - abonoNorm);
+  const acompanantesValidos = acompanantes.filter(a => a.nombre.trim());
 
   const tipoPrincipal = desglose.length > 0
     ? desglose.reduce((b, n) => PRECIO_POR_TIPO[n.tipo] > PRECIO_POR_TIPO[b.tipo] ? n : b).tipo

@@ -53,7 +53,7 @@ import { getHorarios } from "@/lib/horarios";
 import { CHALETS, CHALET_COLOR, ESTADO_BADGE } from "./chalet-styles";
 import { toast } from "sonner";
 
-function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
+function buildWhatsAppUrl(d: ReservaDetail, modo: "reservado" | "cotizacion"): string {
   let phone = (d.whatsapp || "").replace(/\D/g, "");
   if (!phone.startsWith("57")) phone = "57" + phone.replace(/^0+/, "");
   const firstName = (d.nombre || "").trim().split(/\s+/)[0] || "";
@@ -64,18 +64,20 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
     : null;
   const ced = (d.cedula || "").trim();
   const titularLine = `👤 Titular: ${d.nombre}${ced ? ` · CC ${ced}` : ""}`;
-  const lines: string[] = [
-    `¡Hola ${firstName}! 🎉`,
-    ``,
-    `Tu reserva en Chalet Suculento ha sido confirmada ✅`,
-    ``,
+  const lines: string[] = [];
+  if (modo === "reservado") {
+    lines.push(`¡Hola ${firstName}! 🎉`, ``, `Tu reserva en Chalet Suculento ha sido confirmada ✅`, ``);
+  } else {
+    lines.push(`¡Hola ${firstName}! 👋`, ``, `Aquí tienes el detalle de tu cotización en Chalet Suculento:`, ``);
+  }
+  lines.push(
     `📋 Código: ${d.codigo}`,
     `🏡 Chalet: ${d.chalet}`,
     checkInLine,
     ...(checkOutLine ? [checkOutLine] : []),
     `🌙 Noches: ${d.noches ?? "—"}`,
     titularLine,
-  ];
+  );
   if ((d.acompanantes?.length ?? 0) > 0) {
     lines.push(`👥 Acompañantes: ${d.acompanantes.length}`);
   }
@@ -98,7 +100,9 @@ function buildWhatsAppConfirmUrl(d: ReservaDetail): string {
   } else {
     lines.push(`✅ Total a pagar: ${formatCOP(d.total)}`);
   }
-  lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
+  if (modo === "reservado") {
+    lines.push("", "¡Te esperamos para una experiencia inolvidable! 🌲");
+  }
   return `https://wa.me/${phone}?text=${encodeURIComponent(lines.join("\n"))}`;
 }
 

@@ -8,7 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Dashboard } from "@/components/admin/Dashboard";
 import { UsuariosPanelView } from "@/components/admin/UsuariosPanelView";
 import { AnalyticsView } from "@/components/admin/AnalyticsView";
-import { CalendarDays, Users, BarChart3 } from "lucide-react";
+import { CambiarPasswordDialog } from "@/components/admin/CambiarPasswordDialog";
+import { CalendarDays, Users, BarChart3, KeyRound } from "lucide-react";
 import { Toaster, toast } from "sonner";
 
 type PanelUser = {
